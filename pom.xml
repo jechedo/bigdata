@@ -8,7 +8,6 @@
     <artifactId>bigdata-parent_2.10</artifactId>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>base/spark</module>
         <module>base/hbase</module>
         <module>base/elasticsearch</module>
         <module>base/kafka</module>
@@ -17,6 +16,7 @@
         <module>base/common</module>
         <module>base/resources</module>
         <module>base/hive</module>
+        <module>base/spark</module>
     </modules>
 
     <packaging>pom</packaging>
