@@ -1,6 +1,6 @@
 package cn.skyeye.common.event.disruptor.worker;
 
-import com.bh.d406.bigdata.common.event.disruptor.event.DisruptorEvent;
+import cn.skyeye.common.event.disruptor.event.DisruptorEvent;
 import com.lmax.disruptor.WorkHandler;
 import org.apache.log4j.Logger;
 
