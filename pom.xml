@@ -18,6 +18,7 @@
         <module>base/hive</module>
         <module>base/spark</module>
         <module>interface/ibase</module>
+        <module>project/aptrules</module>
     </modules>
 
     <packaging>pom</packaging>
