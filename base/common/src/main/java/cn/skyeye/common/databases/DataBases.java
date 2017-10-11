@@ -38,6 +38,11 @@ public class DataBases {
         this.metaData = conn.getMetaData();
     }
 
+    private DataBases(Connection conn) throws Exception {
+        this.conn = conn;
+        this.metaData = conn.getMetaData();
+    }
+
     /**
      * INSERT INTO tb_big_data (count, create_time, random) VALUES
      * @param tableName
@@ -140,6 +145,17 @@ public class DataBases {
         this.conn = DriverManager.getConnection(url, entity.getUser(), entity.getPwd());
     }
 
+
+    public static DataBases get(Connection conn) throws Exception {
+        if(dataBases == null){
+            synchronized (DataBases.class){
+                if(dataBases == null){
+                    dataBases = new DataBases(conn);
+                }
+            }
+        }
+        return dataBases;
+    }
 
     public static DataBases get(String url, String driver, String user, String password) throws Exception {
         if(dataBases == null){
