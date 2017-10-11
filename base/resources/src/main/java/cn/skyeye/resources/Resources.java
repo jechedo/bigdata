@@ -87,7 +87,7 @@ public class Resources extends ConfigDetail{
     }
     public enum ReadLevel{EXTERNAL, INTERNAL, EXTERNAL_INTERNAL, INTERNAL_EXTERNAL}
 
-    private final String EXTERNAL_RESOURCE_DIR = "/usr/conf";
+    private final String EXTERNAL_RESOURCE_DIR = "/opt/work/configs";
 
     private Env env;
     private ReadLevel level;
