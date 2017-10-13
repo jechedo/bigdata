@@ -1,20 +1,24 @@
 package cn.skyeye.aptrules.ioc2rules;
 
+import cn.skyeye.aptrules.ARConf;
+import cn.skyeye.aptrules.ARContext;
 import cn.skyeye.aptrules.ioc2rules.extracters.Extracter;
 import cn.skyeye.common.databases.DataBases;
-import cn.skyeye.common.databases.SQLites;
 import cn.skyeye.common.hash.Md5;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 import org.apache.log4j.Logger;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Description:
- *
+ *     iocs表的相关操作
  * @author LiXiaoCong
  * @version 2017/10/11 19:03
  */
@@ -22,21 +26,20 @@ public class IoCer {
 
     private final Logger logger = Logger.getLogger(IoCer.class);
 
-    private String table = "rules";
+    private String table = "iocs";
     private String activeTimeField = "active_change_time";
 
-    private String iocDB;
-    private Connection conn;
     private List<String> columns;
 
-    public IoCer(String iocDB) throws Exception {
-        this.iocDB = iocDB;
-        this.conn = SQLites.getConn(iocDB);
+    private ARConf arConf;
+
+    public IoCer() {
+        this.arConf = ARContext.get().getArConf();
     }
 
     public int iocCount() throws Exception {
 
-        Statement statement = getConn().createStatement();
+        Statement statement = arConf.getConn().createStatement();
         ResultSet resultSet = statement.executeQuery(String.format("select count(*) count from %s", table));
         int count = resultSet.getInt("count");
 
@@ -56,7 +59,7 @@ public class IoCer {
 
         String sql = String.format("select count(*) count from %s where %s >= ? and %s <= ?",
                 table, activeTimeField, activeTimeField);
-        PreparedStatement preparedStatement = getConn().prepareStatement(sql);
+        PreparedStatement preparedStatement = arConf.getConn().prepareStatement(sql);
         preparedStatement.setObject(1, lower);
         preparedStatement.setObject(2, upper);
 
@@ -74,7 +77,7 @@ public class IoCer {
      */
     public void listIocs(Extracter extracter) throws Exception {
         String sql = String.format("select * from %s order by id limit 1", table);
-        Statement statement = getConn().createStatement();
+        Statement statement = arConf.getConn().createStatement();
         ResultSet resultSet = statement.executeQuery(sql);
 
         if(columns == null || columns.isEmpty()){
@@ -128,21 +131,8 @@ public class IoCer {
     }
 
 
-    public String getIocDB() {
-        return iocDB;
-    }
-
     public String getTable() {
         return table;
-    }
-
-    private synchronized Connection getConn() throws Exception {
-        if(conn == null || !conn.isValid(1)){
-            logger.warn("数据连接失效，重新连接...");
-            conn = SQLites.getConn(iocDB);
-            logger.warn("数据重新连接成功。");
-        }
-        return conn;
     }
 
     public static void main(String[] args) throws Exception {

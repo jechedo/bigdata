@@ -1,7 +1,6 @@
 package cn.skyeye.aptrules.ioc2rules;
 
 import cn.skyeye.aptrules.ARContext;
-import cn.skyeye.common.SysEnvs;
 import org.apache.log4j.Logger;
 import redis.clients.jedis.Jedis;
 
@@ -24,21 +23,16 @@ public class Ioc2RuleHandler {
     private long stime = 0L;
     private long etime;
 
-    private ARContext arContext;
     private IoCer ioCs;
 
-    public Ioc2RuleHandler(ARContext arContext) throws Exception{
-        this.arContext = arContext;
-        String defaultDBPath = String.format("%s/skyeye.db", SysEnvs.getJarFileDirByClass(Ioc2RuleHandler.class));
-        String dbPath = arContext.getArConf().getConfigItemValue("ar.db.path", defaultDBPath);
-        this.ioCs = new IoCer(dbPath);
+    public Ioc2RuleHandler(){
+        this.ioCs = new IoCer();
     }
-
 
     public void execute(){
         Jedis jedis = null;
         try{
-            jedis = arContext.getJedis();
+            jedis = ARContext.get().getJedis();
             initActiveTimeRange(jedis);
 
             if(isModified(jedis)){
