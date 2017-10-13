@@ -1,6 +1,8 @@
 package cn.skyeye.aptrules.ioc2rules;
 
 import cn.skyeye.aptrules.ARContext;
+import cn.skyeye.aptrules.ioc2rules.extracters.Ioc2RulesExtracter;
+import com.google.common.collect.HashMultimap;
 import org.apache.log4j.Logger;
 import redis.clients.jedis.Jedis;
 
@@ -23,10 +25,12 @@ public class Ioc2RuleHandler {
     private long stime = 0L;
     private long etime;
 
-    private IoCer ioCs;
+    private IoCer ioCer;
+    private Ruler ruler;
 
     public Ioc2RuleHandler(){
-        this.ioCs = new IoCer();
+        this.ioCer = new IoCer();
+        this.ruler = new Ruler();
     }
 
     public void execute(){
@@ -48,7 +52,17 @@ public class Ioc2RuleHandler {
         }
     }
 
-    private void executeIoc2Rule(){
+
+    /**
+     * 读取所有的ioc并转换成rule
+     * @throws Exception
+     */
+    private void executeIoc2Rule() throws Exception {
+        Ioc2RulesExtracter extracter = new Ioc2RulesExtracter();
+        ioCer.listIocs(extracter);
+
+        HashMultimap<String, Rule> rules = extracter.getRules();
+
 
     }
 
@@ -79,7 +93,7 @@ public class Ioc2RuleHandler {
         //查询sqlite 获取当前ioc的总量 进行比较
         int dbIocCount = -1;
         try {
-            dbIocCount = ioCs.iocCount();
+            dbIocCount = ioCer.iocCount();
         } catch (Exception e) {
            logger.error("获取ioc的总数失败。", e);
         }
@@ -87,7 +101,7 @@ public class Ioc2RuleHandler {
         if(dbIocCount > -1){
             jedis.set(last_ioccount_key, String.valueOf(dbIocCount));
             try {
-                return (dbIocCount != redisIocCount || ioCs.iocActiveBetweenCount(stime, etime) > 0);
+                return (dbIocCount != redisIocCount || ioCer.iocActiveBetweenCount(stime, etime) > 0);
             } catch (Exception e) {
                 logger.error(String.format("获取时间范围[%s, %s]内的有效ioc失败。", stime, etime), e);
             }

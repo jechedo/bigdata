@@ -21,4 +21,11 @@ public class Ruler {
         this.arConf = ARContext.get().getArConf();
     }
 
+    public void listRules(){
+
+    }
+
+    public void storeRules(){
+
+    }
 }

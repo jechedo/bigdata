@@ -81,7 +81,6 @@ public class ARConf extends ConfigDetail{
         return conn;
     }
 
-
     public long getCustomRuleIdStart() {
         return customRuleIdStart;
     }
