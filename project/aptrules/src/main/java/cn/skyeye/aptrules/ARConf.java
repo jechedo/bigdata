@@ -2,7 +2,10 @@ package cn.skyeye.aptrules;
 
 import cn.skyeye.resources.ConfigDetail;
 import cn.skyeye.resources.Resources;
+import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
+
+import java.util.Map;
 
 /**
  * Description:
@@ -15,6 +18,11 @@ public class ARConf extends ConfigDetail{
 
     private final Logger logger = Logger.getLogger(ARConf.class);
 
+    private long customRuleIdStart;
+    private long customRuleIdEnd;
+
+    private Map<String, Integer> tidMap;
+
     ARConf(){
 
         System.getProperties().forEach((keyObj, valueObj) -> {
@@ -25,7 +33,6 @@ public class ARConf extends ConfigDetail{
             }
         });
 
-
         try {
             Resources resources = new Resources(Resources.Env.NONE, _CONFIG);
             this.configMap.putAll(resources.getConfigMap());
@@ -34,6 +41,20 @@ public class ARConf extends ConfigDetail{
             e.printStackTrace();
             System.exit(-1);
         }
+
+        this.customRuleIdStart = 0x2000000000000001L;
+        this.customRuleIdEnd = 0x20FFFFFFFFFFFFFFL;
+
+        this.tidMap = Maps.newHashMap();
+        this.tidMap.put("自定义情报告警", 0);
+
     }
 
+    public long getCustomRuleIdStart() {
+        return customRuleIdStart;
+    }
+
+    public long getCustomRuleIdEnd() {
+        return customRuleIdEnd;
+    }
 }

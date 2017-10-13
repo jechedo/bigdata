@@ -25,13 +25,13 @@ public class Ioc2RuleHandler {
     private long etime;
 
     private ARContext arContext;
-    private IOCer ioCs;
+    private IoCer ioCs;
 
     public Ioc2RuleHandler(ARContext arContext) throws Exception{
         this.arContext = arContext;
         String defaultDBPath = String.format("%s/skyeye.db", SysEnvs.getJarFileDirByClass(Ioc2RuleHandler.class));
         String dbPath = arContext.getArConf().getConfigItemValue("ar.db.path", defaultDBPath);
-        this.ioCs = new IOCer(dbPath);
+        this.ioCs = new IoCer(dbPath);
     }
 
 
