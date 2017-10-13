@@ -193,7 +193,7 @@ public class Ioc2RulesExtracter extends Extracter {
     }
 
     private void addNewRule(Rule ruleModel, String ruleKey, String otherRule){
-        Rule rule = new Rule(ruleModel);
+        Rule rule = ruleModel; //new Rule(ruleModel); 一条ioc只生成一条rule，因此不需要克隆
         rule.setRule_id(ruleId.getAndIncrement());
         rule.setRule(ruleKey);
         rule.setOther_rule(otherRule);
@@ -338,5 +338,23 @@ public class Ioc2RulesExtracter extends Extracter {
 
     public int getEffectIocCount() {
         return effectIocCount;
+    }
+
+    public static void testSwitch(String name){
+        switch (name){
+            case "hello":
+                String msg = String.format("hello hello!");
+                System.out.println(msg);
+                break;
+            case "jechedo":
+                msg = String.format("hello jechedo!");
+                System.out.println(msg);
+        }
+    }
+
+    public static void main(String[] args) {
+
+        testSwitch("hello");
+
     }
 }
