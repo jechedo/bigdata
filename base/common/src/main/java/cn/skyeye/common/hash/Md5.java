@@ -4,11 +4,15 @@ import java.security.NoSuchAlgorithmException;
 
 public class Md5 {
 	
-	public static String  Md5_32( String sourceStr ) throws NoSuchAlgorithmException{
+	public static String  Md5_32( String sourceStr ){
 		
 		StringBuffer buf = new StringBuffer();
-	  
-        MessageDigest md = MessageDigest.getInstance("MD5");
+
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {}
+
         md.update(sourceStr.getBytes());
         byte b[] = md.digest();
         int i;
