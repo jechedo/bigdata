@@ -339,22 +339,4 @@ public class Ioc2RulesExtracter extends Extracter {
     public int getEffectIocCount() {
         return effectIocCount;
     }
-
-    public static void testSwitch(String name){
-        switch (name){
-            case "hello":
-                String msg = String.format("hello hello!");
-                System.out.println(msg);
-                break;
-            case "jechedo":
-                msg = String.format("hello jechedo!");
-                System.out.println(msg);
-        }
-    }
-
-    public static void main(String[] args) {
-
-        testSwitch("hello");
-
-    }
 }
