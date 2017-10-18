@@ -63,26 +63,19 @@ public class VagueRule extends SimpleRule{
         }
     }
 
-    @Override
-    public Set<String> matches(Map<String, Object> record) {
-        Set<String> matches = super.matches(record);
+    public boolean matches(Map<String, Object> record) {
+        Set<String> matches = simpleMatches(record);
 
         if(matches != null) {
             Set<String> fields = Sets.newHashSet(vagues.keySet());
             fields.removeAll(matches);
-
-            Set<String> c = vagueMatches(record, fields);
-            if(c == null){
-                return null;
-            }else{
-                matches.addAll(c);
-            }
+            return vagueMatches(record, fields);
         }
 
-        return matches;
+        return false;
     }
 
-    private Set<String> vagueMatches(Map<String, Object> record,  Set<String> fields){
+    private boolean vagueMatches(Map<String, Object> record,  Set<String> fields){
 
         Iterator<String> iterator = fields.iterator();
         String field;
@@ -97,7 +90,7 @@ public class VagueRule extends SimpleRule{
             valueObj = record.get(field);
             matchTimes = 0;
 
-            if(valueObj == null) return null;
+            if(valueObj == null) return false;
 
             vagueValss = vagues.get(field);
             for(List<String> vagueVals : vagueValss){
@@ -122,10 +115,10 @@ public class VagueRule extends SimpleRule{
 
             //判断字段是否最终匹配成功
             if(matchTimes == vagueValss.size()){
-                return null;
+                return false;
             }
         }
 
-        return fields;
+        return true;
     }
 }

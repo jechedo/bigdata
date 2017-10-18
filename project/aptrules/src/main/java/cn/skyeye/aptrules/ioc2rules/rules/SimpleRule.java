@@ -16,7 +16,7 @@ import java.util.Set;
  * @author LiXiaoCong
  * @version 2017/10/18 10:40
  */
-public class SimpleRule extends Rule{
+class SimpleRule extends Rule{
 
     protected ARConf arConf;
 
@@ -64,7 +64,7 @@ public class SimpleRule extends Rule{
      * @param record
      * @return
      */
-    public Set<String> matches(Map<String, Object> record){
+    protected Set<String> simpleMatches(Map<String, Object> record){
 
         Set<String> keySet = Sets.newHashSet(record.keySet());
         Iterator<String> iterator = keySet.iterator();
