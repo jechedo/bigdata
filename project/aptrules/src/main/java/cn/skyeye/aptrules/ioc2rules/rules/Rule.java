@@ -1,5 +1,7 @@
 package cn.skyeye.aptrules.ioc2rules.rules;
 
+import org.apache.log4j.Logger;
+
 /**
  * Description:
  *   告警规则
@@ -7,6 +9,8 @@ package cn.skyeye.aptrules.ioc2rules.rules;
  * @version 2017/10/13 12:04
  */
 public class Rule {
+
+    protected final Logger logger = Logger.getLogger(Rule.class);
 
     protected int id;
     protected long rule_id;

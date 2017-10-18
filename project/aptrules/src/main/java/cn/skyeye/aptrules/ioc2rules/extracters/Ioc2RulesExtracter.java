@@ -1,8 +1,10 @@
 package cn.skyeye.aptrules.ioc2rules.extracters;
 
+import cn.skyeye.aptrules.ARConf;
 import cn.skyeye.aptrules.ARContext;
 import cn.skyeye.aptrules.ARUtils;
 import cn.skyeye.aptrules.ioc2rules.rules.Rule;
+import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.common.hash.Md5;
 import cn.skyeye.common.json.Jsons;
 import com.google.common.collect.HashMultimap;
@@ -28,6 +30,7 @@ public class Ioc2RulesExtracter extends Extracter {
 
     private final Logger logger = Logger.getLogger(Ioc2RulesExtracter.class);
 
+    private ARConf arConf;
     private HashMultimap<String, Rule> rules;
     private String ruleType;
     private int tid;
@@ -44,6 +47,7 @@ public class Ioc2RulesExtracter extends Extracter {
     }
 
     public Ioc2RulesExtracter(String ruleType, int tid, long ruleIdBase){
+        this.arConf = ARContext.get().getArConf();
         this.rules = HashMultimap.create();
         this.iocCount = 0;
         this.effectIocCount = 0;
@@ -72,6 +76,36 @@ public class Ioc2RulesExtracter extends Extracter {
             createRules(ioc, type, descKey);
 
             ioc.put("effect", 1);
+        }
+    }
+
+
+    private void createRules2(Map<String, Object> ioc, String type, String descKey){
+
+        VagueRule ruleModel = createRuleModel(ioc, type, descKey);
+
+        String[] typeFields = type.split(arConf.getIocTypeSeparator());
+        String typeDataField;
+        Object typeDataObj;
+        String typeData;
+        for(String typeField: typeFields){
+            typeDataField = arConf.getIocTypeDataField(typeField);
+            typeDataObj = ioc.get(typeDataField);
+            if(typeDataObj != null){
+                if(arConf.isIocVagueField(typeField)){
+                    typeData = String.valueOf(typeDataObj);
+                    if(typeData.contains("*")){
+                        ruleModel.addVagueRuleInfo(typeField, typeDataObj);
+                    }else {
+                        ruleModel.addSimpleRuleInfo(typeField, typeDataObj);
+                    }
+                }else {
+                    ruleModel.addSimpleRuleInfo(typeField, typeDataObj);
+                }
+            }else{
+                logger.error(String.format("ioc中type字段%s对应的数据字段%s为空, ioc为：\n %s", typeField, typeDataField, ioc));
+                return;
+            }
         }
     }
 
@@ -200,9 +234,9 @@ public class Ioc2RulesExtracter extends Extracter {
         rules.put(ruleKey, rule);
     }
 
-    private Rule createRuleModel(Map<String, Object> ioc, String type, String descKey){
+    private VagueRule createRuleModel(Map<String, Object> ioc, String type, String descKey){
 
-        Rule model = new Rule();
+        VagueRule model = new VagueRule(arConf);
         model.setIoc_type(type);
         model.setEffect_ioc_count(1);
         model.setState("green");

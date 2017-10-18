@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 
 import java.sql.Connection;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Description:
@@ -24,10 +25,17 @@ public class ARConf extends ConfigDetail{
     private long customRuleIdStart;
     private long customRuleIdEnd;
 
+    private Map<String, Integer> tidMap;
+
+    //sqlite配置相关
     private String dbPath;
     private Connection conn;
 
-    private Map<String, Integer> tidMap;
+    //ioc配置相关
+    private Set<String> iocVagueFields;
+    private Set<String> iocTypeMoreValueFields;
+    private String iocTypeSeparator;
+    private Map<String, String> iocTypeDataFieldMap;
 
     ARConf(){
         //读取系统中配置
@@ -55,8 +63,15 @@ public class ARConf extends ConfigDetail{
         this.tidMap.put("自定义情报告警", 0);
 
         initSQLiteConn();
+        initIocConfiguration();
 
+    }
 
+    private void initIocConfiguration() {
+        this.iocVagueFields = getConfigItemSet("ar.ioc.vague.fields");
+        this.iocTypeMoreValueFields = getConfigItemSet("ar.ioc.type.more.velue.fields");
+        this.iocTypeSeparator = getConfigItemValue("ar.ioc.type.separator", ":");
+        this.iocTypeDataFieldMap = getConfigItemMap("ar.ioc.type.data.field", ":");
     }
 
     private void initSQLiteConn() {
@@ -88,4 +103,24 @@ public class ARConf extends ConfigDetail{
     public long getCustomRuleIdEnd() {
         return customRuleIdEnd;
     }
+
+    public boolean isIocVagueField(String field){
+        return this.iocVagueFields.contains(field);
+    }
+
+    public boolean isIocTypeMoreValueFields(String field){
+        return this.iocTypeMoreValueFields.contains(field);
+    }
+
+    public String getIocTypeSeparator() {
+        return iocTypeSeparator;
+    }
+
+    public String getIocTypeDataField(String iocTypeField){
+        String field = this.iocTypeDataFieldMap.get(iocTypeField);
+        if(field == null) field = iocTypeField;
+        return field;
+    }
+
+
 }
