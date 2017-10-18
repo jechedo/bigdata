@@ -15,7 +15,7 @@ public class ARUtils {
         return Joiner.on(":").join(args);
     }
 
-    public static String concat(String separator, Object ... args){
+    public static String concatWithSeparator(String separator, Object ... args){
         return Joiner.on(",").join(args);
     }
 }

@@ -123,7 +123,7 @@ public class Ioc2RulesExtracter extends Extracter {
                 for(int i = 0; i < uris.length; i++){
                     roleKeys[1 + i] = ARUtils.concat("uri", uris[i]);
                 }
-                addNewRule(ruleModel, ruleHost, ARUtils.concat(",", roleKeys));
+                addNewRule(ruleModel, ruleHost, ARUtils.concatWithSeparator(",", roleKeys));
                 break;
             case "dip:dport:uri":
                 port = ioc.get("port");
@@ -136,7 +136,7 @@ public class Ioc2RulesExtracter extends Extracter {
                 for(int i = 0; i < uris.length; i++){
                     roleKeys[1 + i] = ARUtils.concat("uri", uris[i]);
                 }
-                addNewRule(ruleModel, ruleIp, ARUtils.concat(",", roleKeys));
+                addNewRule(ruleModel, ruleIp, ARUtils.concatWithSeparator(",", roleKeys));
                 break;
             case "host:uri":
                 ruleHost = ARUtils.concat("host_md5", Md5.Md5_32(ipDomain));
@@ -145,7 +145,7 @@ public class Ioc2RulesExtracter extends Extracter {
                 for(int i = 0; i < uris.length; i++){
                     roleKeys[i] = ARUtils.concat("uri", uris[i]);
                 }
-                addNewRule(ruleModel, ruleHost, ARUtils.concat(",", roleKeys));
+                addNewRule(ruleModel, ruleHost, ARUtils.concatWithSeparator(",", roleKeys));
                 break;
             case "md5":
                 Object md5 = ioc.get("md5");

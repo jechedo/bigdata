@@ -35,17 +35,32 @@ public class Ruler {
 
     /**
      *  覆盖sqlite中原有的rule信息
+     *  逻辑为  先删除再插入
      */
     public void overrideRules(){
+        deleteRules();
+        insertRules();
+    }
+
+    private void deleteRules(){
+        String sql = String.format("delete * from %s where rule");
+    }
+
+    private void insertRules(){
 
     }
 
     /**
      *  由日志数据中的告警字段合成 ruleKey， 然后再规则中查找是否存在对应的告警规则。
+     *  从缓存中查询。
      * @param ruleKey
      * @return   null  or  Collection<Rule>
      */
     public Collection<Rule> findRules(String ruleKey){
         return null;
+    }
+
+    public static void main(String[] args) {
+
     }
 }
