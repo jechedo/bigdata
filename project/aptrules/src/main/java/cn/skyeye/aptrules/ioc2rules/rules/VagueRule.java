@@ -41,7 +41,6 @@ public class VagueRule extends SimpleRule{
         super(rule);
     }
 
-
     public void addVagueRuleInfo(String field, Object value){
         if(field != null && value != null) {
             this.vagueRuleInfos.put(field, value);
@@ -49,19 +48,24 @@ public class VagueRule extends SimpleRule{
 
             if (arConf.isIocTypeMoreValueFields(field) && vagueValue.contains(",")){
                 Iterable<String> split = Splitter.on(",").omitEmptyStrings().split(vagueValue);
-                split.forEach(val ->{
-                        if(val.contains("*")){
-                            //根据模糊匹配字符 * 切分
-                            Iterable<String> vals = Splitter.on("*").omitEmptyStrings().split(val);
-                            List<String> vagueLists = Lists.newArrayList(vals);
-                            this.vagues.put(field, vagueLists);
-                        }else {
-                            addSimpleRules(field, val, true);
-                        }
-                });
+                split.forEach(val -> addVagues(field, val));
+            }else{
+                addVagues(field, vagueValue);
             }
         }
     }
+
+    private void addVagues(String field, String vagueValue) {
+        if(vagueValue.contains("*")){
+            //根据模糊匹配字符 * 切分
+            Iterable<String> vals = Splitter.on("*").omitEmptyStrings().split(vagueValue);
+            List<String> vagueLists = Lists.newArrayList(vals);
+            this.vagues.put(field, vagueLists);
+        }else {
+            addSimpleRules(field, vagueValue, true);
+        }
+    }
+
 
     public boolean matches(Map<String, Object> record) {
         Set<String> matches = simpleMatches(record);

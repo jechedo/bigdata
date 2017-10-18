@@ -2,7 +2,7 @@ package cn.skyeye.aptrules.ioc2rules;
 
 import cn.skyeye.aptrules.ARContext;
 import cn.skyeye.aptrules.ioc2rules.extracters.Ioc2RulesExtracter;
-import cn.skyeye.aptrules.ioc2rules.rules.Rule;
+import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import com.google.common.collect.HashMultimap;
 import org.apache.log4j.Logger;
 import redis.clients.jedis.Jedis;
@@ -62,7 +62,7 @@ public class Ioc2RuleHandler {
         Ioc2RulesExtracter extracter = new Ioc2RulesExtracter();
         ioCer.listIocs(extracter);
 
-        HashMultimap<String, Rule> rules = extracter.getRules();
+        HashMultimap<String, VagueRule> rules = extracter.getRules();
 
 
     }
