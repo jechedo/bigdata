@@ -114,6 +114,7 @@ public class Ioc2RulesExtracter extends Extracter {
     private VagueRule createRuleModel(Map<String, Object> ioc, String type, String descKey){
 
         VagueRule model = new VagueRule(arConf);
+        model.setRule_id(ruleId.getAndIncrement());
         model.setIoc_type(type);
         model.setEffect_ioc_count(1);
         model.setState("green");

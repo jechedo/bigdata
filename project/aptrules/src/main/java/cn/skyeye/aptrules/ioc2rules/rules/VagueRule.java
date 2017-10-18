@@ -66,7 +66,6 @@ public class VagueRule extends SimpleRule{
         }
     }
 
-
     public boolean matches(Map<String, Object> record) {
         Set<String> matches = simpleMatches(record);
 
