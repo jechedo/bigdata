@@ -2,7 +2,7 @@ package cn.skyeye.aptrules.ioc2rules.extracters;
 
 import cn.skyeye.aptrules.ARContext;
 import cn.skyeye.aptrules.ARUtils;
-import cn.skyeye.aptrules.ioc2rules.Rule;
+import cn.skyeye.aptrules.ioc2rules.rules.Rule;
 import cn.skyeye.common.hash.Md5;
 import cn.skyeye.common.json.Jsons;
 import com.google.common.collect.HashMultimap;

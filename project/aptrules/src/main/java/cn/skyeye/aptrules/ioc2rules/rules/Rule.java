@@ -1,30 +1,30 @@
-package cn.skyeye.aptrules.ioc2rules;
+package cn.skyeye.aptrules.ioc2rules.rules;
 
 /**
  * Description:
- *   告警规则实体
+ *   告警规则
  * @author LiXiaoCong
  * @version 2017/10/13 12:04
  */
 public class Rule {
 
-    private int id;
-    private long rule_id;
-    private String rule;
-    private String other_rule;
-    private String desc_key;
-    private String desc_json;
-    private String state;
-    private String ioc_type;
-    private String ids;
+    protected int id;
+    protected long rule_id;
+    protected String rule;
+    protected String other_rule;
+    protected String desc_key;
+    protected String desc_json;
+    protected String state;
+    protected String ioc_type;
+    protected String ids;
 
-    private int version_id = 0;
-    private int source = 0;
-    private long stime = 0L;
-    private long etime = 0L;
-    private long check_time = 0;
-    private long pubtime = System.currentTimeMillis();
-    private int effect_ioc_count = 1;
+    protected int version_id = 0;
+    protected int source = 0;
+    protected long stime = 0L;
+    protected long etime = 0L;
+    protected long check_time = 0;
+    protected long pubtime = System.currentTimeMillis();
+    protected int effect_ioc_count = 1;
 
     public Rule() {}
 

@@ -2,6 +2,7 @@ package cn.skyeye.aptrules.ioc2rules;
 
 import cn.skyeye.aptrules.ARConf;
 import cn.skyeye.aptrules.ARContext;
+import cn.skyeye.aptrules.ioc2rules.rules.Rule;
 import org.apache.log4j.Logger;
 
 import java.util.Collection;
