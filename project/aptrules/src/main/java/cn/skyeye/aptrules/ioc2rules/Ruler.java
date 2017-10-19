@@ -2,7 +2,6 @@ package cn.skyeye.aptrules.ioc2rules;
 
 import cn.skyeye.aptrules.ARConf;
 import cn.skyeye.aptrules.ARContext;
-import cn.skyeye.aptrules.ioc2rules.rules.Rule;
 import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.common.databases.DataBases;
 import com.google.common.collect.HashMultimap;
@@ -13,8 +12,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -92,7 +91,7 @@ public class Ruler {
      *  覆盖sqlite中原有的rule信息
      *  逻辑为  先删除再插入
      */
-    public void overrideRules(List<VagueRule> vagueRules){
+    void overrideRules(List<VagueRule> vagueRules){
         if(!vagueRules.isEmpty()) {
             this.lock.lock();
             try {
@@ -148,21 +147,59 @@ public class Ruler {
         insertBatch.execute();
     }
 
+    public List<VagueRule> matchRules(Map<String, Object> record){
+        String indexKey = getIndexKey(record);
+        return matchRules(record, indexKey);
+    }
+
+    /**
+     * 合成indexkey 可能会合成多个
+     * @param record
+     * @return
+     */
+    private String getIndexKey(Map<String, Object> record){
+
+        List<String> roleIndexFieldLevels = arConf.getRoleIndexFieldLevels();
+        StringBuilder indexKey = new StringBuilder();
+        Object o;
+        for(String field : roleIndexFieldLevels){
+            o = record.get(field); //取值处可能需要根据数据进行调整
+            if(o != null){
+
+            }
+        }
+
+        return null;
+    }
+
+
     /**
      *  由日志数据中的告警字段合成 ruleKey， 然后再规则中查找是否存在对应的告警规则。
      *  从缓存中查询。
-     * @param ruleKey
-     * @return   null  or  Collection<Rule>
+     * @param record
+     * @param indexKey
+     * @return   null  or  Collection<VagueRule>
      */
-    public Collection<Rule> findRules(String ruleKey){
+    private List<VagueRule> matchRules(Map<String, Object> record, String indexKey){
         this.lock.lock();
         try {
-
+            Set<Integer> cacheIds = rulesIndexs.get(indexKey);
+            if(cacheIds.size() > 0){
+                List<VagueRule> res = Lists.newArrayList();
+                VagueRule rule;
+                for(Integer cacheId : cacheIds){
+                    rule = rulesCache.get(cacheId);
+                    if(rule.matches(record, indexKey)){
+                        res.add(rule);
+                    }
+                }
+                return res;
+            }
         } finally {
             this.lock.unlock();
         }
 
-        return null;
+        return Lists.newArrayList();
     }
 
     public static void main(String[] args) {

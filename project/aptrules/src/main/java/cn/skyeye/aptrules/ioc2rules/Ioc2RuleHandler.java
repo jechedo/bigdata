@@ -39,7 +39,11 @@ public class Ioc2RuleHandler {
         this.ruler = new Ruler();
     }
 
-    public void execute(){
+
+    /**
+     * 规则同步
+     */
+    public void syncRule(){
         Jedis jedis = null;
         try{
             this.lock.lock();
@@ -119,5 +123,7 @@ public class Ioc2RuleHandler {
 
         return false;
     }
+
+
 
 }
