@@ -4,10 +4,12 @@ import cn.skyeye.common.SysEnvs;
 import cn.skyeye.common.databases.SQLites;
 import cn.skyeye.resources.ConfigDetail;
 import cn.skyeye.resources.Resources;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 
 import java.sql.Connection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,6 +39,8 @@ public class ARConf extends ConfigDetail{
     private String iocTypeSeparator;
     private Map<String, String> iocTypeDataFieldMap;
 
+    private List<String> roleIndexFieldLevels;
+
     ARConf(){
         //读取系统中配置
         System.getProperties().forEach((keyObj, valueObj) -> {
@@ -64,6 +68,7 @@ public class ARConf extends ConfigDetail{
 
         initSQLiteConn();
         initIocConfiguration();
+        initRoleConfiguration();
 
     }
 
@@ -72,6 +77,10 @@ public class ARConf extends ConfigDetail{
         this.iocTypeMoreValueFields = getConfigItemSet("ar.ioc.type.more.velue.fields");
         this.iocTypeSeparator = getConfigItemValue("ar.ioc.type.separator", ":");
         this.iocTypeDataFieldMap = getConfigItemMap("ar.ioc.type.data.field", ":");
+    }
+
+    private void initRoleConfiguration() {
+        this.roleIndexFieldLevels = getConfigItemList("ar.role.index.field.level");
     }
 
     private void initSQLiteConn() {
@@ -122,5 +131,7 @@ public class ARConf extends ConfigDetail{
         return field;
     }
 
-
+    public List<String> getRoleIndexFieldLevels() {
+        return Lists.newArrayList(roleIndexFieldLevels);
+    }
 }

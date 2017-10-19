@@ -1,6 +1,7 @@
 package cn.skyeye.aptrules.ioc2rules.rules;
 
 import cn.skyeye.aptrules.ARConf;
+import cn.skyeye.aptrules.ARUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
@@ -54,7 +55,15 @@ class SimpleRule extends Rule{
                 simples.put(field, valueStr);
             }
 
-            if(extra) this.extraFields.add(field);
+            if(extra){
+                if(this.extraFields.add(field)){
+                    this.simpleRuleInfos.put(field, valueStr);
+                }else {
+                    this.simpleRuleInfos.put(field,
+                            ARUtils.concatWithSeparator(",", simpleRuleInfos.get(field), valueStr));
+                }
+
+            }
         }
     }
 

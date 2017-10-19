@@ -79,6 +79,24 @@ public class VagueRule extends SimpleRule{
         return false;
     }
 
+    public boolean matches(Map<String, Object> record, String indexKey) {
+
+        Set<String> matches = Sets.newHashSet();
+
+        String[] split = indexKey.split(",");
+        for(String str : split){
+            String[] tmp = str.split(":");
+            if(tmp.length == 2){
+                matches.add(tmp[0]);
+            }
+        }
+
+        Set<String> fields = Sets.newHashSet(vagues.keySet());
+        fields.removeAll(matches);
+
+        return vagueMatches(record, fields);
+    }
+
     private boolean vagueMatches(Map<String, Object> record,  Set<String> fields){
 
         Iterator<String> iterator = fields.iterator();
@@ -127,6 +145,63 @@ public class VagueRule extends SimpleRule{
         return true;
     }
 
+
+    /**
+     * 规则再缓存中的索引
+     */
+    public void getRoleIndexKeys(){
+
+        List<String> roleIndexFieldLevels = arConf.getRoleIndexFieldLevels();
+        int size = roleIndexFieldLevels.size();
+
+        String field;
+        Object so;
+        String sv;
+
+        Object vo;
+        List<StringBuilder> keys = Lists.newArrayList(new StringBuilder());
+        List<StringBuilder> keyModels;
+        StringBuilder model;
+        String[] svs;
+        for (int i = 0; i < size ; i++) {
+            field = roleIndexFieldLevels.get(i);
+            so = simpleRuleInfos.get(field);
+            vo = vagueRuleInfos.get(field);
+
+            if(so == null && vo == null) continue;
+            if(so != null){
+                sv = String.valueOf(so);
+                if(arConf.isIocTypeMoreValueFields(field) && sv.contains(",")) {
+                    svs = sv.split(",");
+                }else {
+                    svs = new String[]{sv};
+                }
+
+                keyModels = Lists.newArrayList(keys);
+                keys = Lists.newArrayList();
+
+                for(StringBuilder sb : keyModels){
+                    for(String s : svs){
+                        model = new StringBuilder(sb);
+                        model.append(",").append(field).append(":").append(s);
+                        keys.add(model);
+                    }
+
+                    if(vo != null){  //说明为 模糊匹配字段
+                        model = new StringBuilder(sb);
+                        model.append(",").append(field);
+                        keys.add(model);
+                    }
+                }
+            }
+
+            if(vo != null && so == null){
+                for(StringBuilder sb : keys){
+                    sb.append(",").append(field);
+                }
+            }
+        }
+    }
 
     /**
      * 参照 getRecord() 方法中封装json来解析
