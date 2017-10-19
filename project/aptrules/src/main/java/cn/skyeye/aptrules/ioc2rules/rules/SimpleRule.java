@@ -20,7 +20,7 @@ class SimpleRule extends Rule{
 
     protected ARConf arConf;
 
-    private Map<String, Object> simpleRuleInfos = Maps.newHashMap();
+    protected Map<String, Object> simpleRuleInfos = Maps.newHashMap();
 
     private HashMultimap<String, String> simples = HashMultimap.create();
 
@@ -57,7 +57,6 @@ class SimpleRule extends Rule{
             if(extra) this.extraFields.add(field);
         }
     }
-
 
     /**
      *  返回已匹配的字段

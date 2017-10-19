@@ -1,6 +1,7 @@
 package cn.skyeye.aptrules.ioc2rules.rules;
 
 import cn.skyeye.aptrules.ARConf;
+import cn.skyeye.common.json.Jsons;
 import com.google.common.base.Splitter;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
@@ -124,5 +125,35 @@ public class VagueRule extends SimpleRule{
         }
 
         return true;
+    }
+
+
+    /**
+     * 参照 getRecord() 方法中封装json来解析
+     * @param jsonRuleInfo
+     */
+    public void setJsonRuleInfo(String jsonRuleInfo){
+        try {
+            Map<String, Object> map = Jsons.toMap(jsonRuleInfo);
+            Map<String, Object> simple = (Map<String, Object>) map.get("simple");
+            Map<String, Object> vague = (Map<String, Object>) map.get("vague");
+
+           simple.forEach((key, value) -> addSimpleRuleInfo(key, value));
+           vague.forEach((key, value) -> addVagueRuleInfo(key, value));
+        } catch (Exception e) {
+            logger.error(null, e);
+        }
+    }
+
+    @Override
+    public Map<String, Object> getRecord() {
+        Map<String, Object> record = super.getRecord();
+
+        Map<String, Object> rule = Maps.newHashMap();
+        rule.put("simple", simpleRuleInfos);
+        rule.put("vague", vagueRuleInfos);
+
+        record.put("rule", Jsons.obj2JsonString(rule));
+        return record;
     }
 }

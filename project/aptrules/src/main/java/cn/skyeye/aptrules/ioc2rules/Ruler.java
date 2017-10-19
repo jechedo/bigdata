@@ -3,12 +3,17 @@ package cn.skyeye.aptrules.ioc2rules;
 import cn.skyeye.aptrules.ARConf;
 import cn.skyeye.aptrules.ARContext;
 import cn.skyeye.aptrules.ioc2rules.rules.Rule;
+import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.common.databases.DataBases;
 import org.apache.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -25,6 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Ruler {
     private final Logger logger = Logger.getLogger(Ruler.class);
     private final Lock lock = new ReentrantLock();
+    private List<String> columns;
 
     private String table = "rules";
 
@@ -40,28 +46,54 @@ public class Ruler {
 
         this.lock.lock();
         try {
+            String sql = String.format("select * from %s", table);
+            Statement statement = arConf.getConn().createStatement();
 
+            ResultSet resultSet = statement.executeQuery(sql);
+
+            if(columns == null || columns.isEmpty()){
+                columns = DataBases.getColumns(resultSet);
+            }
+
+            VagueRule vagueRule;
+            String jsonRuleInfo;
+            while (resultSet.next()){
+                vagueRule = new VagueRule(arConf);
+                for(String column : columns) {
+                    if("rule".equals(column)){
+                        jsonRuleInfo = resultSet.getString(column);
+                        vagueRule.setJsonRuleInfo(jsonRuleInfo);
+                    }else{
+                        vagueRule.setKV(column, resultSet.getObject(column));
+                    }
+                }
+            }
+            DataBases.close(resultSet);
+            DataBases.close(statement);
         }catch (Exception e){
             logger.error("读取sqlite中的规则失败。", e);
         }finally {
             this.lock.unlock();
         }
-
     }
+
+
 
     /**
      *  覆盖sqlite中原有的rule信息
      *  逻辑为  先删除再插入
      */
-    public void overrideRules(){
-        this.lock.lock();
-        try {
-            deleteRules();
-            insertRules();
-        }catch (Exception e){
-            logger.error("覆盖sqlite中的规则失败。", e);
-        }finally {
-            this.lock.unlock();
+    public void overrideRules(List<VagueRule> vagueRules){
+        if(!vagueRules.isEmpty()) {
+            this.lock.lock();
+            try {
+                deleteRules();
+                insertRules(vagueRules);
+            } catch (Exception e) {
+                logger.error("覆盖sqlite中的规则失败。", e);
+            } finally {
+                this.lock.unlock();
+            }
         }
     }
 
@@ -78,8 +110,17 @@ public class Ruler {
         DataBases.close(preparedStatement);
     }
 
-    private void insertRules(){
+    private void insertRules(List<VagueRule> vagueRules) throws Exception {
 
+        Set<String> columns = vagueRules.get(0).getRecord().keySet();
+
+        DataBases dataBases = DataBases.get(arConf.getConn());
+        DataBases.InsertBatch insertBatch = dataBases.insertBatch(table, columns);
+
+       for(VagueRule vagueRule : vagueRules){
+           insertBatch.add(vagueRule.getRecord());
+       }
+       insertBatch.execute();
     }
 
     /**

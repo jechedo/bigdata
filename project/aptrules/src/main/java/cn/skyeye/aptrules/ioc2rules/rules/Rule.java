@@ -1,6 +1,7 @@
 package cn.skyeye.aptrules.ioc2rules.rules;
 
 import com.google.common.collect.Maps;
+import org.apache.log4j.Logger;
 
 import java.util.Map;
 
@@ -11,6 +12,8 @@ import java.util.Map;
  * @version 2017/10/13 12:04
  */
 public class Rule {
+
+    protected Logger logger = Logger.getLogger(Rule.class);
 
     protected Map<String, Object> record;
 
@@ -158,6 +161,10 @@ public class Rule {
         this.record.put("other_rule", other_rule);
     }
 
+    public void setKV(String key, Object value){
+        this.record.put(key, value);
+    }
+
     private <T> T getValue(String key, T defualt){
         Object o = this.record.get(key);
         return o == null ? defualt : (T)o;
@@ -165,5 +172,12 @@ public class Rule {
 
     public Map<String, Object> getRecord() {
         return Maps.newHashMap(record);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Rule{");
+        sb.append(record).append('}');
+        return sb.toString();
     }
 }
