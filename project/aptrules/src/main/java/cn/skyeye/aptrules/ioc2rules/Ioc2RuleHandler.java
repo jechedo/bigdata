@@ -7,6 +7,8 @@ import org.apache.log4j.Logger;
 import redis.clients.jedis.Jedis;
 
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Description:
@@ -20,6 +22,8 @@ import java.util.List;
 public class Ioc2RuleHandler {
 
     private final Logger logger = Logger.getLogger(Ioc2RuleHandler.class);
+
+    private final Lock lock = new ReentrantLock();
 
     private final String last_time_key = "ioc2rule-last-timestamp";
     private final String last_ioccount_key = "ioc-count-last-time";
@@ -38,6 +42,7 @@ public class Ioc2RuleHandler {
     public void execute(){
         Jedis jedis = null;
         try{
+            this.lock.lock();
             jedis = ARContext.get().getJedis();
             initActiveTimeRange(jedis);
 
@@ -46,11 +51,14 @@ public class Ioc2RuleHandler {
             }else {
                 logger.warn("no new ioc, just exit!");
             }
+
+            jedis.set(last_time_key, String.valueOf(etime));
         }catch (Exception e){
             logger.error("执行ioc到rules转换失败。", e);
             e.printStackTrace();
         }finally {
             if(jedis != null)jedis.close();
+            this.lock.unlock();
         }
     }
 

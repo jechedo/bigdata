@@ -1,5 +1,6 @@
 package cn.skyeye.aptrules;
 
+import cn.skyeye.aptrules.ioc2rules.Ioc2RuleHandler;
 import cn.skyeye.redis.RedisContext;
 import com.google.common.collect.Maps;
 import redis.clients.jedis.Jedis;
@@ -20,6 +21,7 @@ public class ARContext {
 
     private ARConf arConf;
     private RedisContext redisContext;
+    private Ioc2RuleHandler ioc2RuleHandler;
 
     private ARContext(){
         this.arConf = new ARConf();
@@ -52,5 +54,12 @@ public class ARContext {
 
     public ARConf getArConf() {
         return arConf;
+    }
+
+    public synchronized Ioc2RuleHandler getIoc2RuleHandler() {
+        if(ioc2RuleHandler == null){
+            ioc2RuleHandler = new Ioc2RuleHandler();
+        }
+        return ioc2RuleHandler;
     }
 }
