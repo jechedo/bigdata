@@ -5,11 +5,11 @@ import cn.skyeye.aptrules.ARContext;
 import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.common.hash.Md5;
 import cn.skyeye.common.json.Jsons;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -25,7 +25,7 @@ public class Ioc2RulesExtracter extends Extracter {
     private final Logger logger = Logger.getLogger(Ioc2RulesExtracter.class);
 
     private ARConf arConf;
-    private HashMultimap<String, VagueRule> rules;
+    private List<VagueRule> rules;
     private String ruleType;
     private int tid;
     private AtomicLong ruleId;
@@ -42,7 +42,7 @@ public class Ioc2RulesExtracter extends Extracter {
 
     public Ioc2RulesExtracter(String ruleType, int tid, long ruleIdBase){
         this.arConf = ARContext.get().getArConf();
-        this.rules = HashMultimap.create();
+        this.rules = Lists.newArrayList();
         this.iocCount = 0;
         this.effectIocCount = 0;
         this.ruleType = ruleType;
@@ -108,7 +108,7 @@ public class Ioc2RulesExtracter extends Extracter {
             }
         }
 
-        rules.put(type, ruleModel);
+        rules.add(ruleModel);
     }
 
     private VagueRule createRuleModel(Map<String, Object> ioc, String type, String descKey){
@@ -197,7 +197,7 @@ public class Ioc2RulesExtracter extends Extracter {
         return descJsonKey;
     }
 
-    public HashMultimap<String, VagueRule> getRules() {
+    public List<VagueRule> getRules() {
         return rules;
     }
 

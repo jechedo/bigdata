@@ -5,6 +5,8 @@ import cn.skyeye.aptrules.ARContext;
 import cn.skyeye.aptrules.ioc2rules.rules.Rule;
 import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.common.databases.DataBases;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
 import org.apache.log4j.Logger;
 
 import java.sql.Connection;
@@ -32,6 +34,9 @@ public class Ruler {
     private final Lock lock = new ReentrantLock();
     private List<String> columns;
 
+    private List<VagueRule> rulesCache = Lists.newArrayList();
+    private HashMultimap<String, Integer> rulesIndexs = HashMultimap.create();
+
     private String table = "rules";
 
     private ARConf arConf;
@@ -42,9 +47,8 @@ public class Ruler {
         listRules();
     }
 
-    public void listRules(){
+    private void listRules(){
 
-        this.lock.lock();
         try {
             String sql = String.format("select * from %s", table);
             Statement statement = arConf.getConn().createStatement();
@@ -57,6 +61,8 @@ public class Ruler {
 
             VagueRule vagueRule;
             String jsonRuleInfo;
+            int n = 0;
+            Set<String> roleIndexKeys;
             while (resultSet.next()){
                 vagueRule = new VagueRule(arConf);
                 for(String column : columns) {
@@ -67,17 +73,20 @@ public class Ruler {
                         vagueRule.setKV(column, resultSet.getObject(column));
                     }
                 }
+
+                rulesCache.add(vagueRule);
+                roleIndexKeys = vagueRule.getRoleIndexKeys();
+                for(String roleIndexKey : roleIndexKeys){
+                    rulesIndexs.put(roleIndexKey, n);
+                }
+                n++;
             }
             DataBases.close(resultSet);
             DataBases.close(statement);
         }catch (Exception e){
             logger.error("读取sqlite中的规则失败。", e);
-        }finally {
-            this.lock.unlock();
         }
     }
-
-
 
     /**
      *  覆盖sqlite中原有的rule信息
@@ -98,6 +107,12 @@ public class Ruler {
     }
 
     private void deleteRules() throws Exception {
+
+        //删除缓存
+        this.rulesCache.clear();
+        this.rulesIndexs.clear();
+
+        //删除数据库中的数据
         String sql = String.format("delete * from %s where rule_id >= ? and rule_id <= ?", table);
 
         Connection conn = arConf.getConn();
@@ -117,10 +132,20 @@ public class Ruler {
         DataBases dataBases = DataBases.get(arConf.getConn());
         DataBases.InsertBatch insertBatch = dataBases.insertBatch(table, columns);
 
-       for(VagueRule vagueRule : vagueRules){
-           insertBatch.add(vagueRule.getRecord());
-       }
-       insertBatch.execute();
+        int n = 0;
+        Set<String> roleIndexKeys;
+        for(VagueRule vagueRule : vagueRules){
+            insertBatch.add(vagueRule.getRecord());
+
+            //添加到缓存
+            rulesCache.add(vagueRule);
+            roleIndexKeys = vagueRule.getRoleIndexKeys();
+            for(String roleIndexKey : roleIndexKeys){
+                rulesIndexs.put(roleIndexKey, n);
+            }
+            n++;
+        }
+        insertBatch.execute();
     }
 
     /**
@@ -130,6 +155,13 @@ public class Ruler {
      * @return   null  or  Collection<Rule>
      */
     public Collection<Rule> findRules(String ruleKey){
+        this.lock.lock();
+        try {
+
+        } finally {
+            this.lock.unlock();
+        }
+
         return null;
     }
 

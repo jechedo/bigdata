@@ -147,9 +147,10 @@ public class VagueRule extends SimpleRule{
 
 
     /**
-     * 规则再缓存中的索引
+     * 规则在缓存中的索引
+     *        实现的方式待改进
      */
-    public void getRoleIndexKeys(){
+    public Set<String> getRoleIndexKeys(){
 
         List<String> roleIndexFieldLevels = arConf.getRoleIndexFieldLevels();
         int size = roleIndexFieldLevels.size();
@@ -201,6 +202,14 @@ public class VagueRule extends SimpleRule{
                 }
             }
         }
+
+        Set<String> res = Sets.newHashSet();
+        for (StringBuilder sb : keys){
+            res.add(sb.substring(1));
+        }
+
+        return res;
+
     }
 
     /**

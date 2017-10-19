@@ -3,9 +3,10 @@ package cn.skyeye.aptrules.ioc2rules;
 import cn.skyeye.aptrules.ARContext;
 import cn.skyeye.aptrules.ioc2rules.extracters.Ioc2RulesExtracter;
 import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
-import com.google.common.collect.HashMultimap;
 import org.apache.log4j.Logger;
 import redis.clients.jedis.Jedis;
+
+import java.util.List;
 
 /**
  * Description:
@@ -56,15 +57,15 @@ public class Ioc2RuleHandler {
 
     /**
      * 读取所有的ioc并转换成rule
+     * 重置缓存和sqlite的数据
      * @throws Exception
      */
     private void executeIoc2Rule() throws Exception {
         Ioc2RulesExtracter extracter = new Ioc2RulesExtracter();
         ioCer.listIocs(extracter);
 
-        HashMultimap<String, VagueRule> rules = extracter.getRules();
-
-
+        List<VagueRule> rules = extracter.getRules();
+        ruler.overrideRules(rules);
     }
 
     private void initActiveTimeRange(Jedis jedis) {
