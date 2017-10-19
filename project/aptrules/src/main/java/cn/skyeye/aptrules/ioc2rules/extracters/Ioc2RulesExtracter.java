@@ -131,7 +131,7 @@ public class Ioc2RulesExtracter extends Extracter {
     private String createDescJson(Map<String, Object> ioc, String type){
 
         Map<String, Object> descMap = Maps.newHashMap();
-        descMap.put("tid", tid);
+        //descMap.put("tid", tid);
         descMap.put("desc", ioc.get("desc"));
         descMap.put("nid", String.valueOf(ioc.get("nid")));
         descMap.put("type",ruleType);

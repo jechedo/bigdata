@@ -3,9 +3,14 @@ package cn.skyeye.aptrules.ioc2rules;
 import cn.skyeye.aptrules.ARConf;
 import cn.skyeye.aptrules.ARContext;
 import cn.skyeye.aptrules.ioc2rules.rules.Rule;
+import cn.skyeye.common.databases.DataBases;
 import org.apache.log4j.Logger;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.Collection;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Description:
@@ -19,6 +24,7 @@ import java.util.Collection;
  */
 public class Ruler {
     private final Logger logger = Logger.getLogger(Ruler.class);
+    private final Lock lock = new ReentrantLock();
 
     private String table = "rules";
 
@@ -32,6 +38,15 @@ public class Ruler {
 
     public void listRules(){
 
+        this.lock.lock();
+        try {
+
+        }catch (Exception e){
+            logger.error("读取sqlite中的规则失败。", e);
+        }finally {
+            this.lock.unlock();
+        }
+
     }
 
     /**
@@ -39,12 +54,28 @@ public class Ruler {
      *  逻辑为  先删除再插入
      */
     public void overrideRules(){
-        deleteRules();
-        insertRules();
+        this.lock.lock();
+        try {
+            deleteRules();
+            insertRules();
+        }catch (Exception e){
+            logger.error("覆盖sqlite中的规则失败。", e);
+        }finally {
+            this.lock.unlock();
+        }
     }
 
-    private void deleteRules(){
-        String sql = String.format("delete * from %s where rule");
+    private void deleteRules() throws Exception {
+        String sql = String.format("delete * from %s where rule_id >= ? and rule_id <= ?", table);
+
+        Connection conn = arConf.getConn();
+        PreparedStatement preparedStatement = conn.prepareStatement(sql);
+        preparedStatement.setLong(1, arConf.getCustomRuleIdStart());
+        preparedStatement.setLong(2, arConf.getCustomRuleIdEnd());
+
+        preparedStatement.executeUpdate();
+
+        DataBases.close(preparedStatement);
     }
 
     private void insertRules(){

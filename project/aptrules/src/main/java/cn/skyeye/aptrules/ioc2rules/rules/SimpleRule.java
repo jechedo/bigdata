@@ -72,7 +72,7 @@ class SimpleRule extends Rule{
         Object value;
         while (iterator.hasNext()){
             field = iterator.next();
-            //读取
+            //读取      字段值是否是多个拼接的？ 暂时考虑的是单值
             value = record.get(field);
 
             if(value == null

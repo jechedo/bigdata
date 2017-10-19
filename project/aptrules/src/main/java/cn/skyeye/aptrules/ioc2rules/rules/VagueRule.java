@@ -97,6 +97,7 @@ public class VagueRule extends SimpleRule{
 
             vagueValss = vagues.get(field);
             for(List<String> vagueVals : vagueValss){
+                /* 字段值是否是多个拼接的？ 暂时考虑的是单值 */
                 value = String.valueOf(valueObj);
                 int index = -1;
                 for(String vagueVal : vagueVals){
