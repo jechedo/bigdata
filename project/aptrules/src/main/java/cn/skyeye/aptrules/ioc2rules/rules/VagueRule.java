@@ -8,10 +8,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Description:
@@ -239,5 +238,35 @@ public class VagueRule extends SimpleRule{
 
         record.put("rule", Jsons.obj2JsonString(rule));
         return record;
+    }
+
+    public static void main(String[] args) {
+        long t = System.currentTimeMillis();
+        Pattern p= Pattern.compile("www.aa.*as.s.*s");
+        Matcher matcher = p.matcher("www.aaqiwiwas.sfkjewhfewifers");
+        System.out.println(matcher.matches());
+        System.out.println(System.currentTimeMillis() - t);
+
+        Iterable<String> split = Splitter.on("*").omitEmptyStrings().split("www.aa*as.s*s");
+        ArrayList<String> strings = Lists.newArrayList(split);
+
+        String value = "www.aaqiwiwas.sfkjewhfewifers";
+        t = System.currentTimeMillis();
+        int index;
+        boolean success = true;
+        for(String vagueVal : strings){
+            index = value.indexOf(vagueVal);
+            if(index > -1){
+                value = value.substring(index + vagueVal.length());
+                System.out.println(value);
+            }else{
+                success = false;
+                break;
+            }
+        }
+
+        System.out.println(System.currentTimeMillis() -t);
+        System.out.println(success);
+
     }
 }

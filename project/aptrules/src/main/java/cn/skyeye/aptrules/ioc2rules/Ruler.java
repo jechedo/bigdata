@@ -6,6 +6,7 @@ import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.common.databases.DataBases;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.log4j.Logger;
 
 import java.sql.Connection;
@@ -147,6 +148,7 @@ public class Ruler {
 
             //添加到缓存
             rulesCache.add(vagueRule);
+            //需要测试验证 准确性 和 稳定性
             roleIndexKeys = vagueRule.getRoleIndexKeys();
             for(String roleIndexKey : roleIndexKeys){
                 rulesIndexs.put(roleIndexKey, n);
@@ -159,8 +161,8 @@ public class Ruler {
     }
 
     public List<VagueRule> matchRules(Map<String, Object> record){
-        String indexKey = getIndexKey(record);
-        return matchRules(record, indexKey);
+        Set<String> indexKeys = getIndexKey(record);
+        return matchRules(record, indexKeys);
     }
 
     /**
@@ -168,19 +170,40 @@ public class Ruler {
      * @param record
      * @return
      */
-    private String getIndexKey(Map<String, Object> record){
+    private Set<String> getIndexKey(Map<String, Object> record){
 
         List<String> roleIndexFieldLevels = arConf.getRoleIndexFieldLevels();
-        StringBuilder indexKey = new StringBuilder();
+        List<StringBuilder> indexKeys = Lists.newArrayList(new StringBuilder());
+        List<StringBuilder> indexKeyModels;
+        StringBuilder model;
         Object o;
         for(String field : roleIndexFieldLevels){
             o = record.get(field); //取值处可能需要根据数据进行调整
             if(o != null){
+                if(arConf.isIocVagueField(field)){
+                    indexKeyModels = Lists.newArrayList(indexKeys);
+                    indexKeys = Lists.newArrayList();
+                    for(StringBuilder sb : indexKeyModels){
+                        model = new StringBuilder(sb);
+                        model.append(",").append(field).append(":").append(o);
+                        indexKeys.add(model);
 
+                        model = new StringBuilder(sb);
+                        model.append(",").append(field);
+                        indexKeys.add(model);
+                    }
+                }else{
+                    for(StringBuilder sb : indexKeys){
+                        sb.append(",").append(field).append(":").append(o);
+                    }
+                }
             }
         }
 
-        return null;
+        Set<String> res = Sets.newHashSet();
+        indexKeys.forEach(sb -> res.add(sb.substring(1)));
+
+        return res;
     }
 
 
@@ -188,32 +211,31 @@ public class Ruler {
      *  由日志数据中的告警字段合成 ruleKey， 然后再规则中查找是否存在对应的告警规则。
      *  从缓存中查询。
      * @param record
-     * @param indexKey
+     * @param indexKeys
      * @return   null  or  Collection<VagueRule>
      */
-    private List<VagueRule> matchRules(Map<String, Object> record, String indexKey){
+    private List<VagueRule> matchRules(Map<String, Object> record, Set<String> indexKeys){
         this.lock.lock();
+        List<VagueRule> res = Lists.newArrayList();
+        VagueRule rule;
+        Set<Integer> ids = Sets.newHashSet();
         try {
-            Set<Integer> cacheIds = rulesIndexs.get(indexKey);
-            if(cacheIds.size() > 0){
-                List<VagueRule> res = Lists.newArrayList();
-                VagueRule rule;
-                for(Integer cacheId : cacheIds){
+            Set<Integer> cacheIds;
+            for(String indexKey : indexKeys) {
+                cacheIds = rulesIndexs.get(indexKey);
+                cacheIds.removeAll(ids);
+                for (Integer cacheId : cacheIds) {
                     rule = rulesCache.get(cacheId);
-                    if(rule.matches(record, indexKey)){
+                    if (rule.matches(record, indexKey)) {
                         res.add(rule);
                     }
                 }
-                return res;
+                ids.addAll(cacheIds);
             }
         } finally {
             this.lock.unlock();
         }
 
-        return Lists.newArrayList();
-    }
-
-    public static void main(String[] args) {
-
+        return res;
     }
 }
