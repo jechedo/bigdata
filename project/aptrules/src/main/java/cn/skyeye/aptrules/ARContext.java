@@ -10,6 +10,7 @@ import java.util.Map;
 /**
  * Description:
  *   aptrules项目的上下文
+ *   缺少必要的日志记录
  * @author LiXiaoCong
  * @version 2017/10/11 17:34
  */
@@ -61,5 +62,14 @@ public class ARContext {
             ioc2RuleHandler = new Ioc2RuleHandler();
         }
         return ioc2RuleHandler;
+    }
+
+    public static void main(String[] args) {
+        ARContext arContext = ARContext.get();
+        Ioc2RuleHandler ioc2RuleHandler = arContext.getIoc2RuleHandler();
+
+        arContext.getJedis();
+
+        ioc2RuleHandler.syncRule();
     }
 }

@@ -20,13 +20,13 @@ public class Rule {
     public Rule() {
         record = Maps.newConcurrentMap();
         record.put("rule_id", -1L);
-        record.put("rule", null);
+        record.put("rule", "");
         //record.put("other_rule", null);
-        record.put("desc_key", null);
-        record.put("desc_json", null);
-        record.put("state", null);
-        record.put("ioc_type", null);
-        record.put("ids", null);
+        record.put("desc_key", "");
+        record.put("desc_json", "");
+        record.put("state", "");
+        record.put("ioc_type", "");
+        record.put("ids", "");
         record.put("version_id", 0);
         record.put("source", 0);
         record.put("stime", 0L);
@@ -162,7 +162,7 @@ public class Rule {
     }
 
     public void setKV(String key, Object value){
-        this.record.put(key, value);
+        this.record.put(key, value == null ? "" : value);
     }
 
     private <T> T getValue(String key, T defualt){

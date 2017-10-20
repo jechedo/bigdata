@@ -76,7 +76,7 @@ public class IoCer {
      * 获取所有的ioc
      */
     public void listIocs(Extracter extracter) throws Exception {
-        String sql = String.format("select * from %s order by id limit 1", table);
+        String sql = String.format("select * from %s order by id", table);
         Statement statement = arConf.getConn().createStatement();
         ResultSet resultSet = statement.executeQuery(sql);
 
@@ -104,10 +104,8 @@ public class IoCer {
     private Object changeValueByColumn(Object value, String column) {
         switch (column.toLowerCase()){
             case "active":
-                if(value == null) value = true;
-                break;
             case "export":
-                if(value == null) value = true;
+                value = changeToBoolean(value, true);
                 break;
             case "confidence":
                 if(value == null) value = 80;
@@ -118,6 +116,20 @@ public class IoCer {
             case "desc":
                 if(value != null) value = trim(String.valueOf(value));
                 break;
+        }
+        return value;
+    }
+
+    private Object changeToBoolean(Object value, boolean defaultValue) {
+        if(value == null){
+            value = defaultValue;
+        }else{
+            String tmp = String.valueOf(value);
+            if("1".equals(tmp)){
+                value = true;
+            }else {
+                value = false;
+            }
         }
         return value;
     }

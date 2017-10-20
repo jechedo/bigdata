@@ -15,6 +15,7 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -35,6 +36,7 @@ public class Ruler {
 
     private List<VagueRule> rulesCache = Lists.newArrayList();
     private HashMultimap<String, Integer> rulesIndexs = HashMultimap.create();
+    private AtomicBoolean cacheNotEmpty = new AtomicBoolean(false);
 
     private String table = "rules";
 
@@ -49,6 +51,7 @@ public class Ruler {
     private void listRules(){
 
         try {
+            logger.info("系统启动，同步sqlite中的rule到内存。");
             String sql = String.format("select * from %s", table);
             Statement statement = arConf.getConn().createStatement();
 
@@ -80,6 +83,9 @@ public class Ruler {
                 }
                 n++;
             }
+
+            cacheNotEmpty.set(n > 0);
+            logger.info(String.format("同步sqlite中的rule到内存成功， ruleCount = %s。", n));
             DataBases.close(resultSet);
             DataBases.close(statement);
         }catch (Exception e){
@@ -110,9 +116,11 @@ public class Ruler {
         //删除缓存
         this.rulesCache.clear();
         this.rulesIndexs.clear();
+        cacheNotEmpty.set(false);
+        logger.info("清除缓存中的rule成功。");
 
         //删除数据库中的数据
-        String sql = String.format("delete * from %s where rule_id >= ? and rule_id <= ?", table);
+        String sql = String.format("delete from %s where rule_id >= ? and rule_id <= ?", table);
 
         Connection conn = arConf.getConn();
         PreparedStatement preparedStatement = conn.prepareStatement(sql);
@@ -120,6 +128,7 @@ public class Ruler {
         preparedStatement.setLong(2, arConf.getCustomRuleIdEnd());
 
         preparedStatement.executeUpdate();
+        logger.info("清除sqlite中的rule成功。");
 
         DataBases.close(preparedStatement);
     }
@@ -144,7 +153,9 @@ public class Ruler {
             }
             n++;
         }
+        cacheNotEmpty.set(n > 0);
         insertBatch.execute();
+        logger.info(String.format("rule写入缓存和sqlite成功, roleCount = %s。", n));
     }
 
     public List<VagueRule> matchRules(Map<String, Object> record){

@@ -50,15 +50,20 @@ public class Ioc2RuleHandler {
             jedis = ARContext.get().getJedis();
             initActiveTimeRange(jedis);
 
-            if(isModified(jedis)){
+            logger.info(String.format("开始同步ioc到rule, stime = %s, etime = %s。", stime, etime));
+
+            //if(isModified(jedis)){
+            if(true){
                 executeIoc2Rule();
             }else {
                 logger.warn("no new ioc, just exit!");
             }
-
             jedis.set(last_time_key, String.valueOf(etime));
+
+            logger.info("同步ioc到rule成功。");
         }catch (Exception e){
-            logger.error("执行ioc到rules转换失败。", e);
+            logger.error("同步ioc到rules失败。", e);
+            jedis.set(last_ioccount_key, "0");
             e.printStackTrace();
         }finally {
             if(jedis != null)jedis.close();
@@ -75,9 +80,13 @@ public class Ioc2RuleHandler {
     private void executeIoc2Rule() throws Exception {
         Ioc2RulesExtracter extracter = new Ioc2RulesExtracter();
         ioCer.listIocs(extracter);
+        logger.info(String.format("查询ioc并转换成rule成功，iocCount = %s, ruleCount = %s",
+                extracter.getIocCount(), extracter.getEffectIocCount()));
 
+        logger.info("开始覆盖缓存及sqlite中的rule。");
         List<VagueRule> rules = extracter.getRules();
         ruler.overrideRules(rules);
+        logger.info("覆盖缓存及sqlite中的rule成功。");
     }
 
     private void initActiveTimeRange(Jedis jedis) {
@@ -113,9 +122,13 @@ public class Ioc2RuleHandler {
         }
 
         if(dbIocCount > -1){
-            jedis.set(last_ioccount_key, String.valueOf(dbIocCount));
             try {
-                return (dbIocCount != redisIocCount || ioCer.iocActiveBetweenCount(stime, etime) > 0);
+                boolean modified = (dbIocCount != redisIocCount || ioCer.iocActiveBetweenCount(stime, etime) > 0);
+                if(modified){
+                    jedis.set(last_ioccount_key, String.valueOf(dbIocCount));
+                    logger.info("检测到ioc存在更改。");
+                }
+                return modified;
             } catch (Exception e) {
                 logger.error(String.format("获取时间范围[%s, %s]内的有效ioc失败。", stime, etime), e);
             }

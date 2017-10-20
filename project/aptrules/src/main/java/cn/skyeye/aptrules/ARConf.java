@@ -20,7 +20,7 @@ import java.util.Set;
  * @version 2017/10/11 17:35
  */
 public class ARConf extends ConfigDetail{
-    private static final String _CONFIG = "/aprules";
+    private static final String _CONFIG = "/aptrules";
 
     private final Logger logger = Logger.getLogger(ARConf.class);
 
