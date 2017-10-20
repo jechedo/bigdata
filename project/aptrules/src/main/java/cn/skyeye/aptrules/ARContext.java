@@ -1,5 +1,6 @@
 package cn.skyeye.aptrules;
 
+import cn.skyeye.aptrules.alarms.Alarmer;
 import cn.skyeye.aptrules.ioc2rules.Ioc2RuleHandler;
 import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.redis.RedisContext;
@@ -24,10 +25,12 @@ public class ARContext {
 
     private ARConf arConf;
     private RedisContext redisContext;
+    private Alarmer alarmer;
     private Ioc2RuleHandler ioc2RuleHandler;
 
     private ARContext(){
         this.arConf = new ARConf();
+        this.alarmer = new Alarmer(arConf);
         initRedis();
     }
 
@@ -66,23 +69,53 @@ public class ARContext {
         return ioc2RuleHandler;
     }
 
+    public Alarmer getAlarmer() {
+        return alarmer;
+    }
+
     public static void main(String[] args) {
         ARContext arContext = ARContext.get();
         Ioc2RuleHandler ioc2RuleHandler = arContext.getIoc2RuleHandler();
 
-        arContext.getJedis();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
 
-        ioc2RuleHandler.syncRule();
+                Map<String, Object> record = Maps.newHashMap();
+                //dport":35975,"dip":"23.234.19.114
+                record.put("dport", 35975);
+                record.put("dip", "23.234.19.114");
+                record.put("name", "jechedo");
 
-        Map<String, Object> record = Maps.newHashMap();
-        //dport":35975,"dip":"23.234.19.114
-        record.put("dport", 35975);
-        record.put("dip", "23.234.19.114");
-        record.put("name", "jechedo");
+                long n = 0L;
+                while (true){
+                    List<VagueRule> vagueRules = ioc2RuleHandler.getRuler().matchRules(record);
+                    System.out.println(n++ + " ：" + vagueRules);
 
-        List<VagueRule> vagueRules = ioc2RuleHandler.getRuler().matchRules(record);
-        System.out.println(vagueRules);
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
 
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                long n = 0L;
+                while (true){
+                    try {
+                        Thread.sleep(5000);
+                        ioc2RuleHandler.syncRule();
+                        System.err.println(n++);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
 
     }
 }
