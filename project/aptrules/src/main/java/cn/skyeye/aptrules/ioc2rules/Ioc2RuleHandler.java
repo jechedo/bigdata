@@ -138,5 +138,7 @@ public class Ioc2RuleHandler {
     }
 
 
-
+    public Ruler getRuler() {
+        return ruler;
+    }
 }

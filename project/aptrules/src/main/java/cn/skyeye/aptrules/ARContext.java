@@ -1,10 +1,12 @@
 package cn.skyeye.aptrules;
 
 import cn.skyeye.aptrules.ioc2rules.Ioc2RuleHandler;
+import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.redis.RedisContext;
 import com.google.common.collect.Maps;
 import redis.clients.jedis.Jedis;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -71,5 +73,16 @@ public class ARContext {
         arContext.getJedis();
 
         ioc2RuleHandler.syncRule();
+
+        Map<String, Object> record = Maps.newHashMap();
+        //dport":35975,"dip":"23.234.19.114
+        record.put("dport", 35975);
+        record.put("dip", "23.234.19.114");
+        record.put("name", "jechedo");
+
+        List<VagueRule> vagueRules = ioc2RuleHandler.getRuler().matchRules(record);
+        System.out.println(vagueRules);
+
+
     }
 }

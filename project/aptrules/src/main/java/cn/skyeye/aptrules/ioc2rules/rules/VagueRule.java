@@ -80,6 +80,8 @@ public class VagueRule extends SimpleRule{
 
     public boolean matches(Map<String, Object> record, String indexKey) {
 
+        if(vagues.isEmpty()) return true;
+
         Set<String> matches = Sets.newHashSet();
 
         String[] split = indexKey.split(",");
