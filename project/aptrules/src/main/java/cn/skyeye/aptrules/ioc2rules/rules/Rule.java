@@ -1,5 +1,6 @@
 package cn.skyeye.aptrules.ioc2rules.rules;
 
+import cn.skyeye.common.json.Jsons;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 
@@ -67,6 +68,18 @@ public class Rule {
 
     public String getDesc_json() {
         return getValue("desc_json", null);
+    }
+
+    public Map<String, Object> getDescJsonInMap() {
+        String desc_json = getValue("desc_json", null);
+        if(desc_json != null){
+            try {
+                return Jsons.toMap(desc_json);
+            } catch (Exception e) {
+               logger.error(null, e);
+            }
+        }
+        return Maps.newHashMap();
     }
 
     public void setDesc_json(String desc_json) {

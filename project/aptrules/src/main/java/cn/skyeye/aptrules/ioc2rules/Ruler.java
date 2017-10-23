@@ -6,6 +6,7 @@ import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.common.databases.DataBases;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.log4j.Logger;
 
@@ -160,50 +161,50 @@ public class Ruler {
         logger.info(String.format("rule写入缓存和sqlite成功, roleCount = %s。", n));
     }
 
-    public List<VagueRule> matchRules(Map<String, Object> record){
-        Set<String> indexKeys = getIndexKey(record);
+    public Hits matchRules(Map<String, Object> record){
+        Set<IndexKey> indexKeys = getIndexKey(record);
         return matchRules(record, indexKeys);
     }
 
     /**
      * 合成indexkey 可能会合成多个
+     * 目前只是一个最简单的版本  没有考虑字段需要调整的情况。
      * @param record
      * @return
      */
-    private Set<String> getIndexKey(Map<String, Object> record){
+    private Set<IndexKey> getIndexKey(Map<String, Object> record){
 
         List<String> roleIndexFieldLevels = arConf.getRoleIndexFieldLevels();
-        List<StringBuilder> indexKeys = Lists.newArrayList(new StringBuilder());
-        List<StringBuilder> indexKeyModels;
-        StringBuilder model;
+        Set<IndexKey> indexKeys = Sets.newHashSet(new IndexKey());
+        Set<IndexKey> indexKeyModels;
+        IndexKey model;
         Object o;
         for(String field : roleIndexFieldLevels){
-            o = record.get(field); //取值处可能需要根据数据进行调整
+            //取值处可能需要根据数据进行调整
+            // 比如 field = 'md5' , 可能需要取record中的file_md5或者process_md5 或者其他md5字段的值
+            o = record.get(field);
             if(o != null){
                 if(arConf.isIocVagueField(field)){
-                    indexKeyModels = Lists.newArrayList(indexKeys);
-                    indexKeys = Lists.newArrayList();
-                    for(StringBuilder sb : indexKeyModels){
-                        model = new StringBuilder(sb);
-                        model.append(",").append(field).append(":").append(o);
+                    indexKeyModels = Sets.newHashSet(indexKeys);
+                    indexKeys = Sets.newHashSet();
+                    for(IndexKey ik : indexKeyModels){
+                        model = new IndexKey(ik);
+                        model.addKV(field, String.valueOf(o), field, String.valueOf(o));
                         indexKeys.add(model);
 
-                        model = new StringBuilder(sb);
-                        model.append(",").append(field);
+                        model = new IndexKey(ik);
+                        model.addKV(field, null, field, String.valueOf(o));
                         indexKeys.add(model);
                     }
                 }else{
-                    for(StringBuilder sb : indexKeys){
-                        sb.append(",").append(field).append(":").append(o);
+                    for(IndexKey ik : indexKeys){
+                        ik.addKV(field, String.valueOf(o), field, String.valueOf(o));
                     }
                 }
             }
         }
 
-        Set<String> res = Sets.newHashSet();
-        indexKeys.forEach(sb -> res.add(sb.substring(1)));
-
-        return res;
+        return indexKeys;
     }
 
 
@@ -214,20 +215,22 @@ public class Ruler {
      * @param indexKeys
      * @return   null  or  Collection<VagueRule>
      */
-    private List<VagueRule> matchRules(Map<String, Object> record, Set<String> indexKeys){
+    private Hits matchRules(Map<String, Object> record, Set<IndexKey> indexKeys){
         this.lock.lock();
-        List<VagueRule> res = Lists.newArrayList();
+        Hits res = new Hits();
         VagueRule rule;
         Set<Integer> ids = Sets.newHashSet();
         try {
             Set<Integer> cacheIds;
-            for(String indexKey : indexKeys) {
+            String indexKey;
+            for(IndexKey key : indexKeys) {
+                indexKey = key.getRuleKey();
                 cacheIds = rulesIndexs.get(indexKey);
                 cacheIds.removeAll(ids);
                 for (Integer cacheId : cacheIds) {
                     rule = rulesCache.get(cacheId);
                     if (rule.matches(record, indexKey)) {
-                        res.add(rule);
+                        res.addKeyAndRule(key, rule);
                     }
                 }
                 ids.addAll(cacheIds);
@@ -237,5 +240,146 @@ public class Ruler {
         }
 
         return res;
+    }
+
+
+    /**
+     * 命中结果
+     */
+    public class Hits{
+        private Map<IndexKey, VagueRule> hitsMap;
+        private Hits(){
+            this.hitsMap = Maps.newHashMap();
+        }
+
+        private void addKeyAndRule(IndexKey key, VagueRule rule){
+            hitsMap.put(key, rule);
+        }
+
+        public Set<Map.Entry<IndexKey, VagueRule>> getHitSet(){
+            return hitsMap.entrySet();
+        }
+
+        public int getHitSize(){
+            return hitsMap.size();
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("Hits{");
+            sb.append(hitsMap).append('}');
+            return sb.toString();
+        }
+    }
+
+    /**
+     * 根据数据生成的查找规则的RuleKey
+     *  由于Key生成的时候并不是严格按照规则中type里的字段，
+     *  因此还存在一个对应的数据的DataKey
+     *  DataKey和RuleKey的区别主要在于字段名称不同，内容相同，一个是对于数据而言的，一个是对于规则而言的。
+     *  此对象主要是为了方便后期生成告警表单。
+     */
+    public class IndexKey{
+        private List<String> ruleKeys;
+        private List<String> ruleDatas;
+        private List<String> dataKeys;
+        private List<String> datas;
+
+        private IndexKey(){
+            this.ruleKeys  = Lists.newArrayList();
+            this.ruleDatas = Lists.newArrayList();
+            this.dataKeys  = Lists.newArrayList();
+            this.datas     = Lists.newArrayList();
+        }
+
+        private IndexKey(IndexKey indexKey){
+            this.ruleKeys  = Lists.newArrayList(indexKey.ruleKeys);
+            this.ruleDatas = Lists.newArrayList(indexKey.ruleDatas);
+            this.dataKeys  = Lists.newArrayList(indexKey.dataKeys);
+            this.datas     = Lists.newArrayList(indexKey.datas);
+        }
+
+        private void addKV(String ruleKey, String ruleData, String dataKey, String data){
+            this.ruleKeys.add(ruleKey);
+            this.ruleDatas.add(ruleData);
+            this.dataKeys.add(dataKey);
+            this.datas.add(data);
+        }
+
+        public String getRuleKey() {
+            return getKeyString(ruleKeys, ruleDatas);
+        }
+
+        public String getDataKey() {
+            return getKeyString(dataKeys, datas);
+        }
+
+        public String getDataByRuleKey(String key){
+            return getDataByKey(ruleKeys, ruleDatas, key);
+        }
+
+        public String getDataByDataKey(String key){
+            return getDataByKey(ruleKeys, dataKeys, key);
+        }
+
+        private String getDataByKey(List<String> keys, List<String> datas, String key){
+            String data = null;
+            int size = keys.size();
+            for (int i = 0; i < size; i++) {
+                if(key.equals(keys.get(i))){
+                    data = datas.get(i);
+                    break;
+                }
+            }
+            return data;
+        }
+
+        private String getKeyString(List<String> keys, List<String> datas) {
+            StringBuilder sb = new StringBuilder();
+            int size = keys.size();
+            String value;
+            for (int i = 0; i < size; i++) {
+                sb.append(",").append(keys.get(i));
+                value = datas.get(i);
+                if(value != null){
+                    sb.append(":").append(value);
+                }
+            }
+            return sb.substring(1);
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("IndexKey{");
+            sb.append("ruleKeys=").append(ruleKeys);
+            sb.append(", ruleDatas=").append(ruleDatas);
+            sb.append(", dataKeys=").append(dataKeys);
+            sb.append(", datas=").append(datas);
+            sb.append('}');
+            return sb.toString();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            IndexKey indexKey = (IndexKey) o;
+            return getRuleKey().equals(indexKey.getRuleKey());
+        }
+
+        @Override
+        public int hashCode() {
+            int result = ruleKeys.hashCode();
+            result = 31 * result + ruleDatas.hashCode();
+            return result;
+        }
+    }
+
+    public static void main(String[] args) {
+        List<String> list = Lists.newArrayList();
+        list.add(null);
+        System.out.println(list);
+
     }
 }

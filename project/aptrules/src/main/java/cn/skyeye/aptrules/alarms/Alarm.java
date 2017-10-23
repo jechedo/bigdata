@@ -1,5 +1,9 @@
 package cn.skyeye.aptrules.alarms;
 
+import com.google.common.collect.Maps;
+
+import java.util.Map;
+
 /**
  * Description:
  *   告警表单
@@ -8,6 +12,30 @@ package cn.skyeye.aptrules.alarms;
  */
 public class Alarm {
 
-    Alarm(){}
+    private Map<String, Object> entry;
 
+    Alarm(){
+        this.entry = Maps.newHashMap();
+    }
+
+
+    public void addAlarmKV(String key, Object value){
+        if(key != null && value != null){
+            this.entry.put(key, value);
+        }
+    }
+
+    public  Object getAlarmValue(String key){
+        return this.entry.get(key);
+    }
+
+    public <T> T getAlarmValue(String key, T defualtValue){
+        Object o = this.entry.get(key);
+        if(o == null) return defualtValue;
+        return (T)o;
+    }
+
+    public Map<String, Object> getAlarm() {
+        return this.entry;
+    }
 }

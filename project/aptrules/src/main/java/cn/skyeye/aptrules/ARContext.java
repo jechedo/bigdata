@@ -2,12 +2,11 @@ package cn.skyeye.aptrules;
 
 import cn.skyeye.aptrules.alarms.Alarmer;
 import cn.skyeye.aptrules.ioc2rules.Ioc2RuleHandler;
-import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
+import cn.skyeye.aptrules.ioc2rules.Ruler;
 import cn.skyeye.redis.RedisContext;
 import com.google.common.collect.Maps;
 import redis.clients.jedis.Jedis;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -89,8 +88,8 @@ public class ARContext {
 
                 long n = 0L;
                 while (true){
-                    List<VagueRule> vagueRules = ioc2RuleHandler.getRuler().matchRules(record);
-                    System.out.println(n++ + " ：" + vagueRules);
+                    Ruler.Hits hits = ioc2RuleHandler.getRuler().matchRules(record);
+                    System.out.println(n++ + " ：" + hits);
 
                     try {
                         Thread.sleep(1000);

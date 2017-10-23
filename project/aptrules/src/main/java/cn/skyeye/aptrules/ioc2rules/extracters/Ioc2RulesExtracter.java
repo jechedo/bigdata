@@ -151,7 +151,7 @@ public class Ioc2RulesExtracter extends Extracter {
         for(int i = 0; i < parts.length; i++){
             part = parts[i];
             if("host".equals(part)){
-                parts[i] = "host_md5";
+                part = "host_md5";
             }
             sb.append(":").append(part);
         }
