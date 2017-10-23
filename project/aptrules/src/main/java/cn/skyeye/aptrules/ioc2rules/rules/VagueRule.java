@@ -1,6 +1,7 @@
 package cn.skyeye.aptrules.ioc2rules.rules;
 
 import cn.skyeye.aptrules.ARConf;
+import cn.skyeye.aptrules.ioc2rules.Ruler;
 import cn.skyeye.common.json.Jsons;
 import com.google.common.base.Splitter;
 import com.google.common.collect.HashMultimap;
@@ -66,43 +67,22 @@ public class VagueRule extends SimpleRule{
         }
     }
 
-    public boolean matches(Map<String, Object> record) {
-        Set<String> matches = simpleMatches(record);
-
-        if(matches != null) {
-            Set<String> fields = Sets.newHashSet(vagues.keySet());
-            fields.removeAll(matches);
-            return vagueMatches(record, fields);
-        }
-
-        return false;
-    }
-
-    public boolean matches(Map<String, Object> record, String indexKey) {
+    public boolean matches(Ruler.IndexKey indexKey) {
 
         if(vagues.isEmpty()) return true;
 
-        Set<String> matches = Sets.newHashSet();
-
-        String[] split = indexKey.split(",");
-        for(String str : split){
-            String[] tmp = str.split(":");
-            if(tmp.length == 2){
-                matches.add(tmp[0]);
-            }
-        }
-
+        List<String> matches = indexKey.getNoEmptyRuleKeys();
         Set<String> fields = Sets.newHashSet(vagues.keySet());
         fields.removeAll(matches);
 
-        return vagueMatches(record, fields);
+        return vagueMatches(indexKey, fields);
     }
 
-    private boolean vagueMatches(Map<String, Object> record,  Set<String> fields){
+    private boolean vagueMatches(Ruler.IndexKey indexKey,  Set<String> fields){
 
         Iterator<String> iterator = fields.iterator();
         String field;
-        Object valueObj;
+        String valueModel;
         String value;
         int matchTimes;
 
@@ -110,15 +90,15 @@ public class VagueRule extends SimpleRule{
 
         while (iterator.hasNext()){
             field = iterator.next();
-            valueObj = record.get(field);
+            valueModel = indexKey.getDataByRuleKey(field);
             matchTimes = 0;
 
-            if(valueObj == null) return false;
+            if(valueModel == null) return false;
 
             vagueValss = vagues.get(field);
             for(List<String> vagueVals : vagueValss){
                 /* 字段值是否是多个拼接的？ 暂时考虑的是单值 */
-                value = String.valueOf(valueObj);
+                value = valueModel;
                 int index = -1;
                 for(String vagueVal : vagueVals){
                     index = value.indexOf(vagueVal);
@@ -240,6 +220,13 @@ public class VagueRule extends SimpleRule{
 
         record.put("rule", Jsons.obj2JsonString(rule));
         return record;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Rule{");
+        sb.append(getRecord()).append('}');
+        return sb.toString();
     }
 
     public static void main(String[] args) {

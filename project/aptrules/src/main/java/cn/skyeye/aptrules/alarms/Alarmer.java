@@ -25,7 +25,6 @@ public class Alarmer {
     }
 
     public List<Alarm> createAlarm(Map<String, Object> record, Ruler.Hits hits){
-
         int size = hits.getHitSize();
         List<Alarm> alarms = Lists.newArrayListWithCapacity(size);
         for (Map.Entry<Ruler.IndexKey, VagueRule> entry : hits.getHitSet()) {

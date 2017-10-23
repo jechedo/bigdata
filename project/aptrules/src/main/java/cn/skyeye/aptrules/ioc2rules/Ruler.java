@@ -222,14 +222,12 @@ public class Ruler {
         Set<Integer> ids = Sets.newHashSet();
         try {
             Set<Integer> cacheIds;
-            String indexKey;
             for(IndexKey key : indexKeys) {
-                indexKey = key.getRuleKey();
-                cacheIds = rulesIndexs.get(indexKey);
+                cacheIds = rulesIndexs.get(key.getRuleKey());
                 cacheIds.removeAll(ids);
                 for (Integer cacheId : cacheIds) {
                     rule = rulesCache.get(cacheId);
-                    if (rule.matches(record, indexKey)) {
+                    if (rule.matches(key)) {
                         res.addKeyAndRule(key, rule);
                     }
                 }
@@ -310,16 +308,27 @@ public class Ruler {
             return getKeyString(ruleKeys, ruleDatas);
         }
 
+        public List<String> getNoEmptyRuleKeys(){
+            List<String> res = Lists.newArrayList();
+            int size = ruleDatas.size();
+            for (int i = 0; i < size; i++) {
+                if(ruleDatas.get(i) != null){
+                    res.add(ruleKeys.get(i));
+                }
+            }
+            return res;
+        }
+
         public String getDataKey() {
             return getKeyString(dataKeys, datas);
         }
 
         public String getDataByRuleKey(String key){
-            return getDataByKey(ruleKeys, ruleDatas, key);
+            return getDataByKey(ruleKeys, datas, key);
         }
 
         public String getDataByDataKey(String key){
-            return getDataByKey(ruleKeys, dataKeys, key);
+            return getDataByKey(dataKeys, datas, key);
         }
 
         private String getDataByKey(List<String> keys, List<String> datas, String key){
