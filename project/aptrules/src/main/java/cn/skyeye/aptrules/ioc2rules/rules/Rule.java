@@ -183,7 +183,7 @@ public class Rule {
         return o == null ? defualt : (T)o;
     }
 
-    public Map<String, Object> getRecord() {
+    public Map<String, Object> getRuleMap() {
         return Maps.newHashMap(record);
     }
 

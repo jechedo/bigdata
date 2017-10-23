@@ -137,7 +137,7 @@ public class Ruler {
 
     private void insertRules(List<VagueRule> vagueRules) throws Exception {
 
-        Set<String> columns = vagueRules.get(0).getRecord().keySet();
+        Set<String> columns = vagueRules.get(0).getRuleMap().keySet();
 
         DataBases dataBases = DataBases.get(arConf.getConn());
         DataBases.InsertBatch insertBatch = dataBases.insertBatch(table, columns);
@@ -145,7 +145,7 @@ public class Ruler {
         int n = 0;
         Set<String> roleIndexKeys;
         for(VagueRule vagueRule : vagueRules){
-            insertBatch.add(vagueRule.getRecord());
+            insertBatch.add(vagueRule.getRuleMap());
 
             //添加到缓存
             rulesCache.add(vagueRule);
@@ -163,7 +163,7 @@ public class Ruler {
 
     public Hits matchRules(Map<String, Object> record){
         Set<IndexKey> indexKeys = getIndexKey(record);
-        return matchRules(record, indexKeys);
+        return matchRules(indexKeys);
     }
 
     /**
@@ -211,11 +211,10 @@ public class Ruler {
     /**
      *  由日志数据中的告警字段合成 ruleKey， 然后再规则中查找是否存在对应的告警规则。
      *  从缓存中查询。
-     * @param record
      * @param indexKeys
      * @return   null  or  Collection<VagueRule>
      */
-    private Hits matchRules(Map<String, Object> record, Set<IndexKey> indexKeys){
+    private Hits matchRules(Set<IndexKey> indexKeys){
         this.lock.lock();
         Hits res = new Hits();
         VagueRule rule;

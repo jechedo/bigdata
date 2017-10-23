@@ -74,6 +74,7 @@ public class VagueRule extends SimpleRule{
         List<String> matches = indexKey.getNoEmptyRuleKeys();
         Set<String> fields = Sets.newHashSet(vagues.keySet());
         fields.removeAll(matches);
+        if(fields.isEmpty()) return true;
 
         return vagueMatches(indexKey, fields);
     }
@@ -194,7 +195,7 @@ public class VagueRule extends SimpleRule{
     }
 
     /**
-     * 参照 getRecord() 方法中封装json来解析
+     * 参照 getRuleMap() 方法中封装json来解析
      * @param jsonRuleInfo
      */
     public void setJsonRuleInfo(String jsonRuleInfo){
@@ -211,8 +212,8 @@ public class VagueRule extends SimpleRule{
     }
 
     @Override
-    public Map<String, Object> getRecord() {
-        Map<String, Object> record = super.getRecord();
+    public Map<String, Object> getRuleMap() {
+        Map<String, Object> record = super.getRuleMap();
 
         Map<String, Object> rule = Maps.newHashMap();
         rule.put("simple", simpleRuleInfos);
@@ -225,7 +226,7 @@ public class VagueRule extends SimpleRule{
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Rule{");
-        sb.append(getRecord()).append('}');
+        sb.append(getRuleMap()).append('}');
         return sb.toString();
     }
 
