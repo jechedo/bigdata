@@ -4,9 +4,11 @@ import cn.skyeye.aptrules.ARConf;
 import cn.skyeye.aptrules.ARUtils;
 import cn.skyeye.aptrules.ioc2rules.Ruler;
 import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -43,111 +45,82 @@ public class Alarmer {
      * @return
      */
     public Alarm createAlarm(Map<String, Object> record, Ruler.IndexKey ruleKey, VagueRule rule){
-        Alarm alarm = new Alarm();
+        Alarm alarm = new Alarm(ruleKey.getRuleDataKey(), record); // Alarm的id还有待验证
 
-        String type = rule.getIoc_type();
-        Map<String, Object> descJsonMap = rule.getDescJsonInMap();
-
-
-        switch (type){
-            case "md5":
-                String fileMd5 = ARUtils.getValueByKeyInMap(record, "file_md5");
-                String processMd5 = ARUtils.getValueByKeyInMap(record, "process_md5");
-
-                boolean fileMd5Exist = (StringUtils.isNotBlank(fileMd5));
-                boolean processMd5Exist = (StringUtils.isNotBlank(processMd5));
-
-                if(fileMd5Exist){
-                   descJsonMap.put("desc_key", "file_md5");
-                   descJsonMap.put("rule_state", rule.getState());
-                   descJsonMap.put("rule_id", rule.getRule_id());
-                   descJsonMap.put("ioc", fileMd5);
-                   descJsonMap.put("md5", fileMd5);
-                   descJsonMap.put("name", ARUtils.getValueByKeyInMap(record, "file_name", ""));
-                }
-
-                if(processMd5Exist && !processMd5.equals(fileMd5)){
-                    descJsonMap.put("desc_key", "process_md5");
-                    descJsonMap.put("rule_state", rule.getState());
-                    descJsonMap.put("rule_id", rule.getRule_id());
-                    descJsonMap.put("ioc", processMd5);
-                    //descJsonMap.put("md5", processMd5);
-                    //descJsonMap.put("name", ARUtils.getValueByKeyInMap(record, "file_name", ""));
-                }else if(!fileMd5Exist){
-                    //判断是否存在附件中
-                }
-                break;
-
-            default:
-                List<String> keyArr = Lists.newArrayList(type.split(":"));
-                if(keyArr.contains("host")){
-                    String relaHost = ARUtils.getValueByKeyInMap(record, "host");
-                }
-
-                if(keyArr.contains("dport")){
-
-                }
-
-                /*
-                  try:
-                    desc_key_arr = rule.desc_key.split(':')
-                    # logging.info("__get_actions___desc_key_arr:%s", desc_key_arr)
-                    if 'dhost' in desc_key_arr:
-                        rela_host = hit_src.get('host', None)
-                        # if 'dport' in desc_key_arr:
-                        #     dport = hit_src.get('dport', None)
-                        #     rela_host = rela_host + ":" + dport
-                        if rela_host:
-                            cur_keys = desc_json.keys()
-                            for pos_key in cur_keys:
-                                cur_key = pos_key
-                                pos = pos_key.find(":")
-                                if pos != -1:
-                                    pos_key = pos_key[0:pos]
-                                if pos_key in rela_host:
-                                    ioc_detail = desc_json[cur_key]
-                                    break
-                    if 'dhost' not in desc_key_arr:
-                        ioc_detail = desc_json[
-                            (":".join(str(hit_value) for hit_value in map(hit_src.get, desc_key_arr))).lower()]
-                    self.__add_uri(rule, hit, desc_key_arr)
-                    if 'dhost' not in desc_key_arr:
-                        desc_key_arr = [key.replace("host_md5", 'host') for key in desc_key_arr]
-                    else:
-                        desc_key_arr = [key.replace("dhost", 'host') for key in desc_key_arr]
-                    ioc = (":".join(str(hit_value) for hit_value in map(hit_src.get, desc_key_arr))).lower()
-                    # logging.info("__get_actions___ioc:%s", ioc)
-
-                    # if host is 'www.abc.com:8080' while host_md5 is for 'www.abc.com',remove the double dport
-                    if 'dport' in desc_key_arr:
-                        dport = str(hit_src.get('dport')).lower()
-                        ioc = ioc.replace(':%s:%s' % (dport, dport), ':%s' % dport)
-                    # if uri in ioc, remove ':' from ioc
-                    if 'uri' in desc_key_arr:
-                        uri = str(hit_src.get('uri')).lower()
-                        if uri.startswith('/'):
-                            ioc = ioc.replace(':%s' % uri, uri)
-                        else:
-                            ioc = ioc.replace(':%s' % uri, '/%s' % uri)
-                        ioc_detail['desc_key'] = '%s:%s' % (rule.desc_key, 'uri')
-                    else:
-                        ioc_detail['desc_key'] = rule.desc_key
-                    ioc_detail['rule_state'] = rule.state
-                    ioc_detail['rule_id'] = rule.rule_id  # for black_gl
-                    ioc_detail['ioc'] = ioc
-                    # logging.info("__get_actions___ioc_detail:%s", ioc_detail)
-                    ioc_detail_list.append(ioc_detail)
-            except Exception, e:
-                logging.error("desc_key: rule_id=%s,hit=%s, Exception=%s" % (str(rule.rule_id), str(hit), str(e)),
-                              exc_info=1)
-                if not ioc_detail_list:
-                    continue
-
-                 */
-        }
-
+        Map<String, Object> iocDetailMap = createIocDetailMap(record, ruleKey, rule);
 
 
         return alarm;
+    }
+
+    /**
+     * 根据命中信息 生成告警使用 iocDetail
+     * @param record
+     * @param ruleKey
+     * @param rule
+     * @return
+     */
+    private Map<String, Object> createIocDetailMap(Map<String, Object> record, Ruler.IndexKey ruleKey, VagueRule rule) {
+        Map<String, Object> descJsonMap = rule.getDescJsonInMap();
+        descJsonMap.put("rule_state", rule.getState());
+        descJsonMap.put("rule_id", rule.getRule_id());
+
+        List<String> ruleFields = ruleKey.getRuleFields();
+
+        if(ruleFields.size() == 1 && "md5".equals(ruleFields.get(0))){
+            String dataField = ruleKey.getDataFieldByRuleField("md5");
+            Object value = ruleKey.getDataByRuleField("md5");
+            switch (dataField){
+                case "file_md5":
+                    descJsonMap.put("desc_key", "file_md5");
+                    descJsonMap.put("ioc", value);
+                    descJsonMap.put("md5",value);
+                    descJsonMap.put("name", ARUtils.getValueByKeyInMap(record, "file_name", ""));
+                    break;
+                case "process_md5":
+                    descJsonMap.put("desc_key", "process_md5");
+                    descJsonMap.put("ioc", value);
+                    break;
+                default:
+                    //附件的操作相关
+                    break;
+            }
+        }else {
+            List<Object> ruleDatas = ruleKey.getRuleDatas();
+            String ioc = Joiner.on(":").join(ruleDatas).toLowerCase();
+            if(ruleFields.contains("dport")){
+                Object dport = ruleKey.getDataByRuleField("dport");
+                ioc = ioc.replace(String.format(":%s:%s", dport, dport), String.format(":%s", dport));
+            }
+
+            if(ruleFields.contains("uri")){
+                String uri = String.valueOf(ruleKey.getDataByRuleField("uri")).toLowerCase();
+                if(uri.startsWith("/")){
+                    ioc = ioc.replace(String.format(":%s", uri), uri);
+                }else {
+                    ioc = ioc.replace(String.format(":%s", uri), String.format("/%s", uri));
+                }
+            }
+            descJsonMap.put("desc_key", rule.getDesc_key());
+            descJsonMap.put("ioc", ioc);
+        }
+
+        return descJsonMap;
+    }
+
+    /**
+     * 判断是否为重复告警
+     * @param iocDetailMap
+     * @return
+     */
+    private boolean isRepeatAlarm(Map<String, Object> iocDetailMap){
+
+        return false;
+    }
+
+    public static void main(String[] args) {
+        //2017-10-24T14:11:58.942+0800
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+        System.out.println(simpleDateFormat.format(new Date()));
     }
 }

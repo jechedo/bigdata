@@ -178,33 +178,61 @@ public class Ruler {
         Set<IndexKey> indexKeys = Sets.newHashSet(new IndexKey());
         Set<IndexKey> indexKeyModels;
         IndexKey model;
-        Object o;
+        Map<String, Object> o;
+        Set<Map.Entry<String, Object>> entries;
         for(String field : roleIndexFieldLevels){
             //取值处可能需要根据数据进行调整
             // 比如 field = 'md5' , 可能需要取record中的file_md5或者process_md5 或者其他md5字段的值
-            o = record.get(field);
-            if(o != null){
-                if(arConf.isIocVagueField(field)){
-                    indexKeyModels = Sets.newHashSet(indexKeys);
-                    indexKeys = Sets.newHashSet();
-                    for(IndexKey ik : indexKeyModels){
+            o = getIndexFieldValues(record, field);
+            if(!o.isEmpty()){
+                entries = o.entrySet();
+                indexKeyModels = Sets.newHashSet(indexKeys);
+                indexKeys = Sets.newHashSet();
+                for(IndexKey ik : indexKeyModels){
+                    for(Map.Entry<String, Object> entry : entries) {
                         model = new IndexKey(ik);
-                        model.addKV(field, String.valueOf(o), field, String.valueOf(o));
+                        model.addKV(field, entry.getValue(),  entry.getKey(),  entry.getValue());
                         indexKeys.add(model);
 
-                        model = new IndexKey(ik);
-                        model.addKV(field, null, field, String.valueOf(o));
-                        indexKeys.add(model);
-                    }
-                }else{
-                    for(IndexKey ik : indexKeys){
-                        ik.addKV(field, String.valueOf(o), field, String.valueOf(o));
+                        if(arConf.isIocVagueField(field)) {
+                            model = new IndexKey(ik);
+                            model.addKV(field, null, entry.getKey(),  entry.getValue());
+                            indexKeys.add(model);
+                        }
                     }
                 }
+
             }
         }
 
         return indexKeys;
+    }
+
+
+    private Map<String, Object> getIndexFieldValues(Map<String, Object> record, String indexField){
+        Map<String, Object> res = Maps.newHashMap();
+        //String field;
+        Object o;
+        Set<String> vals = Sets.newHashSet();
+        switch (indexField){
+            case "md5":
+                o = record.get("md5");
+                if(o != null && vals.add(String.valueOf(o))) res.put("md5", o);
+
+                o = record.get("file_md5");
+                if(o != null && vals.add(String.valueOf(o))) res.put("file_md5", o);
+
+                o = record.get("process_md5");
+                if(o != null && vals.add(String.valueOf(o))) res.put("process_md5", o);
+                break;
+            default:
+                o = record.get(indexField);
+                if(o != null && vals.add(String.valueOf(o))) res.put(indexField, o);
+                break;
+
+        }
+
+        return res;
     }
 
 
@@ -277,64 +305,80 @@ public class Ruler {
      *  此对象主要是为了方便后期生成告警表单。
      */
     public class IndexKey{
-        private List<String> ruleKeys;
-        private List<String> ruleDatas;
-        private List<String> dataKeys;
-        private List<String> datas;
+        private List<String> ruleFields;
+        private List<Object> ruleDatas;
+        private List<String> dataFields;
+        private List<Object> datas;
 
         private IndexKey(){
-            this.ruleKeys  = Lists.newArrayList();
+            this.ruleFields  = Lists.newArrayList();
             this.ruleDatas = Lists.newArrayList();
-            this.dataKeys  = Lists.newArrayList();
+            this.dataFields  = Lists.newArrayList();
             this.datas     = Lists.newArrayList();
         }
 
         private IndexKey(IndexKey indexKey){
-            this.ruleKeys  = Lists.newArrayList(indexKey.ruleKeys);
+            this.ruleFields  = Lists.newArrayList(indexKey.ruleFields);
             this.ruleDatas = Lists.newArrayList(indexKey.ruleDatas);
-            this.dataKeys  = Lists.newArrayList(indexKey.dataKeys);
+            this.dataFields  = Lists.newArrayList(indexKey.dataFields);
             this.datas     = Lists.newArrayList(indexKey.datas);
         }
 
-        private void addKV(String ruleKey, String ruleData, String dataKey, String data){
-            this.ruleKeys.add(ruleKey);
+        private void addKV(String ruleField, Object ruleData, String dataField, Object data){
+            this.ruleFields.add(ruleField);
             this.ruleDatas.add(ruleData);
-            this.dataKeys.add(dataKey);
+            this.dataFields.add(dataField);
             this.datas.add(data);
         }
 
-        public String getRuleKey() {
-            return getKeyString(ruleKeys, ruleDatas);
+        public List<String> getRuleFields() {
+            return ruleFields;
         }
 
-        public List<String> getNoEmptyRuleKeys(){
+        public String getDataFieldByRuleField(String ruleField){
+            String dataField = null;
+            int size = ruleFields.size();
+            for (int i = 0; i < size; i++) {
+                if(ruleField.equals(ruleFields.get(i))){
+                    dataField = dataFields.get(i);
+                    break;
+                }
+            }
+            return dataField;
+        }
+
+        public Object getDataByRuleField(String ruleField){
+            return getDataByFieldInDatas(ruleFields, datas, ruleField);
+        }
+
+        public String getRuleKey() {
+            return getKeyString(ruleFields, ruleDatas);
+        }
+
+        public String getRuleDataKey() {
+            return getKeyString(ruleFields, datas);
+        }
+
+        public List<String> getNoEmptyRuleFields(){
             List<String> res = Lists.newArrayList();
             int size = ruleDatas.size();
             for (int i = 0; i < size; i++) {
                 if(ruleDatas.get(i) != null){
-                    res.add(ruleKeys.get(i));
+                    res.add(ruleFields.get(i));
                 }
             }
             return res;
         }
 
-        public String getDataKey() {
-            return getKeyString(dataKeys, datas);
+        public List<Object> getRuleDatas(){
+            return datas;
         }
 
-        public String getDataByRuleKey(String key){
-            return getDataByKey(ruleKeys, datas, key);
-        }
-
-        public String getDataByDataKey(String key){
-            return getDataByKey(dataKeys, datas, key);
-        }
-
-        private String getDataByKey(List<String> keys, List<String> datas, String key){
-            String data = null;
-            int size = keys.size();
+        private Object getDataByFieldInDatas(List<String> fields, List<Object> datas, String field){
+            Object data = null;
+            int size = fields.size();
             for (int i = 0; i < size; i++) {
-                if(key.equals(keys.get(i))){
+                if(field.equals(fields.get(i))){
                     data = datas.get(i);
                     break;
                 }
@@ -342,12 +386,12 @@ public class Ruler {
             return data;
         }
 
-        private String getKeyString(List<String> keys, List<String> datas) {
+        private String getKeyString(List<String> fields, List<Object> datas) {
             StringBuilder sb = new StringBuilder();
-            int size = keys.size();
-            String value;
+            int size = fields.size();
+            Object value;
             for (int i = 0; i < size; i++) {
-                sb.append(",").append(keys.get(i));
+                sb.append(",").append(fields.get(i));
                 value = datas.get(i);
                 if(value != null){
                     sb.append(":").append(value);
@@ -359,9 +403,9 @@ public class Ruler {
         @Override
         public String toString() {
             final StringBuilder sb = new StringBuilder("IndexKey{");
-            sb.append("ruleKeys=").append(ruleKeys);
+            sb.append("ruleFields=").append(ruleFields);
             sb.append(", ruleDatas=").append(ruleDatas);
-            sb.append(", dataKeys=").append(dataKeys);
+            sb.append(", dataFields=").append(dataFields);
             sb.append(", datas=").append(datas);
             sb.append('}');
             return sb.toString();
@@ -373,13 +417,13 @@ public class Ruler {
             if (o == null || getClass() != o.getClass()) return false;
 
             IndexKey indexKey = (IndexKey) o;
-            return getRuleKey().equals(indexKey.getRuleKey());
+            return getRuleDataKey().equals(indexKey.getRuleDataKey());
         }
 
         @Override
         public int hashCode() {
-            int result = ruleKeys.hashCode();
-            result = 31 * result + ruleDatas.hashCode();
+            int result = ruleFields.hashCode();
+            result = 31 * result + datas.hashCode();
             return result;
         }
     }

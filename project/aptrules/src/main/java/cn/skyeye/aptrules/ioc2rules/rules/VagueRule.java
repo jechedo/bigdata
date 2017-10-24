@@ -71,7 +71,7 @@ public class VagueRule extends SimpleRule{
 
         if(vagues.isEmpty()) return true;
 
-        List<String> matches = indexKey.getNoEmptyRuleKeys();
+        List<String> matches = indexKey.getNoEmptyRuleFields();
         Set<String> fields = Sets.newHashSet(vagues.keySet());
         fields.removeAll(matches);
         if(fields.isEmpty()) return true;
@@ -83,7 +83,7 @@ public class VagueRule extends SimpleRule{
 
         Iterator<String> iterator = fields.iterator();
         String field;
-        String valueModel;
+        Object valueModel;
         String value;
         int matchTimes;
 
@@ -91,7 +91,7 @@ public class VagueRule extends SimpleRule{
 
         while (iterator.hasNext()){
             field = iterator.next();
-            valueModel = indexKey.getDataByRuleKey(field);
+            valueModel = indexKey.getDataByRuleField(field);
             matchTimes = 0;
 
             if(valueModel == null) return false;
@@ -99,7 +99,7 @@ public class VagueRule extends SimpleRule{
             vagueValss = vagues.get(field);
             for(List<String> vagueVals : vagueValss){
                 /* 字段值是否是多个拼接的？ 暂时考虑的是单值 */
-                value = valueModel;
+                value = String.valueOf(valueModel);
                 int index = -1;
                 for(String vagueVal : vagueVals){
                     index = value.indexOf(vagueVal);

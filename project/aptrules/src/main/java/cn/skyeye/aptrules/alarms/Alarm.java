@@ -1,5 +1,7 @@
 package cn.skyeye.aptrules.alarms;
 
+import cn.skyeye.aptrules.ARUtils;
+import cn.skyeye.common.json.Jsons;
 import com.google.common.collect.Maps;
 
 import java.util.Map;
@@ -11,11 +13,17 @@ import java.util.Map;
  * @version 2017/10/20 15:20
  */
 public class Alarm {
-
+    private String ruleKey;
     private Map<String, Object> entry;
+    private String timestamp;
 
-    Alarm(){
+    Alarm(String ruleKey, Map<String, Object> record){
+        this.ruleKey = ruleKey;
         this.entry = Maps.newHashMap();
+
+        this.timestamp = ARUtils.nowTimeStr();
+        entry.put("@timestamp", timestamp);
+        entry.put("_origin", Jsons.obj2JsonString(record));
     }
 
 
@@ -37,5 +45,27 @@ public class Alarm {
 
     public Map<String, Object> getAlarm() {
         return this.entry;
+    }
+
+    public String getRuleKey() {
+        return ruleKey;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Alarm alarm = (Alarm) o;
+        return ruleKey.equals(alarm.ruleKey);
+    }
+
+    @Override
+    public int hashCode() {
+        return ruleKey.hashCode();
     }
 }
