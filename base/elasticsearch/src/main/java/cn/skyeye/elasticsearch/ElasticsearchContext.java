@@ -57,6 +57,7 @@ public class ElasticsearchContext {
     }
 
     public EsClient getEsClient(String clientId){
+        if(clientId == null)return getEsClient();
         return clientMap.get(clientId);
     }
 

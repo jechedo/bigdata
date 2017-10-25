@@ -10,8 +10,6 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.util.HashSet;
 import java.util.Set;
 
-
-
 public class SearchDao {
 
 	private static final Set<String> END_TABLE_MAP = new HashSet<>();
