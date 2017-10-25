@@ -3,7 +3,9 @@ package cn.skyeye.common.json;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Description:
@@ -16,6 +18,18 @@ public class Jsons {
 
         return JSON.parseObject(jsonStr,
                 new TypeReference<Map<K, V>>() {});
+    }
+
+    public static <V> List<V> toList(String jsonStr) throws Exception{
+
+        return JSON.parseObject(jsonStr,
+                new TypeReference<List<V>>() {});
+    }
+
+    public static <V> Set<V> toSet(String jsonStr) throws Exception{
+
+        return JSON.parseObject(jsonStr,
+                new TypeReference<Set<V>>() {});
     }
 
     public static String obj2JsonString(Object obj){
