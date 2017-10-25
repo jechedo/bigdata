@@ -3,8 +3,10 @@ package cn.skyeye.aptrules;
 import cn.skyeye.aptrules.alarms.Alarmer;
 import cn.skyeye.aptrules.ioc2rules.Ioc2RuleHandler;
 import cn.skyeye.aptrules.ioc2rules.Ruler;
+import cn.skyeye.common.net.IPtoLong;
 import cn.skyeye.redis.RedisContext;
 import com.google.common.collect.Maps;
+import org.apache.log4j.Logger;
 import redis.clients.jedis.Jedis;
 
 import java.util.Map;
@@ -18,6 +20,8 @@ import java.util.Map;
  */
 public class ARContext {
 
+    private Logger logger = Logger.getLogger(ARContext.class);
+
     private static final String ID = "AR";
 
     private volatile static ARContext arContext;
@@ -26,6 +30,10 @@ public class ARContext {
     private RedisContext redisContext;
     private Alarmer alarmer;
     private Ioc2RuleHandler ioc2RuleHandler;
+
+    private long netA = ipv4ToLong("10.255.255.255") >> 24;
+    private long netB = ipv4ToLong("172.31.255.255") >> 20;
+    private long netC = ipv4ToLong("192.168.255.255") >> 16;
 
     private ARContext(){
         this.arConf = new ARConf();
@@ -70,6 +78,21 @@ public class ARContext {
 
     public Alarmer getAlarmer() {
         return alarmer;
+    }
+
+    public Long ipv4ToLong(String ipv4){
+        long l = 0;
+        try {
+            l = IPtoLong.ipToLong(ipv4);
+        } catch (Exception e) {
+            logger.error(String.format("ipv4:%s 转整数失败。", ipv4), e);
+        }
+        return l;
+    }
+
+    public boolean isInternalIP(String ipv4){
+        long ipData = ipv4ToLong(ipv4);
+        return (ipData >> 24 == netA || ipData >> 20 == netB || ipData >> 16 == netC);
     }
 
     public static void main(String[] args) {

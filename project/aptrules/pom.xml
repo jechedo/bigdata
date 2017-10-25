@@ -32,5 +32,11 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>cn.360.skyeye</groupId>
+            <artifactId>bigdata-elasticsearch_2.10</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
     </dependencies>
 </project>

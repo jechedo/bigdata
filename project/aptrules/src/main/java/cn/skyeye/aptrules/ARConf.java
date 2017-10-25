@@ -41,6 +41,8 @@ public class ARConf extends ConfigDetail{
 
     private List<String> roleIndexFieldLevels;
 
+    private String[] timeFields = new String[]{ "dtime", "update_time", "time", "access_time"};
+
     ARConf(){
         //读取系统中配置
         System.getProperties().forEach((keyObj, valueObj) -> {
@@ -133,5 +135,9 @@ public class ARConf extends ConfigDetail{
 
     public List<String> getRoleIndexFieldLevels() {
         return Lists.newArrayList(roleIndexFieldLevels);
+    }
+
+    public String[] getTimeFields() {
+        return timeFields;
     }
 }

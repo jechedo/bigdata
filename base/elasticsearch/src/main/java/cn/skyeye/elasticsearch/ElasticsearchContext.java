@@ -1,5 +1,6 @@
 package cn.skyeye.elasticsearch;
 
+import cn.skyeye.elasticsearch.searchs.SearchCenter;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 
@@ -19,10 +20,12 @@ public class ElasticsearchContext {
 
     private EsBaseConf baseConf;
     private Map<String, EsClient> clientMap;
+    private SearchCenter searchCenter;
 
     private ElasticsearchContext(boolean loadEnv){
         this.clientMap = Maps.newConcurrentMap();
         this.baseConf = new EsBaseConf(loadEnv);
+        this.searchCenter = new SearchCenter();
 
         if(baseConf.isLoadOnStart() && baseConf.hasDefault()){
             List<String> clientIds = baseConf.getClientIds();
@@ -63,5 +66,9 @@ public class ElasticsearchContext {
 
     public EsClient getEsClient(){
         return getEsClient(baseConf.getDefaultClientId());
+    }
+
+    public SearchCenter getSearcher() {
+        return searchCenter;
     }
 }
