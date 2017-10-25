@@ -1,10 +1,14 @@
-package cn.skyeye.aptrules.alarms;
+package cn.skyeye.aptrules.alarms.store;
 
+import cn.skyeye.aptrules.alarms.Alarm;
 import cn.skyeye.common.Dates;
 import com.google.common.collect.Maps;
 
 import java.util.*;
 
+/**
+ * 只缓存当天的数据。
+ */
 public class AlarmLRUCache {
   
    private static final float   hashTableLoadFactor = 0.75f;

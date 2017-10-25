@@ -3,12 +3,12 @@ package cn.skyeye.aptrules.alarms;
 import cn.skyeye.aptrules.ARConf;
 import cn.skyeye.aptrules.ARContext;
 import cn.skyeye.aptrules.Record;
+import cn.skyeye.aptrules.alarms.store.AlarmLRUCache;
+import cn.skyeye.aptrules.alarms.store.AlarmStore;
 import cn.skyeye.aptrules.ioc2rules.Ruler;
 import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.common.hash.Md5;
 import cn.skyeye.common.json.Jsons;
-import cn.skyeye.elasticsearch.ElasticsearchContext;
-import cn.skyeye.elasticsearch.searchs.SearchCenter;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -37,12 +37,12 @@ public class Alarmer {
 
     private ARConf arConf;
     private AlarmLRUCache alarmCache;
-    private SearchCenter esSearcher;
+    private AlarmStore alarmStore;
 
-    public Alarmer(ARConf arConf){
+    public Alarmer(ARConf arConf, AlarmStore alarmStore){
         this.arConf = arConf;
         this.alarmCache = new AlarmLRUCache(100000);
-        this.esSearcher = ElasticsearchContext.get().getSearcher();
+        this.alarmStore = alarmStore;
     }
 
     public List<Alarm> createAlarm(Map<String, Object> data, Ruler.Hits hits){

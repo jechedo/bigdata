@@ -1,6 +1,7 @@
 package cn.skyeye.aptrules;
 
 import cn.skyeye.aptrules.alarms.Alarmer;
+import cn.skyeye.aptrules.alarms.store.AlarmEsStore;
 import cn.skyeye.aptrules.ioc2rules.Ioc2RuleHandler;
 import cn.skyeye.aptrules.ioc2rules.Ruler;
 import cn.skyeye.common.net.IPtoLong;
@@ -37,7 +38,7 @@ public class ARContext {
 
     private ARContext(){
         this.arConf = new ARConf();
-        this.alarmer = new Alarmer(arConf);
+        this.alarmer = new Alarmer(arConf, new AlarmEsStore());
         initRedis();
     }
 
