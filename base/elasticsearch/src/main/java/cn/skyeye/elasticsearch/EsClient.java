@@ -184,4 +184,16 @@ public class EsClient{
     public String getClientId() {
         return clientId;
     }
+
+    public Set<String> getHosts() {
+        return hosts;
+    }
+
+    public int getTcpPort() {
+        return tcpPort;
+    }
+
+    public String getClusterName() {
+        return clusterName;
+    }
 }
