@@ -3,7 +3,10 @@ package cn.skyeye.elasticsearch;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.log4j.Logger;
-import org.elasticsearch.action.bulk.*;
+import org.elasticsearch.action.bulk.BackoffPolicy;
+import org.elasticsearch.action.bulk.BulkProcessor;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.action.index.IndexResponse;
@@ -198,7 +201,7 @@ public class EsClient{
         return clusterName;
     }
 
-    public void insertRecord(String index, String type, String id, Map<String, Object> record) throws Exception{
+    public void insert(String index, String type, String id, Map<String, Object> record) throws Exception{
 
         if(record != null && !record.isEmpty()){
             IndexRequestBuilder builder = client.prepareIndex(index, type, id).setSource(record);
@@ -218,4 +221,10 @@ public class EsClient{
         GetResponse getResponse = client.prepareGet(index, type, id).get();
         return getResponse.getSourceAsMap();
     }
+
+    public boolean exist(String index, String type, String id) throws Exception {
+        GetResponse getResponse = client.prepareGet(index, type, id).get();
+        return getResponse.isExists();
+    }
+
 }
