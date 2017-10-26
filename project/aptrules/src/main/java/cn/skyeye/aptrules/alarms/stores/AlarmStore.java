@@ -1,6 +1,7 @@
 package cn.skyeye.aptrules.alarms.stores;
 
 import cn.skyeye.aptrules.alarms.Alarm;
+import org.apache.log4j.Logger;
 
 import java.util.List;
 
@@ -12,6 +13,8 @@ import java.util.List;
  */
 public abstract class AlarmStore {
 
+    protected final Logger logger = Logger.getLogger(AlarmStore.class);
+
     private AlarmLRUCache memoryCache;
 
     public AlarmStore(){
@@ -22,27 +25,17 @@ public abstract class AlarmStore {
         this.memoryCache.put(key, alarm);
     }
 
-    public Alarm getAlarmInCache(String conditions) {
-        return this.memoryCache.get(conditions);
+    public Alarm getAlarmInCache(String key) {
+        return this.memoryCache.get(key);
     }
 
-    public Alarm getAlarm(String conditions){
-        Alarm alarm = this.memoryCache.get(conditions);
-        if(alarm == null){
-            List<Alarm> alarmsInStore = getAlarmsInStore(conditions, 1);
-            if(alarmsInStore != null && !alarmsInStore.isEmpty()){
-                alarm = alarmsInStore.get(0);
-                memoryCache.put(conditions, alarm);
-            }
-        }
-        return alarm;
-    }
-
-    public abstract List<Alarm> getAlarmsInStore(String conditions, int maxSize);
+    public abstract List<Alarm> queryAlarmsInStore(String conditions, int maxSize);
 
     public abstract void storeAlarm(Alarm alarm);
 
     public abstract boolean exist(String alarmId);
+
+    public abstract void updateAlarms(List<Alarm> assets);
 
     //public abstract String createConditions(String[] fields, Object[] fieldValues);
 }

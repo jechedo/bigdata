@@ -1,8 +1,8 @@
 package cn.skyeye.aptrules.alarms;
 
 import cn.skyeye.aptrules.ARUtils;
+import cn.skyeye.aptrules.Record;
 import cn.skyeye.common.json.Jsons;
-import com.google.common.collect.Maps;
 
 import java.util.Map;
 
@@ -12,34 +12,28 @@ import java.util.Map;
  * @author LiXiaoCong
  * @version 2017/10/20 15:20
  */
-public class Alarm {
-    private Map<String, Object> entry;
+public class Alarm extends Record {
     private String timestamp;
     private String id;
 
-    private Alarm(String id, String timestamp, Map<String, Object> data){
+    public Alarm(String id, String timestamp, Map<String, Object> data){
+        super(data);
         this.id = id;
         this.timestamp = timestamp;
-        if(data != null){
-            this.entry = Maps.newHashMap(data);
-        }else {
-            this.entry = Maps.newHashMap();
-        }
     }
 
     Alarm(String id, Map<String, Object> record){
-        this.entry = Maps.newHashMap();
+        super(null);
         this.id = id;
-
         this.timestamp = ARUtils.nowTimeStr();
-        entry.put("@timestamp", timestamp);
-        entry.put("_origin", Jsons.obj2JsonString(record));
+        this.data.put("@timestamp", timestamp);
+        this.data.put("_origin", Jsons.obj2JsonString(record));
     }
 
 
     public void addAlarmKV(String key, Object value){
         if(key != null && value != null){
-            this.entry.put(key, value);
+            this.data.put(key, value);
         }
     }
 
@@ -48,17 +42,13 @@ public class Alarm {
     }
 
     public  Object getAlarmValue(String key){
-        return this.entry.get(key);
+        return this.data.get(key);
     }
 
     public <T> T getAlarmValue(String key, T defualtValue){
-        Object o = this.entry.get(key);
+        Object o = this.data.get(key);
         if(o == null) return defualtValue;
         return (T)o;
-    }
-
-    public Map<String, Object> getAlarm() {
-        return this.entry;
     }
 
     public String getTimestamp() {
@@ -80,15 +70,11 @@ public class Alarm {
         return id.hashCode();
     }
 
-    public static Alarm newAlarmByData(String id, String timestamp, Map<String, Object> data){
-        return new Alarm(id, timestamp, data);
-    }
-
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Alarm{");
         sb.append("id='").append(id);
-        sb.append(", entry=").append(entry).append('\'');
+        sb.append(", data=").append(data).append('\'');
         sb.append('}');
         return sb.toString();
     }

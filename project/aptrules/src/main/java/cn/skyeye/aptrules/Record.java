@@ -17,7 +17,7 @@ import java.util.Set;
  */
 public class Record {
 
-    private Map<String, Object> data;
+    protected Map<String, Object> data;
 
     public Record(Map<String, Object> data) {
         if(data == null){
@@ -27,8 +27,14 @@ public class Record {
         }
     }
 
-    public Map<String, Object> getRecord() {
+    public Map<String, Object> getData() {
         return data;
+    }
+
+    public void put(String key, Object value){
+        if(key != null && value != null){
+            this.data.put(key, value);
+        }
     }
 
     public String getString(String key){

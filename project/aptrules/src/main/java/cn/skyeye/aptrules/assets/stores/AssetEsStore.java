@@ -1,8 +1,7 @@
-package cn.skyeye.aptrules.alarms.stores;
+package cn.skyeye.aptrules.assets.stores;
 
-import cn.skyeye.aptrules.alarms.Alarm;
+import cn.skyeye.aptrules.assets.Asset;
 import cn.skyeye.elasticsearch.ElasticsearchContext;
-import cn.skyeye.elasticsearch.EsClient;
 import cn.skyeye.elasticsearch.searchs.SearchCenter;
 import com.google.common.collect.Lists;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -19,85 +18,73 @@ import java.util.Map;
  * Description:
  *
  * @author LiXiaoCong
- * @version 2017/10/25 18:54
+ * @version 2017/10/26 14:54
  */
-public class AlarmEsStore extends AlarmStore {
+public class AssetEsStore extends AssetStore{
 
     private ElasticsearchContext elasticsearchContext;
     private SearchCenter esSearcher;
-    private String index = "alarm_collection";
-    private String type  = "alarm_collection";
+    private String index = "alarm_asset";
+    private String type  = "alarm_asset";
 
-    public AlarmEsStore() {
+    public AssetEsStore(){
         super();
         this.elasticsearchContext = ElasticsearchContext.get();
         this.esSearcher = elasticsearchContext.getSearcher();
     }
 
     @Override
-    public List<Alarm> queryAlarmsInStore(String conditions, int maxSize) {
+    public List<Asset> queryAsset(String conditions, int maxSize) {
 
         String eql = String.format("select * from %s/%s where %s limit %s", index, type, conditions, maxSize);
         SearchHits searchHits = esSearcher.searchSQLForHits(null, eql);
         SearchHit[] hits = searchHits.getHits();
-        List<Alarm> res = null;
+        List<Asset> res = null;
         if(hits.length > 0){
-            Map<String, Object> alarmData;
             res = Lists.newArrayListWithCapacity(hits.length);
-            String timestamp;
             for(SearchHit hit : hits){
-                alarmData = hit.sourceAsMap();
-                timestamp = String.valueOf(alarmData.get("@timestamp"));
-                res.add(new Alarm(hit.getId(), timestamp, alarmData));
+                res.add(new Asset(hit.getId(), hit.sourceAsMap()));
             }
         }
         return res;
     }
 
     @Override
-    public void storeAlarm(Alarm alarm) {
-        EsClient esClient = elasticsearchContext.getEsClient();
+    public Asset getByAssetId(String assetId) {
+        Asset res = null;
         try {
-            esClient.insert(index, type, alarm.getId(), alarm.getData());
+            Map<String, Object> data = elasticsearchContext.getEsClient().get(index, type, assetId);
+            if(data != null){
+                res = new Asset(assetId, data);
+            }
         } catch (Exception e) {
-            logger.error(String.format("存储告警表单到es失败：\n %s", alarm), e);
+            logger.error(String.format("获取id为%s的Asset失败。", assetId), e);
         }
+
+        return res;
     }
 
     @Override
-    public boolean exist(String alarmId) {
-        EsClient esClient = elasticsearchContext.getEsClient();
-        boolean exist = false;
-        try {
-            esClient.exist(index, type, alarmId);
-            exist = true;
-        } catch (Exception e) {
-            logger.error(String.format("根据es判断是否为相同告警失败：\n %s", alarmId), e);
-        }
-        return exist;
-    }
-
-    @Override
-    public void updateAlarms(List<Alarm> alarms) {
-        if(alarms != null){
+    public void updateAssets(List<Asset> assets) {
+        if(assets != null){
             try {
                 TransportClient client = elasticsearchContext.getEsClient().getClient();
                 BulkRequestBuilder bulk = client.prepareBulk();
                 UpdateRequestBuilder updateBuilder;
-                for(Alarm alarm : alarms){
-                    updateBuilder = client.prepareUpdate(index, type, alarm.getId())
-                            .setDoc(alarm.getData())
-                            .setUpsert(alarm.getData());
+                for(Asset asset : assets){
+                    updateBuilder = client.prepareUpdate(index, type, asset.getId())
+                            .setDoc(asset.getData())
+                            .setUpsert(asset.getData());
                     bulk.add(updateBuilder);
                 }
 
                 BulkResponse bulkItemResponses = bulk.get();
                 if(bulkItemResponses.hasFailures()){
-                    logger.error(String.format("更新Alarms:%s失败。\n %s", alarms,
+                    logger.error(String.format("更新Assets:%s失败。\n %s", assets,
                             bulkItemResponses.buildFailureMessage()));
                 }
             }catch (Exception e){
-                logger.error(String.format("更新Alarms:%s失败。", alarms), e);
+                logger.error(String.format("更新Assets:%s失败。", assets), e);
             }
         }
     }

@@ -5,6 +5,8 @@ import cn.skyeye.aptrules.ARContext;
 import cn.skyeye.aptrules.ARUtils;
 import cn.skyeye.aptrules.Record;
 import cn.skyeye.aptrules.alarms.stores.AlarmStore;
+import cn.skyeye.aptrules.assets.Asset;
+import cn.skyeye.aptrules.assets.Asseter;
 import cn.skyeye.aptrules.ioc2rules.Ruler;
 import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.common.Dates;
@@ -13,7 +15,6 @@ import cn.skyeye.common.json.Jsons;
 import cn.skyeye.elasticsearch.ElasticsearchContext;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.net.InetAddresses;
@@ -40,26 +41,26 @@ public class Alarmer {
     private final Logger logger = Logger.getLogger(Alarmer.class);
 
     private ARConf arConf;
-   // private AlarmLRUCache alarmCache;
     private AlarmStore alarmStore;
+
+    private Asseter asseter;
 
     public Alarmer(ARConf arConf, AlarmStore alarmStore){
         this.arConf = arConf;
-        //this.alarmCache = new AlarmLRUCache(100000);
         this.alarmStore = alarmStore;
+        this.asseter = new Asseter(alarmStore);
     }
 
-    public List<Alarm> createAlarm(Map<String, Object> data, Ruler.Hits hits){
+    public void checkAndReportAlarm(Map<String, Object> data, Ruler.Hits hits){
         Record record = new Record(data);
-        List<Alarm> alarms = Lists.newArrayList();
         Alarm alarm;
         for (Map.Entry<Ruler.IndexKey, VagueRule> entry : hits.getHitSet()) {
             alarm = createAlarm(record, entry.getKey(), entry.getValue());
-            if(alarm != null)alarms.add(alarm);
+            if(alarm != null){
+                alarmStore.storeAlarm(alarm);
+            }
         }
-        return alarms;
     }
-
 
     /**
      *
@@ -73,7 +74,8 @@ public class Alarmer {
         Alarm alarm = null;
         Map<String, Object> iocDetailMap = createIocDetailMap(record, ruleKey, rule);
         //告警字段 + ioc + 当前日期时间
-        String alarmId = Md5.Md5_32(String.format("%s,%s,%s", ruleKey.getRuleDataKey(), iocDetailMap.get("ioc"), Dates.getTodayTime()));
+        String alarmId = Md5.Md5_32(String.format("%s,%s,%s",
+                ruleKey.getRuleDataKey(), iocDetailMap.get("ioc"), Dates.getTodayTime()));
         if(!isRepeatAlarm(alarmId)){
             alarm = createAlarm(record, alarmId, iocDetailMap);
         }
@@ -81,7 +83,7 @@ public class Alarmer {
     }
 
     private Alarm createAlarm(Record record, String alarmId, Map<String, Object> iocDetailMap){
-        Alarm alarm = new Alarm(alarmId, record.getRecord());
+        Alarm alarm = new Alarm(alarmId, record.getData());
 
         String[] victimAndAttackIP = getVictimAndAttackIP(record);
         String hostMd5 = record.getString("host_md5", "");
@@ -115,7 +117,8 @@ public class Alarmer {
             firstAccessTimeStr =  oldAccessStr;
         }
 
-        Map<String, Object> asset = getAsset(victimAndAttackIP[0], accessTime);
+        Asset asset = asseter.getAssetByAlarm(record.getString("data_type"), victimAndAttackIP[0], accessTime);
+
         alarm.addAlarmKV("alarm_sample", 1);
         alarm.addAlarmKV("alarm_sip", victimAndAttackIP[0]);
         alarm.addAlarmKV("attack_sip", victimAndAttackIP[1]);
@@ -136,7 +139,7 @@ public class Alarmer {
         alarm.addAlarmKV("attack_org", "");
         alarm.addAlarmKV("attack_type", "");
         alarm.addAlarmKV("serial_num", serialNum);
-        alarm.addAlarmKV("_asset", asset);
+        alarm.addAlarmKV("_asset", asset.getData());
 
         return alarm;
     }
@@ -170,7 +173,7 @@ public class Alarmer {
                     descJsonMap.put("ioc", value);
                     break;
                 default:
-                    //附件的操作相关
+                    //附件的操作相关  待完成
                     break;
             }
         }else {
@@ -204,7 +207,6 @@ public class Alarmer {
     private boolean isRepeatAlarm(String alarmId){
         return alarmStore.exist(alarmId);
     }
-
 
     /**
      * 获取受害者 和 攻击者的地址
@@ -312,14 +314,26 @@ public class Alarmer {
 
     private String getFirstAccessTime(String nid, String victimIP){
 
-        String conditions = String.format("nid='%s'", nid);
-        if(victimIP != null){
-            conditions = String.format("%s and alarm_sip='%s'", conditions, victimIP);
+        String res = null;
+        String key = String.format("%s:%s", nid, victimIP);
+        Alarm alarm = alarmStore.getAlarmInCache(key);
+        if(alarm == null) {
+            String conditions = String.format("nid='%s'", nid);
+            if (victimIP != null) {
+                conditions = String.format("%s and alarm_sip='%s'", conditions, victimIP);
+            }
+            conditions = String.format("%s and alarm_sip='%s' order by access_time", conditions, victimIP);
+            List<Alarm> alarms = alarmStore.queryAlarmsInStore(conditions, 1);
+            if(alarms != null && alarms.size() > 0){
+                alarm = alarms.get(0);
+                alarmStore.addCache(key, alarm);
+            }
         }
-        conditions = String.format("%s and alarm_sip='%s' order by access_time", conditions, victimIP);
-        Alarm alarm = alarmStore.getAlarm(conditions);
 
-        return alarm.getAlarmValue("access_time", null);
+        if(alarm != null)
+            res = alarm.getAlarmValue("access_time", null);
+
+        return res;
     }
 
     /**
