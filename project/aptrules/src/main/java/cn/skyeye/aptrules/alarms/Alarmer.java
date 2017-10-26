@@ -7,6 +7,7 @@ import cn.skyeye.aptrules.Record;
 import cn.skyeye.aptrules.alarms.stores.AlarmStore;
 import cn.skyeye.aptrules.ioc2rules.Ruler;
 import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
+import cn.skyeye.common.Dates;
 import cn.skyeye.common.hash.Md5;
 import cn.skyeye.common.json.Jsons;
 import cn.skyeye.elasticsearch.ElasticsearchContext;
@@ -49,11 +50,12 @@ public class Alarmer {
     }
 
     public List<Alarm> createAlarm(Map<String, Object> data, Ruler.Hits hits){
-        int size = hits.getHitSize();
         Record record = new Record(data);
-        List<Alarm> alarms = Lists.newArrayListWithCapacity(size);
+        List<Alarm> alarms = Lists.newArrayList();
+        Alarm alarm;
         for (Map.Entry<Ruler.IndexKey, VagueRule> entry : hits.getHitSet()) {
-            alarms.add(createAlarm(record, entry.getKey(), entry.getValue()));
+            alarm = createAlarm(record, entry.getKey(), entry.getValue());
+            if(alarm != null)alarms.add(alarm);
         }
         return alarms;
     }
@@ -69,16 +71,17 @@ public class Alarmer {
      */
     private Alarm createAlarm(Record record, Ruler.IndexKey ruleKey, VagueRule rule){
         Alarm alarm = null;
-
         Map<String, Object> iocDetailMap = createIocDetailMap(record, ruleKey, rule);
-        if(!isRepeatAlarm(iocDetailMap)){
-            alarm = createAlarm(record, ruleKey, iocDetailMap);
+        //告警字段 + ioc + 当前日期时间
+        String alarmId = Md5.Md5_32(String.format("%s,%s,%s", ruleKey.getRuleDataKey(), iocDetailMap.get("ioc"), Dates.getTodayTime()));
+        if(!isRepeatAlarm(alarmId)){
+            alarm = createAlarm(record, alarmId, iocDetailMap);
         }
         return alarm;
     }
 
-    private Alarm createAlarm(Record record , Ruler.IndexKey ruleKey,  Map<String, Object> iocDetailMap){
-        Alarm alarm = new Alarm(record.getRecord());
+    private Alarm createAlarm(Record record, String alarmId, Map<String, Object> iocDetailMap){
+        Alarm alarm = new Alarm(alarmId, record.getRecord());
 
         String[] victimAndAttackIP = getVictimAndAttackIP(record);
         String hostMd5 = record.getString("host_md5", "");
@@ -195,12 +198,11 @@ public class Alarmer {
 
     /**
      * 判断是否为重复告警
-     * @param iocDetailMap
+     * @param alarmId
      * @return
      */
-    private boolean isRepeatAlarm(Map<String, Object> iocDetailMap){
-
-        return false;
+    private boolean isRepeatAlarm(String alarmId){
+        return alarmStore.exist(alarmId);
     }
 
 
@@ -321,8 +323,8 @@ public class Alarmer {
     }
 
     /**
+     * 获取资产
      * 缺少更新操作
-     *
      * @param victimIP
      * @param accessTime
      * @return

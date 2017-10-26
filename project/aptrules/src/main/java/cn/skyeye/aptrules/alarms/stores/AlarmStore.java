@@ -42,5 +42,7 @@ public abstract class AlarmStore {
 
     public abstract void storeAlarm(Alarm alarm);
 
+    public abstract boolean exist(String alarmId);
+
     //public abstract String createConditions(String[] fields, Object[] fieldValues);
 }
