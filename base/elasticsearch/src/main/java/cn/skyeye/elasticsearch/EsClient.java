@@ -3,16 +3,17 @@ package cn.skyeye.elasticsearch;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.log4j.Logger;
-import org.elasticsearch.action.bulk.BackoffPolicy;
-import org.elasticsearch.action.bulk.BulkProcessor;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.bulk.*;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexRequestBuilder;
+import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import java.net.InetAddress;
@@ -195,5 +196,26 @@ public class EsClient{
 
     public String getClusterName() {
         return clusterName;
+    }
+
+    public void insertRecord(String index, String type, String id, Map<String, Object> record) throws Exception{
+
+        if(record != null && !record.isEmpty()){
+            IndexRequestBuilder builder = client.prepareIndex(index, type, id).setSource(record);
+            IndexResponse indexResponse = builder.get();
+            RestStatus status = indexResponse.status();
+
+            switch (status){
+                case OK:
+                case CREATED:
+                    logger.info(String.format("id为%s的数据写到到索引%s/%s成功。", id, index, type));
+                    break;
+            }
+        }
+    }
+
+    public Map<String, Object> get(String index, String type, String id) throws Exception{
+        GetResponse getResponse = client.prepareGet(index, type, id).get();
+        return getResponse.getSourceAsMap();
     }
 }
