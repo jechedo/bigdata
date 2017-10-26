@@ -1,4 +1,4 @@
-package cn.skyeye.aptrules.alarms.store;
+package cn.skyeye.aptrules.alarms.stores;
 
 import cn.skyeye.aptrules.alarms.Alarm;
 import cn.skyeye.common.Dates;

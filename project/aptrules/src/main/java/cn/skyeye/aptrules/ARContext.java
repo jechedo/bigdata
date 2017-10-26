@@ -1,7 +1,7 @@
 package cn.skyeye.aptrules;
 
 import cn.skyeye.aptrules.alarms.Alarmer;
-import cn.skyeye.aptrules.alarms.store.AlarmEsStore;
+import cn.skyeye.aptrules.alarms.stores.AlarmEsStore;
 import cn.skyeye.aptrules.ioc2rules.Ioc2RuleHandler;
 import cn.skyeye.aptrules.ioc2rules.Ruler;
 import cn.skyeye.common.net.IPtoLong;

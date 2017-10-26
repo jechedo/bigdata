@@ -1,4 +1,4 @@
-package cn.skyeye.aptrules.alarms.store;
+package cn.skyeye.aptrules.alarms.stores;
 
 import cn.skyeye.aptrules.alarms.Alarm;
 
@@ -22,20 +22,25 @@ public abstract class AlarmStore {
         this.memoryCache.put(key, alarm);
     }
 
-    public Alarm getAlarmInCache(String key) {
-        return this.memoryCache.get(key);
+    public Alarm getAlarmInCache(String conditions) {
+        return this.memoryCache.get(conditions);
     }
 
-    public Alarm getAlarm(String key){
-        Alarm alarm = this.memoryCache.get(key);
+    public Alarm getAlarm(String conditions){
+        Alarm alarm = this.memoryCache.get(conditions);
         if(alarm == null){
-            List<Alarm> alarmsInStore = getAlarmsInStore(key, 1);
+            List<Alarm> alarmsInStore = getAlarmsInStore(conditions, 1);
             if(alarmsInStore != null && !alarmsInStore.isEmpty()){
                 alarm = alarmsInStore.get(0);
+                memoryCache.put(conditions, alarm);
             }
         }
         return alarm;
     }
 
-    public abstract List<Alarm> getAlarmsInStore(String key, int maxSize);
+    public abstract List<Alarm> getAlarmsInStore(String conditions, int maxSize);
+
+    public abstract void storeAlarm(Alarm alarm);
+
+    //public abstract String createConditions(String[] fields, Object[] fieldValues);
 }

@@ -13,12 +13,19 @@ import java.util.Map;
  * @version 2017/10/20 15:20
  */
 public class Alarm {
-    private String ruleKey;
     private Map<String, Object> entry;
     private String timestamp;
 
-    Alarm(String ruleKey, Map<String, Object> record){
-        this.ruleKey = ruleKey;
+    private Alarm(String timestamp, Map<String, Object> data){
+        this.timestamp = timestamp;
+        if(data != null){
+            this.entry = Maps.newHashMap(data);
+        }else {
+            this.entry = Maps.newHashMap();
+        }
+    }
+
+    Alarm(Map<String, Object> record){
         this.entry = Maps.newHashMap();
 
         this.timestamp = ARUtils.nowTimeStr();
@@ -47,25 +54,12 @@ public class Alarm {
         return this.entry;
     }
 
-    public String getRuleKey() {
-        return ruleKey;
-    }
-
     public String getTimestamp() {
         return timestamp;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Alarm alarm = (Alarm) o;
-        return ruleKey.equals(alarm.ruleKey);
+    public static Alarm newAlarmByData(String timestamp, Map<String, Object> data){
+        return new Alarm(timestamp, data);
     }
 
-    @Override
-    public int hashCode() {
-        return ruleKey.hashCode();
-    }
 }

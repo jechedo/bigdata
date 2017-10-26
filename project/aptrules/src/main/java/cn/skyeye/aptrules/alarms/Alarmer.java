@@ -2,13 +2,14 @@ package cn.skyeye.aptrules.alarms;
 
 import cn.skyeye.aptrules.ARConf;
 import cn.skyeye.aptrules.ARContext;
+import cn.skyeye.aptrules.ARUtils;
 import cn.skyeye.aptrules.Record;
-import cn.skyeye.aptrules.alarms.store.AlarmLRUCache;
-import cn.skyeye.aptrules.alarms.store.AlarmStore;
+import cn.skyeye.aptrules.alarms.stores.AlarmStore;
 import cn.skyeye.aptrules.ioc2rules.Ruler;
 import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.common.hash.Md5;
 import cn.skyeye.common.json.Jsons;
+import cn.skyeye.elasticsearch.ElasticsearchContext;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -16,6 +17,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.net.InetAddresses;
 import org.apache.log4j.Logger;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import redis.clients.jedis.Jedis;
 
 import java.net.InetAddress;
@@ -36,12 +39,12 @@ public class Alarmer {
     private final Logger logger = Logger.getLogger(Alarmer.class);
 
     private ARConf arConf;
-    private AlarmLRUCache alarmCache;
+   // private AlarmLRUCache alarmCache;
     private AlarmStore alarmStore;
 
     public Alarmer(ARConf arConf, AlarmStore alarmStore){
         this.arConf = arConf;
-        this.alarmCache = new AlarmLRUCache(100000);
+        //this.alarmCache = new AlarmLRUCache(100000);
         this.alarmStore = alarmStore;
     }
 
@@ -75,10 +78,11 @@ public class Alarmer {
     }
 
     private Alarm createAlarm(Record record , Ruler.IndexKey ruleKey,  Map<String, Object> iocDetailMap){
-        Alarm alarm = new Alarm(ruleKey.getRuleDataKey(), record.getRecord()); // Alarm的id还有待验证
+        Alarm alarm = new Alarm(record.getRecord());
 
         String[] victimAndAttackIP = getVictimAndAttackIP(record);
         String hostMd5 = record.getString("host_md5", "");
+        String serialNum = record.getString("serial_num", "");
         String fileName = record.getStringOnce("", "filename", "name");
         String fileMd5 = record.getStringOnce( "file_md5", "md5");
 
@@ -97,10 +101,39 @@ public class Alarmer {
            return null;
 
         String sipIocDip = Md5.Md5_32(String.format("%s|%s|%s" , victimAndAttackIP[0], ioc, victimAndAttackIP[1]));
-        String accessTime = record.getStringOnce("", arConf.getTimeFields());
+        String accessTimeStr = record.getStringOnce(ARUtils.nowTimeStr(), arConf.getTimeFields());
+        String oldAccessStr = getFirstAccessTime(nid, victimAndAttackIP[0]);
 
+        long accessTime = ARUtils.parseTimeStr(accessTimeStr);
+        long oldAccessTime = ARUtils.parseTimeStr(oldAccessStr);
 
+        String firstAccessTimeStr = accessTimeStr;
+        if(oldAccessTime > -1L && oldAccessTime < accessTime){
+            firstAccessTimeStr =  oldAccessStr;
+        }
 
+        Map<String, Object> asset = getAsset(victimAndAttackIP[0], accessTime);
+        alarm.addAlarmKV("alarm_sample", 1);
+        alarm.addAlarmKV("alarm_sip", victimAndAttackIP[0]);
+        alarm.addAlarmKV("attack_sip", victimAndAttackIP[1]);
+        alarm.addAlarmKV("host_md5", hostMd5);
+        alarm.addAlarmKV("file_name", fileName);
+        alarm.addAlarmKV("file_md5", fileMd5);
+        alarm.addAlarmKV("type", type);
+        alarm.addAlarmKV("mid", "");
+        alarm.addAlarmKV("nid", nid);
+        alarm.addAlarmKV("ioc", ioc);
+        alarm.addAlarmKV("rule_key", descKey);
+        alarm.addAlarmKV("rule_desc", desc);
+        alarm.addAlarmKV("rule_state", state);
+        alarm.addAlarmKV("sip_ioc_dip", sipIocDip);
+        alarm.addAlarmKV("access_time", accessTimeStr);
+        alarm.addAlarmKV("first_access_time", firstAccessTimeStr);
+        alarm.addAlarmKV("hazard_level", 1);
+        alarm.addAlarmKV("attack_org", "");
+        alarm.addAlarmKV("attack_type", "");
+        alarm.addAlarmKV("serial_num", serialNum);
+        alarm.addAlarmKV("_asset", asset);
 
         return alarm;
     }
@@ -275,36 +308,34 @@ public class Alarmer {
 
     }
 
-    private void getFirstAccessTime(String nid, String victimIP){
+    private String getFirstAccessTime(String nid, String victimIP){
 
-        String key = String.format("%s%s", nid, victimIP);
-        Alarm alarm = alarmCache.get(key);
-        if(alarm == null){
-
+        String conditions = String.format("nid='%s'", nid);
+        if(victimIP != null){
+            conditions = String.format("%s and alarm_sip='%s'", conditions, victimIP);
         }
+        conditions = String.format("%s and alarm_sip='%s' order by access_time", conditions, victimIP);
+        Alarm alarm = alarmStore.getAlarm(conditions);
 
-        /*
-         key = str(nid) + alarm_sip
-        oldest_alarm = self.oldest_alarm.get(key, None)
-        ret_data = None
-        if oldest_alarm:
-            ret_data = oldest_alarm
-        else:
-            # get the oldest alarm by real query alarm_collection
-            if alarm_sip:
-                q_str = 'nid:"%s" AND alarm_sip:"%s"' % (str(nid), alarm_sip)
-            else:
-                q_str = 'nid:"%s"' % (str(nid),)
-            query = self.__make_query('alarm_collection', 'alarm_collection', query_str=q_str, doc_size=1)
+        return alarm.getAlarmValue("access_time", null);
+    }
 
-            result = query.sort('access_time').execute()
-            item = result.hits.hits
-            if item:
-                ret_data = item[0]
-                self.oldest_alarm.setdefault(key, ret_data)
-        return ret_data
-         */
-
+    /**
+     * 缺少更新操作
+     *
+     * @param victimIP
+     * @param accessTime
+     * @return
+     */
+    private Map<String, Object> getAsset(String victimIP, long accessTime){
+        String eql = String.format("select * from alarm_asset/alarm_asset where " +
+                "ip='%s' and stime <= %s and etime >= %s order by host_state_level desc limit 1", victimIP, accessTime, accessTime);
+        SearchHits searchHits = ElasticsearchContext.get().getSearcher().searchSQLForHits(null, eql);
+        SearchHit[] hits = searchHits.getHits();
+        if(hits.length > 0) {
+            return hits[0].sourceAsMap();
+        }
+        return null;
     }
 
     public static void main(String[] args) throws Exception {

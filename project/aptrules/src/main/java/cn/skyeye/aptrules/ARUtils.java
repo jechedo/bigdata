@@ -2,6 +2,7 @@ package cn.skyeye.aptrules;
 
 import com.google.common.base.Joiner;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -36,6 +37,18 @@ public class ARUtils {
     public static String formatDate(Date date){
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_PATTERN);
         return simpleDateFormat.format(date);
+    }
+
+    public static long parseTimeStr(String timeStr){
+        long res = -1L;
+        if(timeStr != null){
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_PATTERN);
+            try {
+                Date parse = simpleDateFormat.parse(timeStr);
+                res = parse.getTime();
+            } catch (ParseException e) { }
+        }
+        return res;
     }
 
 }

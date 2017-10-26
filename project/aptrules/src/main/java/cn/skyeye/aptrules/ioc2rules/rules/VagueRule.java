@@ -95,19 +95,15 @@ public class VagueRule extends SimpleRule{
             matchTimes = 0;
 
             if(valueModel == null) return false;
+            value = String.valueOf(valueModel);
 
             vagueValss = vagues.get(field);
             for(List<String> vagueVals : vagueValss){
                 /* 字段值是否是多个拼接的？ 暂时考虑的是单值 */
-                value = String.valueOf(valueModel);
                 int index = -1;
                 for(String vagueVal : vagueVals){
-                    index = value.indexOf(vagueVal);
-                    if(index > -1){
-                        value = value.substring(index + vagueVal.length());
-                    }else{
-                        break;
-                    }
+                    index = value.indexOf(vagueVal, index + 1);
+                    if(index < 0) break;
                 }
 
                 //判断此次是否匹配成功
