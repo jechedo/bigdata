@@ -1,7 +1,7 @@
 package cn.skyeye.aptrules.alarms;
 
-import cn.skyeye.aptrules.ARUtils;
 import cn.skyeye.aptrules.Record;
+import cn.skyeye.aptrules.ARUtils;
 import cn.skyeye.common.json.Jsons;
 
 import java.util.Map;

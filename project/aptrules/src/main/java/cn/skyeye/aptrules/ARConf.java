@@ -2,8 +2,8 @@ package cn.skyeye.aptrules;
 
 import cn.skyeye.common.SysEnvs;
 import cn.skyeye.common.databases.SQLites;
-import cn.skyeye.resources.ConfigDetail;
-import cn.skyeye.resources.Resources;
+import cn.skyeye.rpc.resources.ConfigDetail;
+import cn.skyeye.rpc.resources.Resources;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
