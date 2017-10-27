@@ -1,7 +1,6 @@
 package cn.skyeye.aptrules.ioc2rules.rules;
 
 import cn.skyeye.aptrules.ARConf;
-import cn.skyeye.aptrules.ioc2rules.Ruler;
 import cn.skyeye.common.json.Jsons;
 import com.google.common.base.Splitter;
 import com.google.common.collect.HashMultimap;

@@ -1,4 +1,4 @@
-package cn.skyeye.aptrules.ioc2rules;
+package cn.skyeye.aptrules.ioc2rules.iocs;
 
 import cn.skyeye.aptrules.ARConf;
 import cn.skyeye.aptrules.ARContext;

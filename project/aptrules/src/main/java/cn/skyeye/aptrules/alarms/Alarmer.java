@@ -7,7 +7,7 @@ import cn.skyeye.aptrules.ARContext;
 import cn.skyeye.aptrules.ARUtils;
 import cn.skyeye.aptrules.alarms.stores.AlarmStore;
 import cn.skyeye.aptrules.assets.Asset;
-import cn.skyeye.aptrules.ioc2rules.Ruler;
+import cn.skyeye.aptrules.ioc2rules.rules.Ruler;
 import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.common.Dates;
 import cn.skyeye.common.hash.Md5;

@@ -2,6 +2,8 @@ package cn.skyeye.aptrules.ioc2rules;
 
 import cn.skyeye.aptrules.ioc2rules.extracters.Ioc2RulesExtracter;
 import cn.skyeye.aptrules.ARContext;
+import cn.skyeye.aptrules.ioc2rules.iocs.IoCer;
+import cn.skyeye.aptrules.ioc2rules.rules.Ruler;
 import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import org.apache.log4j.Logger;
 import redis.clients.jedis.Jedis;

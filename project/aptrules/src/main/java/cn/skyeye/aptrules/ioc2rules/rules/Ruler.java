@@ -1,8 +1,7 @@
-package cn.skyeye.aptrules.ioc2rules;
+package cn.skyeye.aptrules.ioc2rules.rules;
 
 import cn.skyeye.aptrules.ARConf;
 import cn.skyeye.aptrules.ARContext;
-import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.common.databases.DataBases;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
@@ -99,7 +98,7 @@ public class Ruler {
      *  覆盖sqlite中原有的rule信息
      *  逻辑为  先删除再插入
      */
-    void overrideRules(List<VagueRule> vagueRules){
+   public void overrideRules(List<VagueRule> vagueRules){
         if(!vagueRules.isEmpty()) {
             this.lock.lock();
             try {

@@ -3,7 +3,7 @@ package cn.skyeye.aptrules;
 import cn.skyeye.aptrules.alarms.Alarmer;
 import cn.skyeye.aptrules.alarms.stores.AlarmEsStore;
 import cn.skyeye.aptrules.ioc2rules.Ioc2RuleHandler;
-import cn.skyeye.aptrules.ioc2rules.Ruler;
+import cn.skyeye.aptrules.ioc2rules.rules.Ruler;
 import cn.skyeye.common.net.IPtoLong;
 import cn.skyeye.redis.RedisContext;
 import com.google.common.collect.Maps;
