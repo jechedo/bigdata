@@ -1,12 +1,13 @@
 package cn.skyeye.aptrules.alarms;
 
-import cn.skyeye.aptrules.Record;
-import cn.skyeye.aptrules.assets.Asseter;
 import cn.skyeye.aptrules.ARConf;
 import cn.skyeye.aptrules.ARContext;
 import cn.skyeye.aptrules.ARUtils;
+import cn.skyeye.aptrules.Record;
 import cn.skyeye.aptrules.alarms.stores.AlarmStore;
 import cn.skyeye.aptrules.assets.Asset;
+import cn.skyeye.aptrules.assets.Asseter;
+import cn.skyeye.aptrules.ioc2rules.rules.IndexKey;
 import cn.skyeye.aptrules.ioc2rules.rules.Ruler;
 import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.common.Dates;
@@ -54,10 +55,12 @@ public class Alarmer {
     public void checkAndReportAlarm(Map<String, Object> data, Ruler.Hits hits){
         Record record = new Record(data);
         Alarm alarm;
-        for (Map.Entry<Ruler.IndexKey, VagueRule> entry : hits.getHitSet()) {
-            alarm = createAlarm(record, entry.getKey(), entry.getValue());
-            if(alarm != null){
-                alarmStore.storeAlarm(alarm);
+        for (Map.Entry<IndexKey, List<VagueRule>> entry : hits.getHitSet()) {
+            for(VagueRule vagueRule : entry.getValue()) {
+                alarm = createAlarm(record, entry.getKey(), vagueRule);
+                if (alarm != null) {
+                    alarmStore.storeAlarm(alarm);
+                }
             }
         }
     }
@@ -70,7 +73,7 @@ public class Alarmer {
      * @param rule
      * @return
      */
-    private Alarm createAlarm(Record record, Ruler.IndexKey ruleKey, VagueRule rule){
+    private Alarm createAlarm(Record record, IndexKey ruleKey, VagueRule rule){
         Alarm alarm = null;
         Map<String, Object> iocDetailMap = createIocDetailMap(record, ruleKey, rule);
         //告警字段 + ioc + 当前日期时间
@@ -151,7 +154,7 @@ public class Alarmer {
      * @param rule
      * @return
      */
-    private Map<String, Object> createIocDetailMap(Record record, Ruler.IndexKey ruleKey, VagueRule rule) {
+    private Map<String, Object> createIocDetailMap(Record record, IndexKey ruleKey, VagueRule rule) {
         Map<String, Object> descJsonMap = rule.getDescJsonInMap();
         descJsonMap.put("rule_state", rule.getState());
         descJsonMap.put("rule_id", rule.getRule_id());
