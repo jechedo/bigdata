@@ -32,6 +32,22 @@ public class Ioc2RuleSyncer {
     }
 
     public void syncCloud(){
+        try{
+            this.lock.lock();
+            logger.info("开始同步云端中的ioc到rule。");
+
+            List<VagueRule> rules = ioCer.listIoCAsRuleInNet();
+            if(!rules.isEmpty()){
+                ruler.syncNetRule2MemoryAndDB(rules);
+                logger.info("同步云端中的ioc到rule成功。");
+            }
+            ioCer.updateNetStoreStatus(true);
+        }catch (Exception e){
+            ioCer.updateNetStoreStatus(false);
+            logger.error("同步云端中的ioc到rules失败。", e);
+        }finally {
+            this.lock.unlock();
+        }
 
     }
 
@@ -41,40 +57,21 @@ public class Ioc2RuleSyncer {
     public void syncDataBase(){
         try{
             this.lock.lock();
-            logger.info("开始同步ioc到rule。");
+            logger.info("开始同步数据库中的ioc到rule。");
 
-            //if(isModified(jedis)){
-            if(true){
-                executeIoc2Rule();
-            }else {
-                logger.warn("no new ioc, just exit!");
+            List<VagueRule> rules = ioCer.listIoCAsRuleInDB();
+            if(!rules.isEmpty()){
+                ruler.syncDBRule2MemoryAndDB(rules);
+                logger.info("同步数据库中的ioc到rule成功。");
             }
             ioCer.updateDBStoreStatus(true);
-            logger.info("同步ioc到rule成功。");
-
         }catch (Exception e){
             ioCer.updateDBStoreStatus(false);
-            logger.error("同步ioc到rules失败。", e);
+            logger.error("同步数据库中的ioc到rules失败。", e);
         }finally {
             this.lock.unlock();
         }
     }
-
-
-    /**
-     * 读取所有的ioc并转换成rule
-     * 重置缓存和sqlite的数据
-     * @throws Exception
-     */
-    private void executeIoc2Rule() throws Exception {
-        logger.info("开始覆盖缓存及sqlite中的rule。");
-        List<VagueRule> rules = ioCer.listIoCAsRuleInDB();
-        if(rules.size() > 0) {
-            ruler.overrideRules(rules);
-        }
-        logger.info("覆盖缓存及sqlite中的rule成功。");
-    }
-
 
     public Ruler getRuler() {
         return ruler;

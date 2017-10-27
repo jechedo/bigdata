@@ -15,7 +15,7 @@ public class IoCCloudStore extends IoCStore {
     }
 
     @Override
-    public void extractIoCAsRules(IoCAsRuleExtracter ioCAsRuleExtracter) {
+    public void extractIoCAsRules(IoCAsRuleExtracter ioCAsRuleExtracter) throws Exception{
 
     }
 

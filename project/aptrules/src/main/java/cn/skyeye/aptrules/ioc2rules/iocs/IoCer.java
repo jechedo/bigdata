@@ -34,9 +34,7 @@ public class IoCer {
         this.iocNetStore = new IoCCloudStore(arConf);
     }
 
-
-
-    public List<VagueRule> listIoCAsRuleInDB(){
+    public List<VagueRule> listIoCAsRuleInDB() throws Exception {
         IoCAsRuleExtracter extracter = new IoCAsRuleDBExtracter();
         iocDBStore.extractIoCAsRules(extracter);
         logger.info(String.format("查询数据库中的ioc并转换成rule成功，iocCount = %s, ruleCount = %s",
@@ -44,7 +42,7 @@ public class IoCer {
         return extracter.getRules();
     }
 
-    public List<VagueRule> listIoCAsRuleInNet(){
+    public List<VagueRule> listIoCAsRuleInNet() throws Exception {
         IoCAsRuleExtracter extracter = new IoCAsRuleCloudExtracter();
         iocDBStore.extractIoCAsRules(extracter);
         logger.info(String.format("查询网络中的ioc并转换成rule成功，iocCount = %s, ruleCount = %s",

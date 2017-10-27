@@ -89,14 +89,14 @@ public class IoCSQLiteStore extends IoCStore {
      * 获取所有的ioc
      */
     @Override
-    public void extractIoCAsRules(IoCAsRuleExtracter ioCAsRuleExtracter) {
+    public void extractIoCAsRules(IoCAsRuleExtracter ioCAsRuleExtracter) throws Exception {
         Statement statement = null;
         ResultSet resultSet = null;
         Jedis jedis = null;
         try {
             jedis = ARContext.get().getJedis();
             if(!isModified(jedis)){
-                logger.warn("sqlite han no new ioc, just exit!");
+                logger.warn("sqlite has no new ioc, just exit!");
                 return;
             }
 
@@ -120,8 +120,6 @@ public class IoCSQLiteStore extends IoCStore {
                 }
                 ioCAsRuleExtracter.extract(ioc);
             }
-        } catch (Exception e) {
-            logger.error(String.format("获取表%s中所有ioc失败。", table), e);
         } finally {
             DataBases.close(resultSet);
             DataBases.close(statement);

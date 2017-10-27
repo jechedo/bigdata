@@ -114,7 +114,6 @@ public class ARContext {
                 while (true){
                     Ruler.Hits hits = ioc2RuleSyncer.getRuler().matchRules(record);
                     System.out.println(n++ + " ：" + hits);
-
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {

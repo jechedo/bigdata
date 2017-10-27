@@ -20,7 +20,7 @@ public abstract class IoCStore {
         this.arConf = arConf;
     }
 
-    public abstract void extractIoCAsRules(IoCAsRuleExtracter ioCAsRuleExtracter);
+    public abstract void extractIoCAsRules(IoCAsRuleExtracter ioCAsRuleExtracter) throws Exception;
 
     public abstract void updateStatus(boolean syncSuccess);
 

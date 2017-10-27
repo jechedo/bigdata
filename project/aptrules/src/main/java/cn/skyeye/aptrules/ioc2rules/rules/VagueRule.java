@@ -66,7 +66,7 @@ public class VagueRule extends SimpleRule{
         }
     }
 
-    public boolean matches(Ruler.IndexKey indexKey) {
+    public boolean matches(IndexKey indexKey) {
 
         if(vagues.isEmpty()) return true;
 
@@ -78,7 +78,7 @@ public class VagueRule extends SimpleRule{
         return vagueMatches(indexKey, fields);
     }
 
-    private boolean vagueMatches(Ruler.IndexKey indexKey,  Set<String> fields){
+    private boolean vagueMatches(IndexKey indexKey,  Set<String> fields){
 
         Iterator<String> iterator = fields.iterator();
         String field;
