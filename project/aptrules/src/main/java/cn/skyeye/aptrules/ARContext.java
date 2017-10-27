@@ -2,7 +2,7 @@ package cn.skyeye.aptrules;
 
 import cn.skyeye.aptrules.alarms.Alarmer;
 import cn.skyeye.aptrules.alarms.stores.AlarmEsStore;
-import cn.skyeye.aptrules.ioc2rules.Ioc2RuleHandler;
+import cn.skyeye.aptrules.ioc2rules.Ioc2RuleSyncer;
 import cn.skyeye.aptrules.ioc2rules.rules.Ruler;
 import cn.skyeye.common.net.IPtoLong;
 import cn.skyeye.redis.RedisContext;
@@ -30,7 +30,7 @@ public class ARContext {
     private ARConf arConf;
     private RedisContext redisContext;
     private Alarmer alarmer;
-    private Ioc2RuleHandler ioc2RuleHandler;
+    private Ioc2RuleSyncer ioc2RuleSyncer;
 
     private long netA = ipv4ToLong("10.255.255.255") >> 24;
     private long netB = ipv4ToLong("172.31.255.255") >> 20;
@@ -70,11 +70,11 @@ public class ARContext {
         return arConf;
     }
 
-    public synchronized Ioc2RuleHandler getIoc2RuleHandler() {
-        if(ioc2RuleHandler == null){
-            ioc2RuleHandler = new Ioc2RuleHandler();
+    public synchronized Ioc2RuleSyncer getIoc2RuleSyncer() {
+        if(ioc2RuleSyncer == null){
+            ioc2RuleSyncer = new Ioc2RuleSyncer();
         }
-        return ioc2RuleHandler;
+        return ioc2RuleSyncer;
     }
 
     public Alarmer getAlarmer() {
@@ -98,7 +98,7 @@ public class ARContext {
 
     public static void main(String[] args) {
         ARContext arContext = ARContext.get();
-        Ioc2RuleHandler ioc2RuleHandler = arContext.getIoc2RuleHandler();
+        Ioc2RuleSyncer ioc2RuleSyncer = arContext.getIoc2RuleSyncer();
 
         new Thread(new Runnable() {
             @Override
@@ -112,7 +112,7 @@ public class ARContext {
 
                 long n = 0L;
                 while (true){
-                    Ruler.Hits hits = ioc2RuleHandler.getRuler().matchRules(record);
+                    Ruler.Hits hits = ioc2RuleSyncer.getRuler().matchRules(record);
                     System.out.println(n++ + " ：" + hits);
 
                     try {
@@ -131,7 +131,7 @@ public class ARContext {
                 while (true){
                     try {
                         Thread.sleep(5000);
-                        ioc2RuleHandler.syncRule();
+                        ioc2RuleSyncer.syncDataBase();
                         System.err.println(n++);
                     } catch (InterruptedException e) {
                         e.printStackTrace();

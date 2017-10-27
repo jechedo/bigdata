@@ -1,15 +1,12 @@
 package cn.skyeye.aptrules.ioc2rules.extracters;
 
-import cn.skyeye.aptrules.ARConf;
 import cn.skyeye.aptrules.ARContext;
 import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.common.hash.Md5;
 import cn.skyeye.common.json.Jsons;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.log4j.Logger;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -20,31 +17,18 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author LiXiaoCong
  * @version 2017/10/13 10:58
  */
-public class Ioc2RulesExtracter extends Extracter {
+public class IoCAsRuleDBExtracter extends IoCAsRuleExtracter {
 
-    private final Logger logger = Logger.getLogger(Ioc2RulesExtracter.class);
-
-    private ARConf arConf;
-    private List<VagueRule> rules;
     private String ruleType;
     private int tid;
     private AtomicLong ruleId;
 
-    //ioc总量
-    private int iocCount;
-    //有效的ioc总数
-    private int effectIocCount;
-
-    public Ioc2RulesExtracter(){
+    public IoCAsRuleDBExtracter(){
         this("自定义情报告警", 0,
                 ARContext.get().getArConf().getCustomRuleIdStart());
     }
 
-    public Ioc2RulesExtracter(String ruleType, int tid, long ruleIdBase){
-        this.arConf = ARContext.get().getArConf();
-        this.rules = Lists.newArrayList();
-        this.iocCount = 0;
-        this.effectIocCount = 0;
+    public IoCAsRuleDBExtracter(String ruleType, int tid, long ruleIdBase){
         this.ruleType = ruleType;
         this.tid = tid;
         this.ruleId = new AtomicLong(ruleIdBase);
@@ -53,7 +37,7 @@ public class Ioc2RulesExtracter extends Extracter {
     @Override
     public void extract(Map<String, Object> ioc) {
 
-        iocCount++;
+        addIoCCount();
 
         //判断是否为有效的ioc
         boolean active = (boolean) ioc.get("active");
@@ -62,7 +46,7 @@ public class Ioc2RulesExtracter extends Extracter {
         Object typeObj = ioc.get("type");
         if(typeObj != null && active && export && confidence == 80){
 
-            effectIocCount++;
+            addEffectIoCCount();
             String type = String.valueOf(typeObj).toLowerCase();
 
             //根据type获取desc_key
@@ -108,7 +92,7 @@ public class Ioc2RulesExtracter extends Extracter {
             }
         }
 
-        rules.add(ruleModel);
+        addRule(ruleModel);
     }
 
     private VagueRule createRuleModel(Map<String, Object> ioc, String type, String descKey){
@@ -195,17 +179,5 @@ public class Ioc2RulesExtracter extends Extracter {
         }
         ioc.put("desc_json_key", descJsonKey);
         return descJsonKey;
-    }
-
-    public List<VagueRule> getRules() {
-        return rules;
-    }
-
-    public int getIocCount() {
-        return iocCount;
-    }
-
-    public int getEffectIocCount() {
-        return effectIocCount;
     }
 }

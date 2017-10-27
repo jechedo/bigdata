@@ -2,8 +2,8 @@ package cn.skyeye.aptrules;
 
 import cn.skyeye.common.SysEnvs;
 import cn.skyeye.common.databases.SQLites;
-import cn.skyeye.rpc.resources.ConfigDetail;
-import cn.skyeye.rpc.resources.Resources;
+import cn.skyeye.resources.ConfigDetail;
+import cn.skyeye.resources.Resources;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
@@ -19,7 +19,7 @@ import java.util.Set;
  * @author LiXiaoCong
  * @version 2017/10/11 17:35
  */
-public class ARConf extends ConfigDetail{
+public class ARConf extends ConfigDetail {
     private static final String _CONFIG = "/aptrules";
 
     private final Logger logger = Logger.getLogger(ARConf.class);

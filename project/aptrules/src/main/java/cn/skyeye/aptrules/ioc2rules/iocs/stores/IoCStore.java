@@ -1,5 +1,7 @@
 package cn.skyeye.aptrules.ioc2rules.iocs.stores;
 
+import cn.skyeye.aptrules.ARConf;
+import cn.skyeye.aptrules.ioc2rules.extracters.IoCAsRuleExtracter;
 import org.apache.log4j.Logger;
 
 /**
@@ -11,4 +13,15 @@ import org.apache.log4j.Logger;
 public abstract class IoCStore {
 
     protected final Logger logger = Logger.getLogger(IoCStore.class);
+
+    protected ARConf arConf;
+
+    public IoCStore(ARConf arConf){
+        this.arConf = arConf;
+    }
+
+    public abstract void extractIoCAsRules(IoCAsRuleExtracter ioCAsRuleExtracter);
+
+    public abstract void updateStatus(boolean syncSuccess);
+
 }

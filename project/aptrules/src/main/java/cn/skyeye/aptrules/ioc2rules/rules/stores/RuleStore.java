@@ -1,5 +1,6 @@
 package cn.skyeye.aptrules.ioc2rules.rules.stores;
 
+import cn.skyeye.aptrules.ARConf;
 import org.apache.log4j.Logger;
 
 /**
@@ -10,4 +11,10 @@ import org.apache.log4j.Logger;
  */
 public class RuleStore {
     protected final Logger logger = Logger.getLogger(RuleStore.class);
+
+    protected ARConf arConf;
+
+    public RuleStore(ARConf arConf){
+        this.arConf = arConf;
+    }
 }
