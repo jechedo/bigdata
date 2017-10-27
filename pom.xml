@@ -19,6 +19,7 @@
         <module>base/spark</module>
         <module>interface/ibase</module>
         <module>project/aptrules</module>
+        <module>base/rpc</module>
     </modules>
 
     <packaging>pom</packaging>
