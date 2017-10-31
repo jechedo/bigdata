@@ -22,7 +22,6 @@ public class RpcBaseConf extends ConfigDetail {
 
     private final Logger logger = Logger.getLogger(RpcBaseConf.class);
 
-    private String systemId;
     private String hostname = "localhost";
     private SecretKeyHolder keyHolder;
 
@@ -46,7 +45,6 @@ public class RpcBaseConf extends ConfigDetail {
             logger.error("读取rpc基础配置失败。", e);
         }
 
-        this.systemId = getConfigItemValue("rpc.system.id", "skyeye");
         try {
             InetAddress addr = InetAddress.getLocalHost();
             this.hostname = addr.getHostName();
@@ -65,10 +63,6 @@ public class RpcBaseConf extends ConfigDetail {
                 return "we are skyeyeer";
             }
         };
-    }
-
-    public String getSystemId() {
-        return systemId;
     }
 
     public String getHostname() {

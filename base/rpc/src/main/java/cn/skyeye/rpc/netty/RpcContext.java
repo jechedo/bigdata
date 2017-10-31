@@ -78,10 +78,6 @@ public class RpcContext {
         return new TransportConf(model, configProvider);
     }
 
-    public String getSystemId() {
-        return rpcBaseConf.getSystemId();
-    }
-
     public String getHostname() {
         return rpcBaseConf.getHostname();
     }
