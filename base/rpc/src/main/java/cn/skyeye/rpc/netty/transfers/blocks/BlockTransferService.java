@@ -4,8 +4,6 @@ import cn.skyeye.rpc.netty.buffer.ManagedBuffer;
 import cn.skyeye.rpc.netty.util.NodeInfo;
 import org.apache.log4j.Logger;
 
-import java.util.List;
-
 /**
  * Description:
  *
@@ -23,7 +21,7 @@ public abstract class BlockTransferService {
     public abstract void close();
 
     public abstract void fetchBlocks(NodeInfo nodeInfo,
-                                     List<BlockId> blockIds,
+                                     String[] blockIds,
                                      BlockFetchingListener blockFetchingListener);
 
     public abstract void uploadBlock(NodeInfo nodeInfo,
