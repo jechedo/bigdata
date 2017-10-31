@@ -18,6 +18,7 @@
 package cn.skyeye.rpc.netty.transfers.blocks;
 
 import cn.skyeye.rpc.netty.protocol.Encoders;
+import cn.skyeye.rpc.netty.transfers.messages.TransferMessage;
 import cn.skyeye.rpc.netty.transfers.stream.StreamHandle;
 import com.google.common.base.Objects;
 import io.netty.buffer.ByteBuf;
@@ -27,7 +28,7 @@ import java.util.Arrays;
 // Needed by ScalaDoc. See SPARK-7726
 
 /** Request to read a set of blocks. Returns {@link StreamHandle}. */
-public class OpenBlocks extends BlockTransferMessage {
+public class OpenBlocks extends TransferMessage {
   public final String appId;
   public final String execId;
   public final String[] blockIds;

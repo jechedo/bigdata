@@ -9,7 +9,10 @@ import cn.skyeye.rpc.netty.protocol.OneWayMessage;
 import cn.skyeye.rpc.netty.sasl.SaslClientBootstrap;
 import cn.skyeye.rpc.netty.sasl.SecretKeyHolder;
 import cn.skyeye.rpc.netty.server.OneForOneStreamManager;
+import cn.skyeye.rpc.netty.transfers.TransferService;
+import cn.skyeye.rpc.netty.transfers.blocks.BlockId;
 import cn.skyeye.rpc.netty.util.MapConfigProvider;
+import cn.skyeye.rpc.netty.util.NodeInfo;
 import cn.skyeye.rpc.netty.util.TransportConf;
 import com.google.common.collect.Maps;
 import io.netty.channel.Channel;
@@ -78,6 +81,11 @@ public class NettyClient {
         });
 
 
+        sleep();
+
+    }
+
+    private static void sleep() {
         try {
             while (true){
                 Thread.sleep(1000L);
@@ -85,10 +93,41 @@ public class NettyClient {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-         startClient();
+        RpcContext rpcContext = RpcContext.get();
+        TransferService demo = rpcContext.newTransferService("demo", "172.24.66.212", 8811, null);
+
+        NodeInfo nodeInfo = new NodeInfo("localhost", "172.24.66.212", 9911);
+
+        String file = "D:/demo/LICENSE.txt";
+        File file1 = new File(file);
+       // BlockId.FileBlockId fileBlockId = new BlockId.FileBlockId(file, 0, file1.length());
+
+
+       /* demo.fetchBlocks(nodeInfo, new String[]{fileBlockId.getName()}, new BlockFetchingListener(){
+            @Override
+            public void onBlockFetchSuccess(String blockId, ManagedBuffer data) {
+                try {
+                    System.out.println(blockId + ": \n " + JavaUtils.bytesToString(data.nioByteBuffer()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onBlockFetchFailure(String blockId, Throwable exception) {
+                System.err.println(blockId + ": \n " + exception);
+            }
+        });*/
+       // demo.sendJson(nodeInfo, Jsons.obj2JsonString("hello world"));
+
+        BlockId.FileBlockId fileBlockId = new BlockId.FileBlockId("D:/demo/upload.log", 0, file1.length());
+
+        demo.uploadBlock(nodeInfo, fileBlockId,
+                new FileSegmentManagedBuffer(rpcContext.newTransportConf("demo", Maps.newHashMap()), file1, 0, file1.length()));
+
+        sleep();
     }
 }

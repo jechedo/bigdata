@@ -8,6 +8,7 @@ import cn.skyeye.rpc.netty.client.TransportClient;
 import cn.skyeye.rpc.netty.client.TransportClientFactory;
 import cn.skyeye.rpc.netty.server.TransportServer;
 import cn.skyeye.rpc.netty.transfers.blocks.*;
+import cn.skyeye.rpc.netty.transfers.messages.JsonMessage;
 import cn.skyeye.rpc.netty.util.JavaUtils;
 import cn.skyeye.rpc.netty.util.NodeInfo;
 import cn.skyeye.rpc.netty.util.TransportConf;
@@ -23,7 +24,7 @@ import java.nio.ByteBuffer;
  * @author LiXiaoCong
  * @version 2017/10/31 15:55
  */
-public class NettyBlockTransferService extends BlockTransferService {
+public class NettyTransferService extends TransferService {
 
     private String appId;
     private NodeInfo nodeInfo;
@@ -33,19 +34,23 @@ public class NettyBlockTransferService extends BlockTransferService {
     private TransportServer transportServer;
     private TransportClientFactory transportClientFactory;
 
-    public NettyBlockTransferService(String appId, NodeInfo nodeInfo){
+    public NettyTransferService(String appId, NodeInfo nodeInfo){
         this.appId = appId;
         this.nodeInfo = nodeInfo;
-        this.hostname = nodeInfo.getIp();
-        this.port = nodeInfo.getPort();
+        this.hostname = this.nodeInfo.getIp();
+        this.port = this.nodeInfo.getPort();
     }
 
     @Override
     public void init(BlockDataManager blockDataManager) {
-        NettyBlockRpcServer rpcHandler = new NettyBlockRpcServer(appId, blockDataManager);
         RpcContext rpcContext = RpcContext.get();
-        this.transportContext = rpcContext.newTransportContext(appId, Maps.newHashMap(), rpcHandler);
-        this.transportConf = transportContext.getConf();
+        this.transportConf = rpcContext.newTransportConf(appId, Maps.newHashMap());
+        if(blockDataManager == null)
+            blockDataManager = new LocalFileDataManager(transportConf);
+
+        NettyRpcServer rpcHandler = new NettyRpcServer(appId, blockDataManager);
+
+        this.transportContext = rpcContext.newTransportContext(transportConf, rpcHandler);
         this.transportServer = rpcContext.newTransportServer(hostname, port, transportContext);
         this.transportClientFactory = rpcContext.newTransportClientFactory(appId, transportContext);
 
@@ -107,5 +112,27 @@ public class NettyBlockTransferService extends BlockTransferService {
         } catch (Exception e) {
             logger.error(String.format("Error while uploading block %s", blockId), e);
         }
+    }
+
+    @Override
+    public void sendJson(NodeInfo nodeInfo, String jsonStr){
+        try {
+            TransportClient client = transportClientFactory.createClient(nodeInfo.getIp(), nodeInfo.getPort());
+            client.sendRpc(new JsonMessage(appId, nodeInfo.getHostname(), jsonStr).toByteBuffer(),
+                    new RpcResponseCallback() {
+                        @Override
+                        public void onSuccess(ByteBuffer response) {
+                            logger.trace(String.format("Successfully send json %s", jsonStr));
+                        }
+                        @Override
+                        public void onFailure(Throwable e) {
+                            logger.error(String.format("Error while send json %s", jsonStr), e);
+                        }
+                    });
+            //client.close();
+        } catch (Exception e) {
+            logger.error(String.format("Error while send json %s", jsonStr), e);
+        }
+
     }
 }

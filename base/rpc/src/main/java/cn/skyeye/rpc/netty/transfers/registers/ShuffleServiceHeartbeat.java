@@ -18,7 +18,7 @@
 package cn.skyeye.rpc.netty.transfers.registers;
 
 import cn.skyeye.rpc.netty.protocol.Encoders;
-import cn.skyeye.rpc.netty.transfers.blocks.BlockTransferMessage;
+import cn.skyeye.rpc.netty.transfers.messages.TransferMessage;
 import io.netty.buffer.ByteBuf;
 
 
@@ -27,7 +27,7 @@ import io.netty.buffer.ByteBuf;
 /**
  * A heartbeat sent from the driver to the MesosExternalShuffleService.
  */
-public class ShuffleServiceHeartbeat extends BlockTransferMessage {
+public class ShuffleServiceHeartbeat extends TransferMessage {
   private final String appId;
 
   public ShuffleServiceHeartbeat(String appId) {

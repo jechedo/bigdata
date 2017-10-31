@@ -7,7 +7,11 @@ import cn.skyeye.rpc.netty.sasl.SaslClientBootstrap;
 import cn.skyeye.rpc.netty.sasl.SaslServerBootstrap;
 import cn.skyeye.rpc.netty.server.RpcHandler;
 import cn.skyeye.rpc.netty.server.TransportServer;
+import cn.skyeye.rpc.netty.transfers.NettyTransferService;
+import cn.skyeye.rpc.netty.transfers.TransferService;
+import cn.skyeye.rpc.netty.transfers.blocks.BlockDataManager;
 import cn.skyeye.rpc.netty.util.MapConfigProvider;
+import cn.skyeye.rpc.netty.util.NodeInfo;
 import cn.skyeye.rpc.netty.util.TransportConf;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
@@ -36,35 +40,11 @@ public class RpcContext {
         this.rpcBaseConf = new RpcBaseConf(loadEnv);
     }
 
-    public TransportClientFactory newClientFactory(String model,
-                                                  RpcHandler rpcHandler,
-                                                  Map<String, String> extraConf){
-        if(extraConf == null)extraConf = Maps.newHashMap();
-        extraConf.put("rpc.authenticate.enableSaslEncryption", String.valueOf(true));
-        TransportConf transportConf = newTransportConf(model, extraConf);
-        TransportContext transportContext = new TransportContext(transportConf, rpcHandler);
-
-        return newTransportClientFactory(model,  transportContext);
-    }
-
     public TransportClientFactory newTransportClientFactory(String model,
                                                             TransportContext transportContext) {
         List<TransportClientBootstrap> clientBootstraps = new ArrayList<>();
         clientBootstraps.add(new SaslClientBootstrap(transportContext.getConf(), model, rpcBaseConf.getKeyHolder()));
         return transportContext.createClientFactory(clientBootstraps);
-    }
-
-    public TransportServer newTransportServer(String model,
-                                              RpcHandler rpcHandler,
-                                              String host,
-                                              int port,
-                                              Map<String, String> extraConf){
-
-        if(extraConf == null)extraConf = Maps.newHashMap();
-        extraConf.put("rpc.authenticate.enableSaslEncryption", String.valueOf(true));
-        TransportConf transportConf = newTransportConf(model, extraConf);
-        TransportContext transportContext = newTransportContext(model, extraConf, rpcHandler);
-        return newTransportServer(host, port, transportContext);
     }
 
     public TransportServer newTransportServer(String host,
@@ -85,16 +65,13 @@ public class RpcContext {
         return server;
     }
 
-    public TransportContext newTransportContext(String model, Map<String, String> extraConf, RpcHandler rpcHandler){
-
-        if(extraConf == null)extraConf = Maps.newHashMap();
-        extraConf.put("rpc.authenticate.enableSaslEncryption", String.valueOf(true));
-        TransportConf transportConf = newTransportConf(model, extraConf);
+    public TransportContext newTransportContext(TransportConf transportConf, RpcHandler rpcHandler){
         return new TransportContext(transportConf, rpcHandler);
     }
 
-    private TransportConf newTransportConf(String model, Map<String, String> conf){
-        if(conf == null) conf = Maps.newHashMap();
+    public TransportConf newTransportConf(String model, Map<String, String> conf){
+        if(conf == null)conf = Maps.newHashMap();
+        conf.put("rpc.authenticate.enableSaslEncryption", String.valueOf(true));
         Map<String, String> config = rpcBaseConf.getConfigMapWithPrefix(String.format("rpc.%s.", model));
         config.putAll(conf);
         MapConfigProvider configProvider = new MapConfigProvider(config);
@@ -124,8 +101,13 @@ public class RpcContext {
         return rpcContext;
     }
 
-    public static void main(String[] args) throws UnknownHostException {
-
+    public TransferService newTransferService(String appId, String ip, int port, BlockDataManager blockDataManager){
+        NodeInfo nodeInfo = new NodeInfo(getHostname(), ip, port);
+        NettyTransferService nettyTransferService = new NettyTransferService(appId, nodeInfo);
+        nettyTransferService.init(blockDataManager);
+        return nettyTransferService;
     }
 
+    public static void main(String[] args) throws UnknownHostException {
+    }
 }

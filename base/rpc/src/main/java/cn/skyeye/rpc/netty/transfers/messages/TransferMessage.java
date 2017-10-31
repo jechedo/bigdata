@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-package cn.skyeye.rpc.netty.transfers.blocks;
+package cn.skyeye.rpc.netty.transfers.messages;
 
 import cn.skyeye.rpc.netty.protocol.Encodable;
+import cn.skyeye.rpc.netty.transfers.blocks.OpenBlocks;
+import cn.skyeye.rpc.netty.transfers.blocks.UploadBlock;
 import cn.skyeye.rpc.netty.transfers.registers.RegisterDriver;
 import cn.skyeye.rpc.netty.transfers.registers.RegisterExecutor;
 import cn.skyeye.rpc.netty.transfers.registers.ShuffleServiceHeartbeat;
@@ -31,16 +33,16 @@ import java.nio.ByteBuffer;
  * At a high level:
  *   - OpenBlock is handled by both services, but only services shuffle files for the external
  *     shuffle service. It returns a StreamHandle.
- *   - UploadBlock is only handled by the NettyBlockTransferService.
+ *   - UploadBlock is only handled by the NettyTransferService.
  *   - RegisterExecutor is only handled by the external shuffle service.
  */
-public abstract class BlockTransferMessage implements Encodable {
+public abstract class TransferMessage implements Encodable {
   protected abstract Type type();
 
   /** Preceding every serialized message is its type, which allows us to deserialize it. */
   public enum Type {
     OPEN_BLOCKS(0), UPLOAD_BLOCK(1), REGISTER_EXECUTOR(2), STREAM_HANDLE(3), REGISTER_DRIVER(4),
-    HEARTBEAT(5);
+    HEARTBEAT(5), JSON(6);
 
     private final byte id;
 
@@ -55,7 +57,7 @@ public abstract class BlockTransferMessage implements Encodable {
   // NB: Java does not support static methods in interfaces, so we must put this in a static class.
   public static class Decoder {
     /** Deserializes the 'type' byte followed by the message itself. */
-    public static BlockTransferMessage fromByteBuffer(ByteBuffer msg) {
+    public static TransferMessage fromByteBuffer(ByteBuffer msg) {
       ByteBuf buf = Unpooled.wrappedBuffer(msg);
       byte type = buf.readByte();
       switch (type) {
@@ -65,6 +67,7 @@ public abstract class BlockTransferMessage implements Encodable {
         case 3: return StreamHandle.decode(buf);
         case 4: return RegisterDriver.decode(buf);
         case 5: return ShuffleServiceHeartbeat.decode(buf);
+        case 6: return JsonMessage.decode(buf);
         default: throw new IllegalArgumentException("Unknown message type: " + type);
       }
     }

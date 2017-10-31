@@ -17,7 +17,7 @@
 
 package cn.skyeye.rpc.netty.transfers.stream;
 
-import cn.skyeye.rpc.netty.transfers.blocks.BlockTransferMessage;
+import cn.skyeye.rpc.netty.transfers.messages.TransferMessage;
 import com.google.common.base.Objects;
 import io.netty.buffer.ByteBuf;
 
@@ -25,9 +25,9 @@ import io.netty.buffer.ByteBuf;
 
 /**
  * Identifier for a fixed number of chunks to read from a stream created by an "open blocks"
- * message. This is used by {@link org.apache.spark.network.shuffle.OneForOneBlockFetcher}.
+ * message. This is used by {@link cn.skyeye.rpc.netty.transfers.blocks.OneForOneBlockFetcher}.
  */
-public class StreamHandle extends BlockTransferMessage {
+public class StreamHandle extends TransferMessage {
   public final long streamId;
   public final int numChunks;
 

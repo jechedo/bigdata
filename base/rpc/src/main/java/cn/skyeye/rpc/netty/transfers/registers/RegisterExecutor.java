@@ -18,7 +18,7 @@
 package cn.skyeye.rpc.netty.transfers.registers;
 
 import cn.skyeye.rpc.netty.protocol.Encoders;
-import cn.skyeye.rpc.netty.transfers.blocks.BlockTransferMessage;
+import cn.skyeye.rpc.netty.transfers.messages.TransferMessage;
 import com.google.common.base.Objects;
 import io.netty.buffer.ByteBuf;
 
@@ -28,7 +28,7 @@ import io.netty.buffer.ByteBuf;
  * Initial registration message between an executor and its local shuffle server.
  * Returns nothing (empty byte array).
  */
-public class RegisterExecutor extends BlockTransferMessage {
+public class RegisterExecutor extends TransferMessage {
   public final String appId;
   public final String execId;
   public final ExecutorShuffleInfo executorInfo;

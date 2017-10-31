@@ -4,6 +4,7 @@ import cn.skyeye.rpc.netty.sasl.EncryptionCheckerBootstrap;
 import cn.skyeye.rpc.netty.sasl.SaslServerBootstrap;
 import cn.skyeye.rpc.netty.sasl.SecretKeyHolder;
 import cn.skyeye.rpc.netty.server.TransportServer;
+import cn.skyeye.rpc.netty.transfers.TransferService;
 import cn.skyeye.rpc.netty.util.MapConfigProvider;
 import cn.skyeye.rpc.netty.util.TransportConf;
 import com.codahale.metrics.MetricSet;
@@ -51,6 +52,11 @@ public class NettyServer {
         System.out.println(server.getPort());
 
 
+        sleep();
+
+    }
+
+    private static void sleep() {
         try {
             while (true){
                 Thread.sleep(1000L);
@@ -58,10 +64,12 @@ public class NettyServer {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-         startServer();
+         //startServer();
+        RpcContext rpcContext = RpcContext.get();
+        TransferService demo = rpcContext.newTransferService("demo", "172.24.66.212", 9911, null);
+        sleep();
     }
 }

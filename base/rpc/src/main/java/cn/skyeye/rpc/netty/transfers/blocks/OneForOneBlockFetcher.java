@@ -26,6 +26,7 @@ import cn.skyeye.rpc.netty.client.StreamCallback;
 import cn.skyeye.rpc.netty.client.TransportClient;
 import cn.skyeye.rpc.netty.server.OneForOneStreamManager;
 import cn.skyeye.rpc.netty.transfers.TempFileManager;
+import cn.skyeye.rpc.netty.transfers.messages.TransferMessage;
 import cn.skyeye.rpc.netty.transfers.stream.StreamHandle;
 import cn.skyeye.rpc.netty.util.TransportConf;
 import org.slf4j.Logger;
@@ -118,7 +119,7 @@ public class OneForOneBlockFetcher {
       @Override
       public void onSuccess(ByteBuffer response) {
         try {
-          streamHandle = (StreamHandle) BlockTransferMessage.Decoder.fromByteBuffer(response);
+          streamHandle = (StreamHandle) TransferMessage.Decoder.fromByteBuffer(response);
           logger.trace("Successfully opened blocks {}, preparing to fetch chunks.", streamHandle);
 
           // Immediately request all chunks -- we expect that the total size of the request is

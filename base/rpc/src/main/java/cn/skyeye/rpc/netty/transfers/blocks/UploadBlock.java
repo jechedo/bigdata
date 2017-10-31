@@ -18,6 +18,7 @@
 package cn.skyeye.rpc.netty.transfers.blocks;
 
 import cn.skyeye.rpc.netty.protocol.Encoders;
+import cn.skyeye.rpc.netty.transfers.messages.TransferMessage;
 import com.google.common.base.Objects;
 import io.netty.buffer.ByteBuf;
 
@@ -27,7 +28,7 @@ import java.util.Arrays;
 
 
 /** Request to upload a block with a certain StorageLevel. Returns nothing (empty byte array). */
-public class UploadBlock extends BlockTransferMessage {
+public class UploadBlock extends TransferMessage {
   public final String appId;
   public final String execId;
   public final String blockId;

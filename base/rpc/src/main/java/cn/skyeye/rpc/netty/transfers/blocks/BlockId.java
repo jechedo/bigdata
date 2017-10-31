@@ -19,7 +19,7 @@ public abstract class BlockId {
     }
 
     public static BlockId parse(String name) throws UnrecognizedBlockId {
-        String[] split = name.split(":");
+        String[] split = name.split("#");
         if(split.length > 1){
             String type = split[0];
             switch (type){
@@ -70,7 +70,7 @@ public abstract class BlockId {
             this.file = file;
             this.offset = offset;
             this.length = length;
-            this.name = String.format("file:%s,%s,%s", file, offset, length);
+            this.name = String.format("file#%s,%s,%s", file, offset, length);
         }
 
         public String getFile() {
@@ -123,7 +123,7 @@ public abstract class BlockId {
 
         public DataBlockId(String id){
            this.id = id;
-            this.name = String.format("data:%s", id);
+            this.name = String.format("data#%s", id);
         }
 
         public String getId() {

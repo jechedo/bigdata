@@ -15,5 +15,4 @@ public interface BlockDataManager {
     boolean putBlockData(BlockId blockId, ManagedBuffer data);
 
     void releaseLock(BlockId blockId, long taskAttemptId);
-
 }

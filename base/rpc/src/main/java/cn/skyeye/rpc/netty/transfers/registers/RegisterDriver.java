@@ -18,7 +18,7 @@
 package cn.skyeye.rpc.netty.transfers.registers;
 
 import cn.skyeye.rpc.netty.protocol.Encoders;
-import cn.skyeye.rpc.netty.transfers.blocks.BlockTransferMessage;
+import cn.skyeye.rpc.netty.transfers.messages.TransferMessage;
 import com.google.common.base.Objects;
 import io.netty.buffer.ByteBuf;
 
@@ -27,7 +27,7 @@ import io.netty.buffer.ByteBuf;
 /**
  * A message sent from the driver to register with the MesosExternalShuffleService.
  */
-public class RegisterDriver extends BlockTransferMessage {
+public class RegisterDriver extends TransferMessage {
   private final String appId;
   private final long heartbeatTimeoutMs;
 
