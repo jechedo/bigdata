@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package cn.skyeye.rpc.netty.transfers;
+package cn.skyeye.rpc.netty.transfers.blocks;
 
 import cn.skyeye.rpc.netty.buffer.ManagedBuffer;
 import cn.skyeye.rpc.netty.util.NettyUtils;

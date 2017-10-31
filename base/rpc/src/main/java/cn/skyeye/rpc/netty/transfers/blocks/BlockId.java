@@ -1,5 +1,7 @@
 package cn.skyeye.rpc.netty.transfers.blocks;
 
+import cn.skyeye.rpc.netty.transfers.exceptions.UnrecognizedBlockId;
+
 /**
  * Description:
  *
@@ -14,6 +16,24 @@ public abstract class BlockId {
 
     public static FileBlockId newFileBlockId(String file, long offset, long length){
         return new FileBlockId(file, offset, length);
+    }
+
+    public static BlockId parse(String name) throws UnrecognizedBlockId {
+        String[] split = name.split(":");
+        if(split.length > 1){
+            String type = split[0];
+            switch (type){
+                case "file":
+                    String[] args = split[1].split(",");
+                    return new FileBlockId(args[0], Long.parseLong(args[1]), Long.parseLong(args[2]));
+                case "data":
+                    return new DataBlockId(split[1]);
+                default:
+                    throw new UnrecognizedBlockId(name);
+            }
+        }else{
+            throw new UnrecognizedBlockId(name);
+        }
     }
 
     public static DataBlockId newDataBlockId(String id){

@@ -17,7 +17,7 @@
 
 package cn.skyeye.rpc.netty.transfers.stream;
 
-import cn.skyeye.rpc.netty.transfers.BlockTransferMessage;
+import cn.skyeye.rpc.netty.transfers.blocks.BlockTransferMessage;
 import com.google.common.base.Objects;
 import io.netty.buffer.ByteBuf;
 

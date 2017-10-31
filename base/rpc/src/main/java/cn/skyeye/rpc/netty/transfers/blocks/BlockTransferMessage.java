@@ -15,11 +15,9 @@
  * limitations under the License.
  */
 
-package cn.skyeye.rpc.netty.transfers;
+package cn.skyeye.rpc.netty.transfers.blocks;
 
 import cn.skyeye.rpc.netty.protocol.Encodable;
-import cn.skyeye.rpc.netty.transfers.blocks.OpenBlocks;
-import cn.skyeye.rpc.netty.transfers.blocks.UploadBlock;
 import cn.skyeye.rpc.netty.transfers.registers.RegisterDriver;
 import cn.skyeye.rpc.netty.transfers.registers.RegisterExecutor;
 import cn.skyeye.rpc.netty.transfers.registers.ShuffleServiceHeartbeat;

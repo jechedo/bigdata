@@ -18,7 +18,6 @@
 package cn.skyeye.rpc.netty.transfers.blocks;
 
 import cn.skyeye.rpc.netty.protocol.Encoders;
-import cn.skyeye.rpc.netty.transfers.BlockTransferMessage;
 import cn.skyeye.rpc.netty.transfers.stream.StreamHandle;
 import com.google.common.base.Objects;
 import io.netty.buffer.ByteBuf;

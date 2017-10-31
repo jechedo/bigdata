@@ -1,6 +1,5 @@
 package cn.skyeye.rpc.netty;
 
-import cn.skyeye.rpc.netty.client.TransportClient;
 import cn.skyeye.rpc.netty.client.TransportClientBootstrap;
 import cn.skyeye.rpc.netty.client.TransportClientFactory;
 import cn.skyeye.rpc.netty.sasl.EncryptionCheckerBootstrap;
@@ -18,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Description:
@@ -27,67 +25,72 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @version 2017/10/31 13:28
  */
 public class RpcContext {
+    public final static String APPID = "skyeye-rpc";
     private final Logger logger = Logger.getLogger(RpcContext.class);
 
     private static RpcContext rpcContext;
 
     private RpcBaseConf rpcBaseConf;
-    private TransportClientFactory clientFactory;
-    private AtomicBoolean clientFactoryInited;
-
-    private TransportServer server;
-    private AtomicBoolean serverInited;
-
 
     private RpcContext(boolean loadEnv){
         this.rpcBaseConf = new RpcBaseConf(loadEnv);
-        this.clientFactoryInited = new AtomicBoolean(false);
-        this.serverInited = new AtomicBoolean(false);
     }
 
-    public synchronized void initClientFactory(String model,
-                                               RpcHandler rpcHandler,
-                                               Map<String, String> extraConf){
-        if(!clientFactoryInited.get()){
-            if(extraConf == null)extraConf = Maps.newHashMap();
-            extraConf.put("rpc.authenticate.enableSaslEncryption", String.valueOf(true));
-            TransportConf transportConf = newTransportConf(model, extraConf);
+    public TransportClientFactory newClientFactory(String model,
+                                                  RpcHandler rpcHandler,
+                                                  Map<String, String> extraConf){
+        if(extraConf == null)extraConf = Maps.newHashMap();
+        extraConf.put("rpc.authenticate.enableSaslEncryption", String.valueOf(true));
+        TransportConf transportConf = newTransportConf(model, extraConf);
+        TransportContext transportContext = new TransportContext(transportConf, rpcHandler);
 
-            List<TransportClientBootstrap> clientBootstraps = new ArrayList<>();
-            clientBootstraps.add(new SaslClientBootstrap(transportConf, "skyeye", rpcBaseConf.getKeyHolder()));
-            TransportContext transportContext = new TransportContext(transportConf, rpcHandler);
-            this.clientFactory = transportContext.createClientFactory(clientBootstraps);
-
-            clientFactoryInited.set(true);
-        }
+        return newTransportClientFactory(model,  transportContext);
     }
 
-    public synchronized TransportServer initServer(String model,
-                                                    RpcHandler rpcHandler,
-                                                    String host,
-                                                    int port,
-                                                    Map<String, String> extraConf){
-        if(!serverInited.get()){
-            if(extraConf == null)extraConf = Maps.newHashMap();
-            extraConf.put("rpc.authenticate.enableSaslEncryption", String.valueOf(true));
+    public TransportClientFactory newTransportClientFactory(String model,
+                                                            TransportContext transportContext) {
+        List<TransportClientBootstrap> clientBootstraps = new ArrayList<>();
+        clientBootstraps.add(new SaslClientBootstrap(transportContext.getConf(), model, rpcBaseConf.getKeyHolder()));
+        return transportContext.createClientFactory(clientBootstraps);
+    }
 
-            TransportConf transportConf = newTransportConf(model, extraConf);
-            EncryptionCheckerBootstrap checker = new EncryptionCheckerBootstrap("saslEncryption");
+    public TransportServer newTransportServer(String model,
+                                              RpcHandler rpcHandler,
+                                              String host,
+                                              int port,
+                                              Map<String, String> extraConf){
 
-            TransportContext transportContext = new TransportContext(transportConf, rpcHandler);
-            if(host == null){
-                this.server = transportContext.createServer(port,
-                        Arrays.asList(new SaslServerBootstrap(transportConf, rpcBaseConf.getKeyHolder()),
-                                checker));
-            }else {
-                this.server = transportContext.createServer(host, port,
-                        Arrays.asList(new SaslServerBootstrap(transportConf, rpcBaseConf.getKeyHolder()),
-                                checker));
-            }
-            serverInited.set(true);
+        if(extraConf == null)extraConf = Maps.newHashMap();
+        extraConf.put("rpc.authenticate.enableSaslEncryption", String.valueOf(true));
+        TransportConf transportConf = newTransportConf(model, extraConf);
+        TransportContext transportContext = newTransportContext(model, extraConf, rpcHandler);
+        return newTransportServer(host, port, transportContext);
+    }
+
+    public TransportServer newTransportServer(String host,
+                                              int port,
+                                              TransportContext transportContext) {
+        EncryptionCheckerBootstrap checker = new EncryptionCheckerBootstrap("saslEncryption");
+        TransportServer server;
+        if(host == null){
+           server = transportContext.createServer(port,
+                    Arrays.asList(new SaslServerBootstrap(transportContext.getConf(), rpcBaseConf.getKeyHolder()),
+                            checker));
+        }else {
+           server = transportContext.createServer(host, port,
+                    Arrays.asList(new SaslServerBootstrap(transportContext.getConf(), rpcBaseConf.getKeyHolder()),
+                            checker));
         }
 
         return server;
+    }
+
+    public TransportContext newTransportContext(String model, Map<String, String> extraConf, RpcHandler rpcHandler){
+
+        if(extraConf == null)extraConf = Maps.newHashMap();
+        extraConf.put("rpc.authenticate.enableSaslEncryption", String.valueOf(true));
+        TransportConf transportConf = newTransportConf(model, extraConf);
+        return new TransportContext(transportConf, rpcHandler);
     }
 
     private TransportConf newTransportConf(String model, Map<String, String> conf){
@@ -96,14 +99,6 @@ public class RpcContext {
         config.putAll(conf);
         MapConfigProvider configProvider = new MapConfigProvider(config);
         return new TransportConf(model, configProvider);
-    }
-
-    public TransportServer getRpcServer() {
-        return server;
-    }
-
-    public TransportClient getRpcClient(String remoteHost, int remotePort) throws Exception {
-        return clientFactory.createClient(remoteHost, remotePort);
     }
 
     public String getSystemId() {

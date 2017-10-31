@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package cn.skyeye.rpc.netty.transfers;
+package cn.skyeye.rpc.netty.transfers.blocks;
 
 
 import cn.skyeye.rpc.netty.buffer.FileSegmentManagedBuffer;
@@ -25,7 +25,7 @@ import cn.skyeye.rpc.netty.client.RpcResponseCallback;
 import cn.skyeye.rpc.netty.client.StreamCallback;
 import cn.skyeye.rpc.netty.client.TransportClient;
 import cn.skyeye.rpc.netty.server.OneForOneStreamManager;
-import cn.skyeye.rpc.netty.transfers.blocks.OpenBlocks;
+import cn.skyeye.rpc.netty.transfers.TempFileManager;
 import cn.skyeye.rpc.netty.transfers.stream.StreamHandle;
 import cn.skyeye.rpc.netty.util.TransportConf;
 import org.slf4j.Logger;

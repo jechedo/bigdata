@@ -18,7 +18,7 @@
 package cn.skyeye.rpc.netty.transfers.registers;
 
 import cn.skyeye.rpc.netty.protocol.Encoders;
-import cn.skyeye.rpc.netty.transfers.BlockTransferMessage;
+import cn.skyeye.rpc.netty.transfers.blocks.BlockTransferMessage;
 import io.netty.buffer.ByteBuf;
 
 
