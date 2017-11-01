@@ -10,6 +10,7 @@ import cn.skyeye.rpc.netty.server.TransportServer;
 import cn.skyeye.rpc.netty.transfers.NettyTransferService;
 import cn.skyeye.rpc.netty.transfers.TransferService;
 import cn.skyeye.rpc.netty.transfers.blocks.BlockDataManager;
+import cn.skyeye.rpc.netty.transfers.messages.JsonMessageManager;
 import cn.skyeye.rpc.netty.util.MapConfigProvider;
 import cn.skyeye.rpc.netty.util.NodeInfo;
 import cn.skyeye.rpc.netty.util.TransportConf;
@@ -97,10 +98,14 @@ public class RpcContext {
         return rpcContext;
     }
 
-    public TransferService newTransferService(String appId, String ip, int port, BlockDataManager blockDataManager){
+    public TransferService newTransferService(String appId,
+                                              String ip,
+                                              int port,
+                                              BlockDataManager blockDataManager,
+                                              JsonMessageManager jsonMessageManager){
         NodeInfo nodeInfo = new NodeInfo(getHostname(), ip, port);
         NettyTransferService nettyTransferService = new NettyTransferService(appId, nodeInfo);
-        nettyTransferService.init(blockDataManager);
+        nettyTransferService.init(blockDataManager, jsonMessageManager);
         return nettyTransferService;
     }
 

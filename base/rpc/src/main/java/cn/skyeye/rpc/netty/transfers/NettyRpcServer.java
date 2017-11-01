@@ -13,6 +13,7 @@ import cn.skyeye.rpc.netty.transfers.blocks.OpenBlocks;
 import cn.skyeye.rpc.netty.transfers.blocks.UploadBlock;
 import cn.skyeye.rpc.netty.transfers.exceptions.UnrecognizedBlockId;
 import cn.skyeye.rpc.netty.transfers.messages.JsonMessage;
+import cn.skyeye.rpc.netty.transfers.messages.JsonMessageManager;
 import cn.skyeye.rpc.netty.transfers.messages.TransferMessage;
 import cn.skyeye.rpc.netty.transfers.stream.StreamHandle;
 import com.google.common.collect.Lists;
@@ -34,10 +35,14 @@ public class NettyRpcServer extends RpcHandler {
 
     private String appId;
     private BlockDataManager blockDataManager;
+    private JsonMessageManager jsonMessageManager;
 
-    public NettyRpcServer(String appId, BlockDataManager blockDataManager){
+    public NettyRpcServer(String appId,
+                          BlockDataManager blockDataManager,
+                          JsonMessageManager jsonMessageManager){
         this.appId = appId;
         this.blockDataManager = blockDataManager;
+        this.jsonMessageManager = jsonMessageManager;
     }
 
     @Override
@@ -63,7 +68,7 @@ public class NettyRpcServer extends RpcHandler {
     }
 
     private void doJson(JsonMessage jsonMessage, RpcResponseCallback callback){
-        System.err.println("JsonMessage = " + jsonMessage);
+        jsonMessageManager.handleMessage(jsonMessage.jsonStr);
         callback.onSuccess(ByteBuffer.allocate(0));
     }
 

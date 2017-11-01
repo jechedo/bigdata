@@ -9,6 +9,8 @@ import cn.skyeye.rpc.netty.client.TransportClientFactory;
 import cn.skyeye.rpc.netty.server.TransportServer;
 import cn.skyeye.rpc.netty.transfers.blocks.*;
 import cn.skyeye.rpc.netty.transfers.messages.JsonMessage;
+import cn.skyeye.rpc.netty.transfers.messages.JsonMessageManager;
+import cn.skyeye.rpc.netty.transfers.messages.SimpleJsonMessageManager;
 import cn.skyeye.rpc.netty.util.JavaUtils;
 import cn.skyeye.rpc.netty.util.NodeInfo;
 import cn.skyeye.rpc.netty.util.TransportConf;
@@ -42,13 +44,16 @@ public class NettyTransferService extends TransferService {
     }
 
     @Override
-    public void init(BlockDataManager blockDataManager) {
+    public void init(BlockDataManager blockDataManager, JsonMessageManager jsonMessageManager) {
         RpcContext rpcContext = RpcContext.get();
         this.transportConf = rpcContext.newTransportConf(appId, Maps.newHashMap());
         if(blockDataManager == null)
             blockDataManager = new LocalFileDataManager(transportConf);
 
-        NettyRpcServer rpcHandler = new NettyRpcServer(appId, blockDataManager);
+        if(jsonMessageManager == null)
+            jsonMessageManager = new SimpleJsonMessageManager();
+
+        NettyRpcServer rpcHandler = new NettyRpcServer(appId, blockDataManager, jsonMessageManager);
 
         this.transportContext = rpcContext.newTransportContext(transportConf, rpcHandler);
         this.transportServer = rpcContext.newTransportServer(hostname, port, transportContext);
