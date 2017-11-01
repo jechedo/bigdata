@@ -10,7 +10,9 @@ import cn.skyeye.rpc.netty.sasl.SaslClientBootstrap;
 import cn.skyeye.rpc.netty.sasl.SecretKeyHolder;
 import cn.skyeye.rpc.netty.server.OneForOneStreamManager;
 import cn.skyeye.rpc.netty.transfers.TransferService;
+import cn.skyeye.rpc.netty.transfers.blocks.BlockFetchingListener;
 import cn.skyeye.rpc.netty.transfers.blocks.BlockId;
+import cn.skyeye.rpc.netty.util.JavaUtils;
 import cn.skyeye.rpc.netty.util.MapConfigProvider;
 import cn.skyeye.rpc.netty.util.NodeInfo;
 import cn.skyeye.rpc.netty.util.TransportConf;
@@ -97,16 +99,15 @@ public class NettyClient {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         RpcContext rpcContext = RpcContext.get();
-        TransferService demo = rpcContext.newTransferService("demo", "172.24.66.212", 8811, null);
+        TransferService demo = rpcContext.newTransferService("demo", "172.24.66.212", 8811, null, null);
 
         NodeInfo nodeInfo = new NodeInfo("localhost", "172.24.66.212", 9911);
 
         String file = "D:/demo/LICENSE.txt";
         File file1 = new File(file);
-       // BlockId.FileBlockId fileBlockId = new BlockId.FileBlockId(file, 0, file1.length());
+        BlockId.FileBlockId fileBlockId = new BlockId.FileBlockId(file, 0, file1.length());
 
-
-       /* demo.fetchBlocks(nodeInfo, new String[]{fileBlockId.getName()}, new BlockFetchingListener(){
+        demo.fetchBlocks(nodeInfo, new String[]{fileBlockId.getName()}, new BlockFetchingListener(){
             @Override
             public void onBlockFetchSuccess(String blockId, ManagedBuffer data) {
                 try {
@@ -120,13 +121,14 @@ public class NettyClient {
             public void onBlockFetchFailure(String blockId, Throwable exception) {
                 System.err.println(blockId + ": \n " + exception);
             }
-        });*/
+        });
+
        // demo.sendJson(nodeInfo, Jsons.obj2JsonString("hello world"));
 
-        BlockId.FileBlockId fileBlockId = new BlockId.FileBlockId("D:/demo/upload.log", 0, file1.length());
+       // BlockId.FileBlockId fileBlockId = new BlockId.FileBlockId("D:/demo/upload.log", 0, file1.length());
 
-        demo.uploadBlock(nodeInfo, fileBlockId,
-                new FileSegmentManagedBuffer(rpcContext.newTransportConf("demo", Maps.newHashMap()), file1, 0, file1.length()));
+        //demo.uploadBlock(nodeInfo, fileBlockId,
+                //new FileSegmentManagedBuffer(rpcContext.newTransportConf("demo", Maps.newHashMap()), file1, 0, file1.length()));
 
         sleep();
     }
