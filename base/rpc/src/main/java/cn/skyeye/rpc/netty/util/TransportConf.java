@@ -94,7 +94,7 @@ public class TransportConf {
   /** Connect timeout in milliseconds. Default 120 secs. */
   public int connectionTimeoutMs() {
     long defaultNetworkTimeoutS = JavaUtils.timeStringAsSec(
-      conf.get("spark.network.timeout", "120s"));
+      conf.get("rpc.network.timeout", "120s"));
     long defaultTimeoutMs = JavaUtils.timeStringAsSec(
       conf.get(NETWORK_IO_CONNECTIONTIMEOUT_KEY, defaultNetworkTimeoutS + "s")) * 1000;
     return (int) defaultTimeoutMs;
@@ -128,7 +128,7 @@ public class TransportConf {
 
   /** Timeout for a single round trip of auth message exchange, in milliseconds. */
   public int authRTTimeoutMs() {
-    return (int) JavaUtils.timeStringAsSec(conf.get("spark.network.auth.rpcTimeout",
+    return (int) JavaUtils.timeStringAsSec(conf.get("rpc.network.auth.rpcTimeout",
       conf.get(NETWORK_SASL_TIMEOUT_KEY, "30s"))) * 1000;
   }
 
@@ -153,7 +153,7 @@ public class TransportConf {
    */
   public int memoryMapBytes() {
     return Ints.checkedCast(JavaUtils.byteStringAsBytes(
-      conf.get("spark.storage.memoryMapThreshold", "2m")));
+      conf.get("rpc.storage.memoryMapThreshold", "2m")));
   }
 
   /**
@@ -183,14 +183,14 @@ public class TransportConf {
    * Enables strong encryption. Also enables the new auth protocol, used to negotiate keys.
    */
   public boolean encryptionEnabled() {
-    return conf.getBoolean("spark.network.crypto.enabled", false);
+    return conf.getBoolean("rpc.network.crypto.enabled", false);
   }
 
   /**
    * The cipher transformation to use for encrypting session data.
    */
   public String cipherTransformation() {
-    return conf.get("spark.network.crypto.cipher", "AES/CTR/NoPadding");
+    return conf.get("rpc.network.crypto.cipher", "AES/CTR/NoPadding");
   }
 
   /**
@@ -198,7 +198,7 @@ public class TransportConf {
    * as input. The default value (PBKDF2WithHmacSHA1) is available in Java 7.
    */
   public String keyFactoryAlgorithm() {
-    return conf.get("spark.network.crypto.keyFactoryAlgorithm", "PBKDF2WithHmacSHA1");
+    return conf.get("rpc.network.crypto.keyFactoryAlgorithm", "PBKDF2WithHmacSHA1");
   }
 
   /**
@@ -209,21 +209,21 @@ public class TransportConf {
    * (128 bits by default), which is not generally the case with user passwords.
    */
   public int keyFactoryIterations() {
-    return conf.getInt("spark.networy.crypto.keyFactoryIterations", 1024);
+    return conf.getInt("rpc.networy.crypto.keyFactoryIterations", 1024);
   }
 
   /**
    * Encryption key length, in bits.
    */
   public int encryptionKeyLength() {
-    return conf.getInt("spark.network.crypto.keyLength", 128);
+    return conf.getInt("rpc.network.crypto.keyLength", 128);
   }
 
   /**
    * Initial vector length, in bytes.
    */
   public int ivLength() {
-    return conf.getInt("spark.network.crypto.ivLength", 16);
+    return conf.getInt("rpc.network.crypto.ivLength", 16);
   }
 
   /**
@@ -231,7 +231,7 @@ public class TransportConf {
    * but configurable just in case.
    */
   public String keyAlgorithm() {
-    return conf.get("spark.network.crypto.keyAlgorithm", "AES");
+    return conf.get("rpc.network.crypto.keyAlgorithm", "AES");
   }
 
   /**
@@ -239,14 +239,14 @@ public class TransportConf {
    * backwards compatibility.
    */
   public boolean saslFallback() {
-    return conf.getBoolean("spark.network.crypto.saslFallback", true);
+    return conf.getBoolean("rpc.network.crypto.saslFallback", true);
   }
 
   /**
    * Whether to enable SASL-based encryption when authenticating using SASL.
    */
   public boolean saslEncryption() {
-    return conf.getBoolean("spark.authenticate.enableSaslEncryption", false);
+    return conf.getBoolean("rpc.authenticate.enableSaslEncryption", false);
   }
 
   /**
@@ -254,21 +254,21 @@ public class TransportConf {
    */
   public int maxSaslEncryptedBlockSize() {
     return Ints.checkedCast(JavaUtils.byteStringAsBytes(
-      conf.get("spark.network.sasl.maxEncryptedBlockSize", "64k")));
+      conf.get("rpc.network.sasl.maxEncryptedBlockSize", "64k")));
   }
 
   /**
    * Whether the server should enforce encryption on SASL-authenticated connections.
    */
   public boolean saslServerAlwaysEncrypt() {
-    return conf.getBoolean("spark.network.sasl.serverAlwaysEncrypt", false);
+    return conf.getBoolean("rpc.network.sasl.serverAlwaysEncrypt", false);
   }
 
   /**
    * The commons-crypto configuration for the module.
    */
   public Properties cryptoConf() {
-    return CryptoUtils.toCryptoConf("spark.network.crypto.config.", conf.getAll());
+    return CryptoUtils.toCryptoConf("rpc.network.crypto.config.", conf.getAll());
   }
 
   /**
@@ -279,6 +279,6 @@ public class TransportConf {
    * failure.
    */
   public long maxChunksBeingTransferred() {
-    return conf.getLong("spark.shuffle.maxChunksBeingTransferred", Long.MAX_VALUE);
+    return conf.getLong("rpc.shuffle.maxChunksBeingTransferred", Long.MAX_VALUE);
   }
 }
