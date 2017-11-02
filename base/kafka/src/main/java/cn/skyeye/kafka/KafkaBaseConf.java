@@ -20,8 +20,6 @@ public class KafkaBaseConf extends ConfigDetail{
 
     private final Logger logger = Logger.getLogger(KafkaBaseConf.class);
 
-    private Properties baseProp;
-
     static {
         System.getProperties().forEach((keyObj, valueObj) -> {
             String key = keyObj.toString();
@@ -42,12 +40,12 @@ public class KafkaBaseConf extends ConfigDetail{
             logger.error("读取kafka基础配置失败。", e);
         }
 
-        this.baseProp = new Properties();
-        this.baseProp.putAll(this.configMap);
     }
 
     public Properties newBaseProperties(){
-        return new Properties(baseProp);
+        Properties properties = new Properties();
+        properties.putAll(this.configMap);
+        return properties;
     }
 
 }

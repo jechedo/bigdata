@@ -1,15 +1,22 @@
 package cn.skyeye.kafka;
 
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Description:
@@ -69,6 +76,12 @@ public class KafkaContext {
         return new KafkaConsumer<>(properties, keyDeserializer, valueDeserializer);
     }
 
+    public AdminClient  newAdminClient(Map<String, Object> confs){
+        Properties properties = kafkaBaseConf.newBaseProperties();
+        properties.putAll(confs);
+        return KafkaAdminClient.create(properties);
+    }
+
 
     public static void close(Producer producer){
         if(producer != null)producer.close();
@@ -76,5 +89,21 @@ public class KafkaContext {
 
     public static void close(Consumer consumer){
         if(consumer != null)consumer.close();
+    }
+
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        KafkaContext kafkaContext = KafkaContext.get();
+        HashMap<String, Object> confs = Maps.newHashMap();
+        confs.put("group.id", "test");
+
+        AdminClient adminClient = kafkaContext.newAdminClient(confs);
+
+        KafkaConsumer<String, String> consumer = kafkaContext.newConsumer(confs);
+        consumer.subscribe(Lists.newArrayList("test"));
+        ConsumerRecords<String, String> poll;
+        while ((poll = consumer.poll(1000)) != null){
+            System.out.println(poll.count());
+        }
+
     }
 }
