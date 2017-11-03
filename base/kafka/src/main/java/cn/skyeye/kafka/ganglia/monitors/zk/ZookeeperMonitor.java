@@ -7,8 +7,7 @@ import cn.skyeye.kafka.ganglia.configs.ZkMonitorConf;
 import cn.skyeye.kafka.ganglia.metrics.ZookeeperMetrics;
 import cn.skyeye.kafka.ganglia.reporters.MetricReporter;
 import cn.skyeye.kafka.ganglia.reporters.ZookeeperMetricReporter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -22,12 +21,13 @@ import java.util.concurrent.*;
  *  Telnet into each zookeeper node and extract out the metrics.
  */
 public class ZookeeperMonitor implements Runnable{
-    public static final Logger logger = LoggerFactory.getLogger(ZookeeperMonitor.class);
+    private static final Logger logger = Logger.getLogger(ZookeeperMonitor.class);
     private static final String _CONFIG= "/kafka/ganglia-zk-config.yml";
+
+    public static final String LOG_PREFIX = "zookeper_ganglia_monitor";
 
     private static final int DEFAULT_NUMBER_OF_THREADS = 10;
     public static final int DEFAULT_THREAD_TIMEOUT = 10;
-    public static String LOG_PREFIX = "ZOOKEPER_GANGLIA_MONITOR";
 
     private ScheduledExecutorService threadPool;
 
@@ -79,9 +79,9 @@ public class ZookeeperMonitor implements Runnable{
     private List<Future<ZookeeperMetrics>> createParallelTasks(ZkMonitorConf config) {
         List<Future<ZookeeperMetrics>> parallelTasks = new ArrayList<>();
         if (config != null && config.getServers() != null) {
-            ZookeeperMonitorTask zookeeperTask;
+            ZookeeperMetricCollector zookeeperTask;
             for (ZkMonitorConf.Server server : config.getServers()) {
-                zookeeperTask = new ZookeeperMonitorTask(server, config.getCommands());
+                zookeeperTask = new ZookeeperMetricCollector(server, config.getCommands());
                 parallelTasks.add(getThreadPool().submit(zookeeperTask));
             }
         }
@@ -91,6 +91,8 @@ public class ZookeeperMonitor implements Runnable{
     private void collectMetrics(List<Future<ZookeeperMetrics>> parallelTasks, int timeout) {
 
         ZookeeperMetrics total = new ZookeeperMetrics("total");
+        total.setMetrics("Invalid Nodes", 0);
+        total.setMetrics("Available Nodes", 0);
 
         ZookeeperMetrics zMetrics;
         for (Future<ZookeeperMetrics> aParallelTask : parallelTasks) {
