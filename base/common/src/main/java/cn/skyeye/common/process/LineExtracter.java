@@ -9,7 +9,6 @@ package cn.skyeye.common.process;
  * @version 1.0
  * @date 2016/10/24 14:18
  */
-public interface ProcessRowExtracter {
-
-    void extractRowData(String rowData);
+public interface LineExtracter {
+    void extract(boolean isError, String line);
 }

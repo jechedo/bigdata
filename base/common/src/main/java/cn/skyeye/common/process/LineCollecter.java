@@ -11,18 +11,18 @@ import java.util.Collection;
  * @version 1.0
  * @date 2016/10/24 14:47
  */
-public abstract class ProcessRowCollecter<T> implements ProcessRowExtracter {
+public abstract class LineCollecter<T> implements LineExtracter {
 
     private Collection<T> collection;
 
-    public ProcessRowCollecter(Collection<T> collection){
+    public LineCollecter(Collection<T> collection){
         this.collection = collection;
     }
 
-    public void extractRowData(String rowData) {
-        T t = extractRowStr(rowData);
+    public void extract(boolean isError, String line) {
+        T t = extractRowStr(isError, line);
         if(t != null) collection.add(t);
     }
 
-    protected abstract T extractRowStr(String rowData);
+    protected abstract T extractRowStr(boolean isError, String line);
 }
