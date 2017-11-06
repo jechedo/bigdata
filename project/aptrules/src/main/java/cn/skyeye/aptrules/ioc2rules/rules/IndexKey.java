@@ -6,10 +6,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 根据数据生成的查找规则的RuleKey
@@ -202,8 +199,16 @@ public class IndexKey{
             System.err.println(key + " --> " + value + " --> " + value.getClass());
         });
 
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("*******");
+            }
+        }, 5 * 1000L , 5 * 1000L);
 
 
+        System.out.println("dww");
     }
 
 }

@@ -1,5 +1,6 @@
 package cn.skyeye.aptrules.streams;
 
+import cn.skyeye.aptrules.ARConf;
 import cn.skyeye.aptrules.ioc2rules.rules.IndexKey;
 import cn.skyeye.aptrules.ioc2rules.rules.VagueRule;
 import cn.skyeye.common.json.Jsons;
@@ -23,6 +24,12 @@ public class RecordHitedExtracter implements ProcessorSupplier {
 
     private final Logger logger = Logger.getLogger(RecordHitedExtracter.class);
 
+    private ARConf arConf;
+
+    public RecordHitedExtracter(ARConf arConf){
+        this.arConf = arConf;
+    }
+
     @Override
     public Processor get() {
         return new Processor<String, String>() {
@@ -45,7 +52,7 @@ public class RecordHitedExtracter implements ProcessorSupplier {
 
                         split = line.split("<->");
                         Map<String, Object> ruleMap = Jsons.toMap(split[0]);
-                        VagueRule vagueRule = VagueRule.newByRuleMap(null, ruleMap);
+                        VagueRule vagueRule = VagueRule.newByRuleMap(arConf, ruleMap);
 
                         Map<String, Object> record = Jsons.toMap(split[1]);
 

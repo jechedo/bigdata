@@ -53,15 +53,18 @@ public class Alarmer {
     }
 
     public void checkAndReportAlarm(Map<String, Object> data, Ruler.Hits hits){
-        Record record = new Record(data);
-        Alarm alarm;
         for (Map.Entry<IndexKey, List<VagueRule>> entry : hits.getHitSet()) {
             for(VagueRule vagueRule : entry.getValue()) {
-                alarm = createAlarm(record, entry.getKey(), vagueRule);
-                if (alarm != null) {
-                    alarmStore.storeAlarm(alarm);
-                }
+                checkAndReportAlarm(data, entry.getKey(), vagueRule);
             }
+        }
+    }
+
+    public void checkAndReportAlarm(Map<String, Object> data, IndexKey ruleKey, VagueRule vagueRule){
+        Record record = new Record(data);
+        Alarm alarm = createAlarm(record, ruleKey, vagueRule);
+        if (alarm != null) {
+            alarmStore.storeAlarm(alarm);
         }
     }
 

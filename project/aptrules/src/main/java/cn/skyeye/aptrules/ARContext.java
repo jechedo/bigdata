@@ -4,6 +4,9 @@ import cn.skyeye.aptrules.alarms.Alarmer;
 import cn.skyeye.aptrules.alarms.stores.AlarmEsStore;
 import cn.skyeye.aptrules.ioc2rules.Ioc2RuleSyncer;
 import cn.skyeye.aptrules.ioc2rules.rules.Ruler;
+import cn.skyeye.aptrules.streams.ARKafkaStream;
+import cn.skyeye.aptrules.streams.RecordCheckStream;
+import cn.skyeye.aptrules.streams.RecordHitedStream;
 import cn.skyeye.common.net.IPtoLong;
 import cn.skyeye.redis.RedisContext;
 import com.google.common.collect.Maps;
@@ -11,6 +14,9 @@ import org.apache.log4j.Logger;
 import redis.clients.jedis.Jedis;
 
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Description:
@@ -95,6 +101,46 @@ public class ARContext {
         long ipData = ipv4ToLong(ipv4);
         return (ipData >> 24 == netA || ipData >> 20 == netB || ipData >> 16 == netC);
     }
+
+    public void start(){
+        final Ioc2RuleSyncer ioc2RuleSyncer = getIoc2RuleSyncer();
+        final Timer timer = new Timer(true);
+        long delay = 15 *60 * 1000L;
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                ioc2RuleSyncer.syncDataBase();
+                ioc2RuleSyncer.syncCloud();
+            }
+        }, delay , delay);
+
+        Ruler ruler = ioc2RuleSyncer.getRuler();
+
+        final ARKafkaStream checkStream = new RecordCheckStream(arConf, ruler);
+        final ARKafkaStream hitedStream = new RecordHitedStream(arConf, alarmer);
+
+        final CountDownLatch latch = new CountDownLatch(1);
+        Runtime.getRuntime().addShutdownHook(new Thread("skyeye-analyer") {
+            @Override
+            public void run() {
+                timer.cancel();
+                checkStream.close();
+                hitedStream.close();
+
+                latch.countDown();
+            }
+        });
+
+        try {
+            checkStream.start();
+            hitedStream.start();
+            latch.await();
+        } catch (Throwable e) {
+            System.exit(1);
+        }
+        System.exit(0);
+    }
+
 
     public static void main(String[] args) {
         ARContext arContext = ARContext.get();
