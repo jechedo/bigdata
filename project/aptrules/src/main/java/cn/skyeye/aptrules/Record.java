@@ -290,7 +290,10 @@ public class Record {
         if(o != null) {
             if (o instanceof List) {
                 res = (List<String>) o;
-            } else {
+            } else if(o instanceof List){
+                JSONArray o1 = (JSONArray) o;
+                res = o1.toJavaList(String.class);
+            } else{
                 res = Lists.newArrayList(String.valueOf(o).split(spliter));
             }
         }

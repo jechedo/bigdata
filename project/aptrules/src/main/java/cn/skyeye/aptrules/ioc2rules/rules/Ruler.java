@@ -204,6 +204,10 @@ public class Ruler {
             return hitsMap.entrySet();
         }
 
+        public boolean noEmpty(){
+            return !hitsMap.isEmpty();
+        }
+
         @Override
         public String toString() {
             final StringBuilder sb = new StringBuilder("Hits{");

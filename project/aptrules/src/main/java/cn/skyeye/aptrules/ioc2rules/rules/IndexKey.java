@@ -1,8 +1,14 @@
 package cn.skyeye.aptrules.ioc2rules.rules;
 
+import cn.skyeye.common.json.Jsons;
+import com.alibaba.fastjson.JSONArray;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 根据数据生成的查找规则的RuleKey
@@ -107,6 +113,48 @@ public class IndexKey{
         return sb.substring(1);
     }
 
+    public String getIndexKeyString(){
+        Map<String, Object> map = new HashMap<>();
+        map.put("ruleFields", ruleFields);
+        map.put("ruleDatas", ruleDatas);
+        map.put("dataFields", dataFields);
+        map.put("datas", datas);
+      return Jsons.obj2JsonString(map);
+    }
+
+    public static IndexKey newByIndexKeyString(String indexKeyString) throws Exception {
+        Map<String, Object> res = Jsons.toMap(indexKeyString);
+        IndexKey indexKey = new IndexKey();
+        Set<Map.Entry<String, Object>> entries = res.entrySet();
+        int n = 4;
+        for(Map.Entry<String, Object> entry : entries){
+            if(entry.getValue() instanceof JSONArray){
+                JSONArray jsonArray = (JSONArray) entry.getValue();
+                switch (entry.getKey()){
+                    case "ruleFields":
+                        indexKey.ruleFields = jsonArray.toJavaList(String.class);
+                        n -= 1;
+                        break;
+                    case "ruleDatas":
+                        indexKey.ruleDatas = jsonArray.toJavaList(Object.class);
+                        n -= 1;
+                        break;
+                    case "dataFields":
+                        indexKey.dataFields = jsonArray.toJavaList(String.class);
+                        n -= 1;
+                        break;
+                    case "datas":
+                        indexKey.datas = jsonArray.toJavaList(Object.class);
+                        n -= 1;
+                        break;
+                }
+            }
+        }
+        Preconditions.checkArgument(n < 1, String.format("不是标准的IndexKey: %s", indexKeyString));
+
+        return indexKey;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("IndexKey{");
@@ -133,5 +181,24 @@ public class IndexKey{
         result = 31 * result + datas.hashCode();
         return result;
     }
+
+    public static void main(String[] args) throws Exception {
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("ruleFields", Lists.newArrayList("name", "age", "address"));
+        map.put("ruleDatas", Lists.newArrayList("jechedo", 21, null));
+
+        String s = Jsons.obj2JsonString(map);
+        System.out.println(s);
+
+        Map<String, Object> res = Jsons.toMap(s);
+        res.forEach((key, value) ->{
+            System.err.println(key + " --> " + value);
+        });
+
+
+
+    }
+
 }
 
