@@ -10,10 +10,14 @@ package cn.skyeye.kafka.ganglia.reporters;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.ganglia.GangliaReporter;
+import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
+import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
+import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import info.ganglia.gmetric4j.gmetric.GMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -51,5 +55,23 @@ public  abstract class BaseGangliaMetricReporter implements MetricReporter{
 	}
 
 	public abstract void report();
+
+	public static void main(String[] args) throws IOException, InterruptedException {
+		GMetric aGMetric = new GMetric("test", 8649, GMetric.UDPAddressingMode.UNICAST, 1);
+		MetricRegistry registry = new MetricRegistry();
+		GangliaReporter.Builder builder = GangliaReporter.forRegistry(registry).withTMax(60).convertRatesTo(TimeUnit.SECONDS).convertDurationsTo(TimeUnit.SECONDS);
+		GangliaReporter reporter = builder.build(aGMetric);
+
+		reporter.start(5, TimeUnit.SECONDS);
+		registry.register("demo.02", new MemoryUsageGaugeSet());
+		registry.register("demo.03", new GarbageCollectorMetricSet());
+		registry.register("demo.04", new ThreadStatesGaugeSet());
+
+		while (true){
+			System.out.println("***");
+			Thread.sleep(1000);
+		}
+
+	}
 
 }
