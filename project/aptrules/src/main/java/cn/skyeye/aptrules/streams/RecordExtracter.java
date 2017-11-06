@@ -19,7 +19,7 @@ import java.util.Map;
  */
 public class RecordExtracter implements ProcessorSupplier {
 
-    private final Logger logger = Logger.getLogger(AlarmRecordChecker.class);
+    private final Logger logger = Logger.getLogger(RecordExtracter.class);
 
     @Override
     public Processor get() {

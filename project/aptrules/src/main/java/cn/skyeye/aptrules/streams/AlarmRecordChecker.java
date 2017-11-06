@@ -23,7 +23,7 @@ import java.util.Set;
  * @version 2017/11/6 11:34
  */
 public class AlarmRecordChecker implements ProcessorSupplier {
-    private final Logger logger = Logger.getLogger(RecordExtracter.class);
+    private final Logger logger = Logger.getLogger(AlarmRecordChecker.class);
 
     private Ruler ruler;
     public AlarmRecordChecker(Ruler ruler){

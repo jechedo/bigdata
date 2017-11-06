@@ -4,6 +4,7 @@ import cn.skyeye.common.json.Jsons;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import java.util.HashMap;
 import java.util.List;
@@ -188,12 +189,17 @@ public class IndexKey{
         map.put("ruleFields", Lists.newArrayList("name", "age", "address"));
         map.put("ruleDatas", Lists.newArrayList("jechedo", 21, null));
 
+        Map<String, Object> rule = Maps.newHashMap();
+        rule.put("simple", "hello");
+        rule.put("vague", "world");
+        map.put("rule", rule);
+
         String s = Jsons.obj2JsonString(map);
         System.out.println(s);
 
         Map<String, Object> res = Jsons.toMap(s);
         res.forEach((key, value) ->{
-            System.err.println(key + " --> " + value);
+            System.err.println(key + " --> " + value + " --> " + value.getClass());
         });
 
 

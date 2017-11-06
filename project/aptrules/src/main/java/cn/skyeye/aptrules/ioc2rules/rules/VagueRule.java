@@ -1,6 +1,7 @@
 package cn.skyeye.aptrules.ioc2rules.rules;
 
 import cn.skyeye.aptrules.ARConf;
+import cn.skyeye.aptrules.exceptions.NotVagueRuleMapException;
 import cn.skyeye.common.json.Jsons;
 import com.google.common.base.Splitter;
 import com.google.common.collect.HashMultimap;
@@ -39,6 +40,8 @@ public class VagueRule extends SimpleRule{
 
     public VagueRule(VagueRule rule) {
         super(rule);
+        this.vagueRuleInfos = Maps.newHashMap(rule.vagueRuleInfos);
+        this.vagues = HashMultimap.create(rule.vagues);
     }
 
     public void addVagueRuleInfo(String field, Object value){
@@ -196,8 +199,16 @@ public class VagueRule extends SimpleRule{
     public void setJsonRuleInfo(String jsonRuleInfo){
         try {
             Map<String, Object> map = Jsons.toMap(jsonRuleInfo);
-            Map<String, Object> simple = (Map<String, Object>) map.get("simple");
-            Map<String, Object> vague = (Map<String, Object>) map.get("vague");
+            setRuleInfo(map);
+        } catch (Exception e) {
+            logger.error(null, e);
+        }
+    }
+
+    private void setRuleInfo(Map<String, Object> ruleInfo){
+        try {
+            Map<String, Object> simple = (Map<String, Object>) ruleInfo.get("simple");
+            Map<String, Object> vague = (Map<String, Object>) ruleInfo.get("vague");
 
            simple.forEach((key, value) -> addSimpleRuleInfo(key, value));
            vague.forEach((key, value) -> addVagueRuleInfo(key, value));
@@ -216,6 +227,29 @@ public class VagueRule extends SimpleRule{
 
         record.put("rule", Jsons.obj2JsonString(rule));
         return record;
+    }
+
+    public static VagueRule newByRuleMap(ARConf conf, Map<String, Object> ruleMap) throws NotVagueRuleMapException {
+        Object rule = ruleMap.get("rule");
+        VagueRule vagueRule;
+        if(rule != null){
+            try {
+                vagueRule = new VagueRule(conf);
+                Map<String, Object> ruleInfo = (Map<String, Object>) rule;
+                vagueRule.setRuleInfo(ruleInfo);
+                vagueRule.addVagueRuleInfo("rule", Jsons.obj2JsonString(rule));
+
+                ruleMap.remove("rule");
+                vagueRule.record.putAll(ruleMap);
+            } catch (Exception e) {
+                logger.error(String.format("不是标准的VagueRule ： %s", ruleMap));
+                throw new NotVagueRuleMapException(ruleMap.toString(), e);
+            }
+        }else {
+            throw new NotVagueRuleMapException(ruleMap.toString());
+        }
+
+        return vagueRule;
     }
 
     @Override

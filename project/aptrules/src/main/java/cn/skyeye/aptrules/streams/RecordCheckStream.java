@@ -13,17 +13,17 @@ import java.util.Properties;
 
 /**
  * Description:
- *
+ *   告警检测流任务
  * @author LiXiaoCong
  * @version 2017/11/6 10:49
  */
-public class RecordStream {
-    private final Logger logger = Logger.getLogger(RecordStream.class);
+public class RecordCheckStream {
+    private final Logger logger = Logger.getLogger(RecordCheckStream.class);
 
     private ARConf arConf;
     private TopologyBuilder topologyBuilder;
 
-    public RecordStream(ARConf arConf){
+    public RecordCheckStream(ARConf arConf){
         this.arConf = arConf;
     }
 

@@ -35,6 +35,9 @@ class SimpleRule extends Rule{
     public SimpleRule(SimpleRule rule) {
         super(rule);
         this.arConf = rule.arConf;
+        this.simpleRuleInfos = Maps.newHashMap(rule.simpleRuleInfos);
+        this.simples = HashMultimap.create(rule.simples);
+        this.extraFields = Sets.newHashSet(rule.extraFields);
     }
 
     public void addSimpleRuleInfo(String field, Object value){

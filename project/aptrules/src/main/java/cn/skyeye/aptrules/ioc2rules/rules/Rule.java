@@ -14,7 +14,7 @@ import java.util.Map;
  */
 public class Rule {
 
-    protected Logger logger = Logger.getLogger(Rule.class);
+    protected static final Logger logger = Logger.getLogger(Rule.class);
 
     protected Map<String, Object> record;
 
