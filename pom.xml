@@ -20,12 +20,19 @@
         <module>interface/ibase</module>
         <module>project/aptrules</module>
         <module>base/rpc</module>
+        <module>base/ignite</module>
     </modules>
 
     <packaging>pom</packaging>
 
     <name>bigdata-parent</name>
     <url>http://maven.apache.org</url>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.5.8.RELEASE</version>
+    </parent>
 
     <repositories>
         <repository>
@@ -65,7 +72,7 @@
         <!-- <kafka.version>0.9.0-kafka-2.0.2</kafka.version> -->
 
         <guava.version>12.0.1</guava.version>
-        <jackson.version>1.8.8</jackson.version>
+        <jackson.version>2.8.10</jackson.version>
         <fastjson.version>1.2.33</fastjson.version>
         <org.slf4j.version>1.7.5</org.slf4j.version>
         <httpcomponents.version>4.2.5</httpcomponents.version>
@@ -93,7 +100,7 @@
         <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-api</artifactId>
-            <version>7.0</version>
+            <version>8.0</version>
             <scope>provided</scope>
         </dependency>
 

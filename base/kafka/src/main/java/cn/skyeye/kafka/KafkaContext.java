@@ -99,10 +99,12 @@ public class KafkaContext {
         AdminClient adminClient = kafkaContext.newAdminClient(confs);
 
         KafkaConsumer<String, String> consumer = kafkaContext.newConsumer(confs);
-        consumer.subscribe(Lists.newArrayList("test"));
+        consumer.subscribe(Lists.newArrayList("streams-wordcount-processor-output"));
         ConsumerRecords<String, String> poll;
         while ((poll = consumer.poll(1000)) != null){
-            System.out.println(poll.count());
+            poll.forEach(record ->{
+                System.out.println("key = " + record.key() + ", value = " + record.value());
+            });
         }
 
     }
