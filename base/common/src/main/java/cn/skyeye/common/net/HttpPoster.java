@@ -3,7 +3,6 @@ package cn.skyeye.common.net;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Preconditions;
 import org.apache.http.Consts;
-import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -21,6 +20,7 @@ import java.util.Map;
 public class HttpPoster {
 
     private String content_type_text_json = "text/json";
+    private String content_type_application_json = "application/json";
     private Charset charset = Consts.UTF_8;
 
     private HttpPost post;
@@ -64,12 +64,20 @@ public class HttpPoster {
     }
 
     public String execute() throws Exception {
+        return execute(null);
+    }
 
-        this.post.setEntity(createHttpEntity());
+    public String execute(String contentType) throws Exception {
+
+        StringEntity httpEntity = createHttpEntity();
+        if(contentType != null){
+            httpEntity.setContentType(contentType);
+        }
+        this.post.setEntity(httpEntity);
         return Https.execute(this.post);
     }
 
-    private HttpEntity createHttpEntity(){
+    private StringEntity createHttpEntity(){
         String str;
         if(useJson){
             str = JSON.toJSONString(params);
