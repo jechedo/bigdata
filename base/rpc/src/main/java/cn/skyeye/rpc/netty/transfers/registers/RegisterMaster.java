@@ -27,11 +27,11 @@ import io.netty.buffer.ByteBuf;
 /**
  * A message sent from the driver to register with the MesosExternalShuffleService.
  */
-public class RegisterDriver extends TransferMessage {
+public class RegisterMaster extends TransferMessage {
   private final String appId;
   private final long heartbeatTimeoutMs;
 
-  public RegisterDriver(String appId, long heartbeatTimeoutMs) {
+  public RegisterMaster(String appId, long heartbeatTimeoutMs) {
     this.appId = appId;
     this.heartbeatTimeoutMs = heartbeatTimeoutMs;
   }
@@ -61,15 +61,15 @@ public class RegisterDriver extends TransferMessage {
 
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof RegisterDriver)) {
+    if (!(o instanceof RegisterMaster)) {
       return false;
     }
-    return Objects.equal(appId, ((RegisterDriver) o).appId);
+    return Objects.equal(appId, ((RegisterMaster) o).appId);
   }
 
-  public static RegisterDriver decode(ByteBuf buf) {
+  public static RegisterMaster decode(ByteBuf buf) {
     String appId = Encoders.Strings.decode(buf);
     long heartbeatTimeout = buf.readLong();
-    return new RegisterDriver(appId, heartbeatTimeout);
+    return new RegisterMaster(appId, heartbeatTimeout);
   }
 }

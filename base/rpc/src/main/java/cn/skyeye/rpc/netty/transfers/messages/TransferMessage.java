@@ -20,9 +20,9 @@ package cn.skyeye.rpc.netty.transfers.messages;
 import cn.skyeye.rpc.netty.protocol.Encodable;
 import cn.skyeye.rpc.netty.transfers.blocks.OpenBlocks;
 import cn.skyeye.rpc.netty.transfers.blocks.UploadBlock;
-import cn.skyeye.rpc.netty.transfers.registers.RegisterDriver;
+import cn.skyeye.rpc.netty.transfers.registers.RegisterMaster;
 import cn.skyeye.rpc.netty.transfers.registers.RegisterExecutor;
-import cn.skyeye.rpc.netty.transfers.registers.ShuffleServiceHeartbeat;
+import cn.skyeye.rpc.netty.transfers.registers.ServerHeartbeat;
 import cn.skyeye.rpc.netty.transfers.stream.StreamHandle;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -65,8 +65,8 @@ public abstract class TransferMessage implements Encodable {
         case 1: return UploadBlock.decode(buf);
         case 2: return RegisterExecutor.decode(buf);
         case 3: return StreamHandle.decode(buf);
-        case 4: return RegisterDriver.decode(buf);
-        case 5: return ShuffleServiceHeartbeat.decode(buf);
+        case 4: return RegisterMaster.decode(buf);
+        case 5: return ServerHeartbeat.decode(buf);
         case 6: return JsonMessage.decode(buf);
         default: throw new IllegalArgumentException("Unknown message type: " + type);
       }

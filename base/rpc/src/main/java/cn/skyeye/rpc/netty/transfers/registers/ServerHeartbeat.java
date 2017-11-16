@@ -27,10 +27,10 @@ import io.netty.buffer.ByteBuf;
 /**
  * A heartbeat sent from the driver to the MesosExternalShuffleService.
  */
-public class ShuffleServiceHeartbeat extends TransferMessage {
+public class ServerHeartbeat extends TransferMessage {
   private final String appId;
 
-  public ShuffleServiceHeartbeat(String appId) {
+  public ServerHeartbeat(String appId) {
     this.appId = appId;
   }
 
@@ -47,7 +47,7 @@ public class ShuffleServiceHeartbeat extends TransferMessage {
     Encoders.Strings.encode(buf, appId);
   }
 
-  public static ShuffleServiceHeartbeat decode(ByteBuf buf) {
-    return new ShuffleServiceHeartbeat(Encoders.Strings.decode(buf));
+  public static ServerHeartbeat decode(ByteBuf buf) {
+    return new ServerHeartbeat(Encoders.Strings.decode(buf));
   }
 }
