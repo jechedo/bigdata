@@ -43,6 +43,7 @@ public class EsDataSource extends DataSource{
     private ReentrantLock lock = new ReentrantLock();
 
     private Timer timer;
+    private String lastStatus;
 
     private ExecutorService threadPool;
 
@@ -106,10 +107,16 @@ public class EsDataSource extends DataSource{
             public void run() {
                 HashMap<String, Object> stringLongHashMap = Maps.newHashMap(starts);
                 String str = Jsons.obj2JsonString(stringLongHashMap);
-                try {
-                    FileUtils.write(tmpfile, str, Charset.forName("UTF-8"), false);
-                } catch (IOException e) {
-                    logger.error(String.format("更新%s失败。", tmpfile), e);
+                if(!str.equals(lastStatus)) {
+                    try {
+                        FileUtils.write(tmpfile, str, Charset.forName("UTF-8"), false);
+                        lastStatus = str;
+                        logger.info(String.format("更新%s成功，更新内容为：\n\t", tmpfile, str));
+                    } catch (IOException e) {
+                        logger.error(String.format("更新%s失败。", tmpfile), e);
+                    }
+                }else {
+                    logger.info(String.format("%s内容无更新。", tmpfile));
                 }
             }
         }, flushInterval, flushInterval);
