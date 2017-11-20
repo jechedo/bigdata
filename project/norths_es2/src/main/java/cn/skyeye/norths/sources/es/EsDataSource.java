@@ -122,16 +122,25 @@ public class EsDataSource extends DataSource{
         Set<String> indexTypeStr = configDetail.getConfigItemSet("norths.datasources.es.index.types");
         String[] kv;
         IndexType indexType;
+        String startField;
         for(String str : indexTypeStr){
             kv = str.split("/");
-            if(kv.length == 2 || kv.length == 3){
+            if(kv.length == 2){
                 indexType = new IndexType(kv[0], kv[1]);
-                if(kv.length == 3){
-                    indexType.timeField = kv[2];
-                }else {
-                    indexType.timeField = "@timestamp";
-                }
+                startField = configDetail.getConfigItemValue(String.format("norths.datasources.es.%s.deltafield", str),
+                        "@timestamp");
+                indexType.startField = startField;
                 indexType.start = starts.get(indexType.getTmpKey());
+
+                Set<String> configItemSet = configDetail.getConfigItemSet(String.format("norths.datasources.es.%s.includes", str));
+                if(configItemSet.size() > 0){
+                    indexType.includes = configItemSet.toArray(new String[configItemSet.size()]);
+                }
+               configItemSet = configDetail.getConfigItemSet(String.format("norths.datasources.es.%s.excludes", str));
+                if(configItemSet.size() > 0){
+                    indexType.excludes = configItemSet.toArray(new String[configItemSet.size()]);
+                }
+
                 indexTypes.add(indexType);
             }
         }
@@ -180,40 +189,40 @@ public class EsDataSource extends DataSource{
         public List<String> call() throws Exception {
             long time = System.currentTimeMillis();
             SearchRequestBuilder requestBuilder = client.prepareSearch(indexType.index).setTypes(indexType.type);
-            RangeQueryBuilder qb = QueryBuilders.rangeQuery(indexType.timeField);
+            RangeQueryBuilder qb = QueryBuilders.rangeQuery(indexType.startField);
             if(indexType.start != null)
                 qb.gt(indexType.start);
-            SearchResponse searchResponse = requestBuilder.addSort(indexType.timeField, SortOrder.DESC)
+            SearchResponse searchResponse = requestBuilder.addSort(indexType.startField, SortOrder.DESC)
                     .setSize(1)
                     .setQuery(qb)
-                    .setFetchSource(new String[]{indexType.timeField}, null).get();
+                    .setFetchSource(new String[]{indexType.startField}, null).get();
             SearchHits hits = searchResponse.getHits();
             long totalHits = hits.getTotalHits();
             if(totalHits <= 0) return Lists.newArrayList();
 
             if(totalHits > maxRecordBatch){
-                logger.warn(String.format("%s中的新增的数据量超过%s，分段处理，查询前%s条",
-                        indexType, maxRecordBatch, maxRecordBatch));
+                logger.warn(String.format("%s中的新增的数据量为%s, 超过了单批最大值%s，分段处理，查询前%s条",
+                        indexType, totalHits, maxRecordBatch, maxRecordBatch));
                 requestBuilder = client.prepareSearch(indexType.index).setTypes(indexType.type);
                 if(indexType.start != null)
                     qb.gt(indexType.start);
-                searchResponse = requestBuilder.addSort(indexType.timeField, SortOrder.ASC)
+                searchResponse = requestBuilder.addSort(indexType.startField, SortOrder.ASC)
                         .setFrom(maxRecordBatch - 1)
                         .setSize(1)
                         .setQuery(qb)
-                        .setFetchSource(new String[]{indexType.timeField}, null).get();
+                        .setFetchSource(new String[]{indexType.startField}, null).get();
                 hits = searchResponse.getHits();
             }
 
             SearchHit maxHit = hits.getHits()[0];
-            Object max = maxHit.sourceAsMap().get(indexType.timeField);
+            Object max = maxHit.sourceAsMap().get(indexType.startField);
             qb.lte(max);
 
             List<String> res;
             try {
                 res = searchData(totalHits, qb);
-                logger.info(String.format("查询%s的数据成功: \n\t max = %s, total = %s, 耗时：%ss 。",
-                        indexType, max, totalHits, (System.currentTimeMillis() - time)/1000));
+                logger.info(String.format("查询%s的数据成功: \n\t max = %s, resNum = %s, 耗时：%ss 。",
+                        indexType, max, res.size(), (System.currentTimeMillis() - time)/1000));
                 indexType.start = max;
                 starts.put(indexType.getTmpKey(), max);
             } catch (Exception e) {
@@ -231,7 +240,7 @@ public class EsDataSource extends DataSource{
                 SearchResponse searchResponse = requestBuilder.setQuery(qb)
                         .setFrom(0)
                         .setSize((int) total)
-                        .setFetchSource(null, new String[]{"detail"})
+                        .setFetchSource(indexType.includes, indexType.excludes)
                         .get();
 
                 SearchHit[] hits = searchResponse.getHits().getHits();
@@ -239,11 +248,11 @@ public class EsDataSource extends DataSource{
                     res.add(Jsons.obj2JsonString(hit.sourceAsMap()));
                 }
             }else{
-                logger.info(String.format("%s中的新增的数据量太多，采用scoll search。", indexType));
+                logger.info(String.format("查询%s的数据量过多，采用scoll search。", indexType));
                 //采用scoll
                 SearchResponse scrollResp = requestBuilder.setSearchType(SearchType.SCAN)
                         .setScroll(new TimeValue(60000))
-                        .setFetchSource(null, new String[]{"detail"})
+                        .setFetchSource(indexType.includes, indexType.excludes)
                         .setQuery(qb)
                         .setSize(1000).get();
 
@@ -267,8 +276,10 @@ public class EsDataSource extends DataSource{
     private class IndexType{
         private String index;
         private String type;
-        private String timeField;
+        private String startField;
         private Object start;
+        private String[] excludes;
+        private String[] includes;
 
         private IndexType(String index, String type) {
             this.index = index;
@@ -283,8 +294,8 @@ public class EsDataSource extends DataSource{
             return type;
         }
 
-        public String getTimeField() {
-            return timeField;
+        public String getStartField() {
+            return startField;
         }
 
         public Object getStartStart() {
@@ -292,7 +303,7 @@ public class EsDataSource extends DataSource{
         }
 
         public String getTmpKey(){
-            return String.format("%s/%s/%s", index, type, timeField);
+            return String.format("%s/%s/%s", index, type, startField);
         }
 
         @Override
@@ -300,7 +311,7 @@ public class EsDataSource extends DataSource{
             final StringBuilder sb = new StringBuilder("IndexType{");
             sb.append("index='").append(index).append('\'');
             sb.append(", type='").append(type).append('\'');
-            sb.append(", timeField='").append(timeField).append('\'');
+            sb.append(", startField='").append(startField).append('\'');
             sb.append(", start=").append(start);
             sb.append('}');
             return sb.toString();
@@ -310,7 +321,10 @@ public class EsDataSource extends DataSource{
     public static void main(String[] args) {
 
         HashMap<String, String> conf = Maps.newHashMap();
-        conf.put("norths.datasources.es.index.types", "audit/audit/@timestamp");
+        conf.put("norths.datasources.es.index.types", "audit/audit");
+        conf.put("norths.datasources.es.audit/audit.deltafield", "@timestamp");
+        conf.put("norths.datasources.es.audit/audit.excludes", "detail,role_id");
+        conf.put("north.datasources.es.max.fetch.records", "47");
         conf.put("norths.datasources.es.client.servers", "172.24.66.192:9300");
         conf.put("norths.datasources.es.client.clustername", "es");
 
