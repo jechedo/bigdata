@@ -22,6 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @version 2017/11/20 19:45
  */
 public class Sysloger extends DataEventHandler {
+    public final static String NAME = "syslog";
 
     private final Logger logger = Logger.getLogger(Sysloger.class);
 
@@ -29,6 +30,8 @@ public class Sysloger extends DataEventHandler {
     private ReentrantLock lock = new ReentrantLock();
     private AtomicLong totalEvent = new AtomicLong(0);
     private AtomicBoolean endOfBatch = new AtomicBoolean(false);
+
+    private SyslogConf syslogConf;
 
     public Sysloger(){
         this.syslogClients = Maps.newConcurrentMap();
@@ -74,8 +77,11 @@ public class Sysloger extends DataEventHandler {
 
     @Override
     public void onEvent(DataEvent event, boolean endOfBatch) {
-        sendLog(event.getRecord());
-        this.endOfBatch.set(endOfBatch);
+        if(syslogConf.isAcceeptSource(event.getSource())) {
+            sendLog(event.getRecord());
+            this.endOfBatch.set(endOfBatch);
+        }
+        totalEvent.incrementAndGet();
     }
 
     @Override
@@ -100,11 +106,23 @@ public class Sysloger extends DataEventHandler {
                 logger.error(String.format("syslog服务器：%s连接异常。", entry.getValue().getConfig().getHost()), e);
             }
         });
-        totalEvent.incrementAndGet();
     }
 
     private String createMessage(Map<String, Object> record){
-        record.remove("asset");
+
+        syslogConf.getExcludes().forEach(field ->{
+            record.remove(field);
+        });
+
+        Set<String> includes = syslogConf.getIncludes();
+        if(includes.size() > 0){
+           record.keySet().forEach(field ->{
+               if(!includes.contains(field)){
+                   record.remove(field);
+               }
+           });
+        }
+
         return Jsons.obj2JsonString(record);
     }
 

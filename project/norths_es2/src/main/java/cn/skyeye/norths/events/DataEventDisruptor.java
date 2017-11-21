@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 2017/11/21 14:41
  */
 public class DataEventDisruptor {
+    public static final String NAME = "DataEventDisruptor";
 
     private static final int BUFFER_SIZE = 2048;
 
@@ -65,7 +66,7 @@ public class DataEventDisruptor {
         this.handlers = handlers;
     }
 
-    public synchronized void publishEvent(Map<String, Object> record) {
+    public synchronized void publishEvent(String source, Map<String, Object> record) {
         if(record != null) {
             while (!disruptor.getRingBuffer().hasAvailableCapacity(6)) {
                 logger.warn("剩余缓存卡槽数小于6， 等待...");
@@ -74,6 +75,7 @@ public class DataEventDisruptor {
                 } catch (InterruptedException e) {
                 }
             }
+            record.put(NAME, source);
             disruptor.publishEvent(translator, record);
             totalEvent += 1;
         }
