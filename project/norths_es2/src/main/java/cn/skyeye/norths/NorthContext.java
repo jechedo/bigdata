@@ -1,9 +1,7 @@
 package cn.skyeye.norths;
 
-import cn.skyeye.norths.sources.DataSource;
-import com.google.common.collect.Lists;
-
-import java.util.List;
+import cn.skyeye.norths.events.DataEventDisruptor;
+import cn.skyeye.norths.syslog.Sysloger;
 
 /**
  * Description:
@@ -13,15 +11,21 @@ import java.util.List;
  */
 public class NorthContext {
 
-    private List<DataSource> dataSources;
+    private Sysloger sysloger;
+    private DataEventDisruptor dataEventDisruptor;
 
     private NorthContext(){
-        this.dataSources = Lists.newArrayList();
+        this.sysloger = new Sysloger();
+        this.dataEventDisruptor = new DataEventDisruptor(sysloger);
     }
 
+    private void start(){
+
+    }
 
     public static void main(String[] args) {
-
+        NorthContext northContext = new NorthContext();
+        northContext.start();
     }
 
 }

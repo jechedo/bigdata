@@ -1,7 +1,7 @@
 package cn.skyeye.norths.sources.es;
 
 import cn.skyeye.common.json.Jsons;
-import cn.skyeye.norths.datas.DataEventDisruptor;
+import cn.skyeye.norths.events.DataEventDisruptor;
 import cn.skyeye.norths.sources.DataSource;
 import cn.skyeye.resources.ConfigDetail;
 import com.google.common.collect.Lists;
@@ -41,7 +41,7 @@ public class EsDataSource extends DataSource{
     private File tmpfile;
     private Map<String, Object> starts;
     private long flushInterval;
-    private int maxRecordBatch;
+    //private int maxRecordBatch;
 
     private ReentrantLock lock = new ReentrantLock();
 
@@ -71,8 +71,8 @@ public class EsDataSource extends DataSource{
         this.threadPool = threadPool;
         this.eventDisruptor = eventDisruptor;
 
-        this.maxRecordBatch = configDetail.getConfigItemInteger("north.datasources.es.max.fetch.records",
-                100000);
+       /* this.maxRecordBatch = configDetail.getConfigItemInteger("north.datasources.es.max.fetch.records",
+                100000);*/
 
         startAutoFlushStatus();
     }
@@ -166,31 +166,31 @@ public class EsDataSource extends DataSource{
 
     @Override
     public List<Map<String, Object>> readData() {
-        List<Map<String, Object>> res = Lists.newLinkedList();
         this.lock.lock();
         try {
             long time = System.currentTimeMillis();
-            List<Future<List<Map<String, Object>>>> futures = Lists.newLinkedList();
+            List<Future<Long>> futures = Lists.newLinkedList();
             for(IndexType indexType : indexTypes){
                 futures.add(threadPool.submit(new EsFetcher(indexType)));
             }
 
-            for (Future<List<Map<String, Object>>> future : futures){
+            long total = 0;
+            for (Future<Long> future : futures){
                 try {
-                    res.addAll(future.get());
+                    total += (future.get());
                 } catch (Exception e) {
                    logger.error(null, e);
                 }
             }
             logger.info(String.format("*********读取增量数据成功，total = %s, 耗时：%ss。**********",
-                    res.size(), (System.currentTimeMillis() - time)/1000));
+                    total, (System.currentTimeMillis() - time)/1000));
         } finally {
             this.lock.unlock();
         }
-        return res;
+        return null;
     }
 
-    private class EsFetcher implements Callable<List<Map<String, Object>>>{
+    private class EsFetcher implements Callable<Long>{
         private IndexType indexType;
         private TransportClient client;
         private EsFetcher(IndexType indexType){
@@ -199,7 +199,7 @@ public class EsDataSource extends DataSource{
         }
 
         @Override
-        public List<Map<String, Object>> call() throws Exception {
+        public Long call() throws Exception {
             long time = System.currentTimeMillis();
             SearchRequestBuilder requestBuilder = client.prepareSearch(indexType.index).setTypes(indexType.type);
             RangeQueryBuilder qb = QueryBuilders.rangeQuery(indexType.startField);
@@ -211,8 +211,9 @@ public class EsDataSource extends DataSource{
                     .setFetchSource(new String[]{indexType.startField}, null).get();
             SearchHits hits = searchResponse.getHits();
             long totalHits = hits.getTotalHits();
-            if(totalHits <= 0) return Lists.newArrayList();
+            if(totalHits <= 0) return 0L;
 
+            /*
             if(totalHits > maxRecordBatch){
                 logger.warn(String.format("%s中的新增的数据量为%s, 超过了单批最大值%s，分段处理，查询前%s条",
                         indexType, totalHits, maxRecordBatch, maxRecordBatch));
@@ -225,30 +226,28 @@ public class EsDataSource extends DataSource{
                         .setQuery(qb)
                         .setFetchSource(new String[]{indexType.startField}, null).get();
                 hits = searchResponse.getHits();
-            }
+            }*/
 
             SearchHit maxHit = hits.getHits()[0];
             Object max = maxHit.sourceAsMap().get(indexType.startField);
             qb.lte(max);
 
-            List<Map<String, Object>> res;
             try {
-                res = searchData(totalHits, qb);
+                long res = searchData(totalHits, qb);
                 logger.info(String.format("查询%s的数据成功: \n\t max = %s, resNum = %s, 耗时：%ss 。",
-                        indexType, max, res.size(), (System.currentTimeMillis() - time)/1000));
+                        indexType, max, res, (System.currentTimeMillis() - time)/1000));
                 indexType.start = max;
                 starts.put(indexType.getTmpKey(), max);
             } catch (Exception e) {
                logger.error(String.format("查询%s的数据失败。", indexType), e);
-               res = Lists.newArrayList();
             }
 
-            return res;
+            return totalHits;
         }
 
-        private List<Map<String, Object>> searchData(long total, RangeQueryBuilder qb){
-            List<Map<String, Object>> res = Lists.newArrayList();
+        private long searchData(long total, RangeQueryBuilder qb){
             SearchRequestBuilder requestBuilder = client.prepareSearch(indexType.index).setTypes(indexType.type);
+            long res = 0;
             if(total <= 10000){
                 SearchResponse searchResponse = requestBuilder.setQuery(qb)
                         .setFrom(0)
@@ -258,7 +257,8 @@ public class EsDataSource extends DataSource{
 
                 SearchHit[] hits = searchResponse.getHits().getHits();
                 for(SearchHit hit : hits){
-                    res.add(hit.sourceAsMap());
+                    eventDisruptor.publishEvent(hit.sourceAsMap());
+                    res += 1;
                 }
             }else{
                 logger.info(String.format("查询%s的数据量过多，采用scoll search。", indexType));
@@ -270,7 +270,8 @@ public class EsDataSource extends DataSource{
                         .setSize(1000).get();
                 while (true) {
                     for (SearchHit hit : scrollResp.getHits().getHits()) {
-                        res.add(hit.sourceAsMap());
+                        eventDisruptor.publishEvent(hit.sourceAsMap());
+                        res += 1;
                     }
                     scrollResp = client.prepareSearchScroll(scrollResp.getScrollId())
                             .setScroll(new TimeValue(60000))

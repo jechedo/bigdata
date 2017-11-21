@@ -1,8 +1,8 @@
 package cn.skyeye.norths.syslog;
 
 import cn.skyeye.common.json.Jsons;
-import cn.skyeye.norths.datas.DataEvent;
-import cn.skyeye.norths.datas.DataEventHandler;
+import cn.skyeye.norths.events.DataEvent;
+import cn.skyeye.norths.events.DataEventHandler;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 import org.productivity.java.syslog4j.Syslog;
@@ -31,7 +31,7 @@ public class Sysloger extends DataEventHandler {
     private AtomicBoolean endOfBatch = new AtomicBoolean(false);
 
     public Sysloger(){
-        this.syslogClients = Maps.newHashMap();
+        this.syslogClients = Maps.newConcurrentMap();
     }
 
     public void addSyslogClient(String id, String host, int port, String protocol){
@@ -106,5 +106,9 @@ public class Sysloger extends DataEventHandler {
     private String createMessage(Map<String, Object> record){
         record.remove("asset");
         return Jsons.obj2JsonString(record);
+    }
+
+    public boolean isEmpty(){
+        return this.syslogClients.isEmpty();
     }
 }
