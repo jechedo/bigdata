@@ -1,6 +1,7 @@
 package cn.skyeye.norths.sources.es;
 
 import cn.skyeye.common.json.Jsons;
+import cn.skyeye.norths.datas.DataEventDisruptor;
 import cn.skyeye.norths.sources.DataSource;
 import cn.skyeye.resources.ConfigDetail;
 import com.google.common.collect.Lists;
@@ -22,7 +23,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -44,10 +47,11 @@ public class EsDataSource extends DataSource{
 
     private Timer timer;
     private String lastStatus;
+    private DataEventDisruptor eventDisruptor;
 
     private ExecutorService threadPool;
 
-    public EsDataSource(Map<String, String> conf){
+    public EsDataSource(Map<String, String> conf, ExecutorService threadPool,  DataEventDisruptor eventDisruptor){
         ConfigDetail configDetail = new ConfigDetail(conf);
         getTmpFile(configDetail);
         getIndexTypes(configDetail);
@@ -58,12 +62,14 @@ public class EsDataSource extends DataSource{
         Map<String, String> configMap = configDetail.getConfigMap("norths.datasources.es.");
         this.esClient = new EsClient(configMap);
 
-        int maxPoolSize = configDetail.getConfigItemInteger("north.datasources.es.max.fetch.threads",
+        /*int maxPoolSize = configDetail.getConfigItemInteger("north.datasources.es.max.fetch.threads",
                 8);
         int poolSize = indexTypes.size();
         if(poolSize == 0)poolSize = 1;
         if(poolSize > maxPoolSize)poolSize = maxPoolSize;
-        this.threadPool = Executors.newFixedThreadPool(poolSize);
+        this.threadPool = Executors.newFixedThreadPool(poolSize); */
+        this.threadPool = threadPool;
+        this.eventDisruptor = eventDisruptor;
 
         this.maxRecordBatch = configDetail.getConfigItemInteger("north.datasources.es.max.fetch.records",
                 100000);
@@ -159,17 +165,17 @@ public class EsDataSource extends DataSource{
     }
 
     @Override
-    public List<String> readData() {
-        List<String> res = Lists.newLinkedList();
+    public List<Map<String, Object>> readData() {
+        List<Map<String, Object>> res = Lists.newLinkedList();
         this.lock.lock();
         try {
             long time = System.currentTimeMillis();
-            List<Future<List<String>>> futures = Lists.newLinkedList();
+            List<Future<List<Map<String, Object>>>> futures = Lists.newLinkedList();
             for(IndexType indexType : indexTypes){
                 futures.add(threadPool.submit(new EsFetcher(indexType)));
             }
 
-            for (Future<List<String>> future : futures){
+            for (Future<List<Map<String, Object>>> future : futures){
                 try {
                     res.addAll(future.get());
                 } catch (Exception e) {
@@ -184,7 +190,7 @@ public class EsDataSource extends DataSource{
         return res;
     }
 
-    private class EsFetcher implements Callable<List<String>>{
+    private class EsFetcher implements Callable<List<Map<String, Object>>>{
         private IndexType indexType;
         private TransportClient client;
         private EsFetcher(IndexType indexType){
@@ -193,7 +199,7 @@ public class EsDataSource extends DataSource{
         }
 
         @Override
-        public List<String> call() throws Exception {
+        public List<Map<String, Object>> call() throws Exception {
             long time = System.currentTimeMillis();
             SearchRequestBuilder requestBuilder = client.prepareSearch(indexType.index).setTypes(indexType.type);
             RangeQueryBuilder qb = QueryBuilders.rangeQuery(indexType.startField);
@@ -225,7 +231,7 @@ public class EsDataSource extends DataSource{
             Object max = maxHit.sourceAsMap().get(indexType.startField);
             qb.lte(max);
 
-            List<String> res;
+            List<Map<String, Object>> res;
             try {
                 res = searchData(totalHits, qb);
                 logger.info(String.format("查询%s的数据成功: \n\t max = %s, resNum = %s, 耗时：%ss 。",
@@ -240,8 +246,8 @@ public class EsDataSource extends DataSource{
             return res;
         }
 
-        private List<String> searchData(long total, RangeQueryBuilder qb){
-            List<String> res = Lists.newArrayList();
+        private List<Map<String, Object>> searchData(long total, RangeQueryBuilder qb){
+            List<Map<String, Object>> res = Lists.newArrayList();
             SearchRequestBuilder requestBuilder = client.prepareSearch(indexType.index).setTypes(indexType.type);
             if(total <= 10000){
                 SearchResponse searchResponse = requestBuilder.setQuery(qb)
@@ -252,7 +258,7 @@ public class EsDataSource extends DataSource{
 
                 SearchHit[] hits = searchResponse.getHits().getHits();
                 for(SearchHit hit : hits){
-                    res.add(Jsons.obj2JsonString(hit.sourceAsMap()));
+                    res.add(hit.sourceAsMap());
                 }
             }else{
                 logger.info(String.format("查询%s的数据量过多，采用scoll search。", indexType));
@@ -262,10 +268,9 @@ public class EsDataSource extends DataSource{
                         .setFetchSource(indexType.includes, indexType.excludes)
                         .setQuery(qb)
                         .setSize(1000).get();
-
                 while (true) {
                     for (SearchHit hit : scrollResp.getHits().getHits()) {
-                        res.add(Jsons.obj2JsonString(hit.sourceAsMap()));
+                        res.add(hit.sourceAsMap());
                     }
                     scrollResp = client.prepareSearchScroll(scrollResp.getScrollId())
                             .setScroll(new TimeValue(60000))
@@ -335,9 +340,9 @@ public class EsDataSource extends DataSource{
         conf.put("norths.datasources.es.client.servers", "172.24.66.192:9300");
         conf.put("norths.datasources.es.client.clustername", "es");
 
-        EsDataSource esDataSource = new EsDataSource(conf);
-        List<String> data = esDataSource.readData();
-        data.forEach(System.out::println);
+       /* EsDataSource esDataSource = new EsDataSource(conf);
+        List<Map<String, Object>> data = esDataSource.readData();
+        data.forEach(System.out::println);*/
     }
 
 }

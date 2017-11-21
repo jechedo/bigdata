@@ -3,6 +3,7 @@ package cn.skyeye.norths.sources;
 import org.apache.log4j.Logger;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Description:
@@ -14,5 +15,5 @@ public abstract class DataSource {
 
     protected final Logger logger = Logger.getLogger(DataSource.class);
 
-    public abstract List<String> readData();
+    public abstract List<Map<String, Object>> readData();
 }

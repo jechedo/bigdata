@@ -1,12 +1,18 @@
 package cn.skyeye.norths.syslog;
 
-import cn.skyeye.norths.sources.DataSource;
+import cn.skyeye.common.json.Jsons;
+import cn.skyeye.norths.datas.DataEvent;
+import cn.skyeye.norths.datas.DataEventHandler;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 import org.productivity.java.syslog4j.Syslog;
 import org.productivity.java.syslog4j.SyslogIF;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -15,19 +21,17 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author LiXiaoCong
  * @version 2017/11/20 19:45
  */
-public class Sysloger {
+public class Sysloger extends DataEventHandler {
 
     private final Logger logger = Logger.getLogger(Sysloger.class);
 
     private Map<String, SyslogIF> syslogClients;
     private ReentrantLock lock = new ReentrantLock();
+    private AtomicLong totalEvent = new AtomicLong(0);
+    private AtomicBoolean endOfBatch = new AtomicBoolean(false);
 
-    private DataSource dataSource;
-    private Timer timer;
-
-    public Sysloger(DataSource dataSource){
+    public Sysloger(){
         this.syslogClients = Maps.newHashMap();
-        this.dataSource = dataSource;
     }
 
     public void addSyslogClient(String id, String host, int port, String protocol){
@@ -57,7 +61,7 @@ public class Sysloger {
        addSyslogClient(id, host, port, protocol);
     }
 
-    public Map<String, SyslogIF> getSyslogClients(){
+    private Map<String, SyslogIF> getSyslogClients(){
         this.lock.lock();
         Map<String, SyslogIF> map;
         try {
@@ -68,17 +72,39 @@ public class Sysloger {
         return map;
     }
 
-    public void start(){
-        timer = new Timer("sysloger");
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                List<String> data = dataSource.readData();
-                Set<Map.Entry<String, SyslogIF>> entries = getSyslogClients().entrySet();
-                entries.forEach(entry ->{
-                    data.forEach(entry.getValue()::warn);
-                });
+    @Override
+    public void onEvent(DataEvent event, boolean endOfBatch) {
+        sendLog(event.getRecord());
+        this.endOfBatch.set(endOfBatch);
+    }
+
+    @Override
+    public void shutdown(long total) {
+
+        while (total > totalEvent.get()){
+            try {
+                TimeUnit.SECONDS.sleep(5);
+            } catch (InterruptedException e) {}
+        }
+
+        logger.info(String.format("数据总量为：%s, 处理数据量为：%s。", total, totalEvent.get()));
+    }
+
+    private void sendLog(Map<String, Object> record){
+        final String message = createMessage(record);
+        Set<Map.Entry<String, SyslogIF>> entries = getSyslogClients().entrySet();
+        entries.forEach(entry -> {
+            try {
+                entry.getValue().warn(message);
+            } catch (Exception e) {
+                logger.error(String.format("syslog服务器：%s连接异常。", entry.getValue().getConfig().getHost()), e);
             }
-        }, 0, 5 * 60 * 1000L);
+        });
+        totalEvent.incrementAndGet();
+    }
+
+    private String createMessage(Map<String, Object> record){
+        record.remove("asset");
+        return Jsons.obj2JsonString(record);
     }
 }
