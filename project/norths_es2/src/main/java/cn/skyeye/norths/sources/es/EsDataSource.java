@@ -36,7 +36,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class EsDataSource extends DataSource{
 
-    public static final String NAME = "es";
+    public  String name = "es";
 
     private EsClient esClient;
     private List<IndexType> indexTypes;
@@ -53,7 +53,11 @@ public class EsDataSource extends DataSource{
 
     private ExecutorService threadPool;
 
-    public EsDataSource(Map<String, String> conf, ExecutorService threadPool,  DataEventDisruptor eventDisruptor){
+    public EsDataSource(String name,
+                        Map<String, String> conf,
+                        ExecutorService threadPool,
+                        DataEventDisruptor eventDisruptor){
+        this.name = name;
         ConfigDetail configDetail = new ConfigDetail(conf);
         getTmpFile(configDetail);
         getIndexTypes(configDetail);
@@ -259,7 +263,7 @@ public class EsDataSource extends DataSource{
 
                 SearchHit[] hits = searchResponse.getHits().getHits();
                 for(SearchHit hit : hits){
-                    eventDisruptor.publishEvent(NAME, hit.sourceAsMap());
+                    eventDisruptor.publishEvent(name, hit.sourceAsMap());
                     res += 1;
                 }
             }else{
@@ -272,7 +276,7 @@ public class EsDataSource extends DataSource{
                         .setSize(1000).get();
                 while (true) {
                     for (SearchHit hit : scrollResp.getHits().getHits()) {
-                        eventDisruptor.publishEvent(NAME, hit.sourceAsMap());
+                        eventDisruptor.publishEvent(name, hit.sourceAsMap());
                         res += 1;
                     }
                     scrollResp = client.prepareSearchScroll(scrollResp.getScrollId())

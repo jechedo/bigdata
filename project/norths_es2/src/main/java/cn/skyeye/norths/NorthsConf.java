@@ -152,6 +152,29 @@ public class NorthsConf extends ConfigDetail {
         }
     }
 
+    public void setSystemConfig(String key, String value){
+        lock.lock();
+        try {
+            systemConfig.put(key, value);
+        } finally {
+            lock.unlock();
+        }
+
+
+
+    }
+
+    public void deleteSystemConfig(String key){
+        lock.lock();
+        try {
+            systemConfig.remove(key);
+            //触发相关事件
+
+        } finally {
+            lock.unlock();
+        }
+    }
+
     /**
      * 考虑到sqlite数据库的性能 需要
      */

@@ -1,7 +1,10 @@
 package cn.skyeye.norths.syslog;
 
+import cn.skyeye.common.json.Jsons;
 import cn.skyeye.norths.NorthsConf;
+import cn.skyeye.norths.utils.AlarmLogFilter;
 import cn.skyeye.resources.ConfigDetail;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.util.Map;
@@ -23,14 +26,17 @@ public class SyslogConf extends ConfigDetail {
     private Set<String> excludes;
     private Set<String> includes;
 
+    private NorthsConf northsConf;
+    private AlarmLogFilter alarmLogFilter;
+
     public SyslogConf(NorthsConf northsConf){
+        this.northsConf = northsConf;
         Map<String, String> config = northsConf.getConfigMapWithPrefix(CONF_PREFFIX);
         this.configMap.putAll(config);
         this.acceeptSources = getConfigItemSet(String.format("%sdatasources", CONF_PREFFIX));
         this.excludes = getConfigItemSet(String.format("%excludes", CONF_PREFFIX));
         this.includes = getConfigItemSet(String.format("%includes", CONF_PREFFIX));
     }
-    
 
     public boolean isAcceeptSource(String source){
         return this.acceeptSources.isEmpty() ? true : this.acceeptSources.contains(source);
@@ -42,5 +48,12 @@ public class SyslogConf extends ConfigDetail {
 
     public Set<String> getIncludes() {
         return includes;
+    }
+
+    public void getLogFilter(){
+        String filterJson = northsConf.getSystemConfig("norths_syslog_alarm_conf");
+        if(StringUtils.isNotBlank(filterJson)){
+
+        }
     }
 }
