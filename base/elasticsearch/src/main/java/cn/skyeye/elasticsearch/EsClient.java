@@ -56,13 +56,13 @@ public class EsClient{
 
         StringBuilder sb = new StringBuilder();
 
-        String item = String.format("es.client.%s.hosts", clientId);
+        String item = String.format("es.%s.client.hosts", clientId);
         String  itemValue = conf.get(item);
         if(itemValue == null) itemValue = baseConf.getConfigItemValue(item, "localhost");
         hosts  = Sets.newHashSet(itemValue.split(","));
         sb.append("\n\t").append("hosts = ").append(hosts);
 
-        item = String.format("es.client.%s.tcpport", clientId);
+        item = String.format("es.%s.client.tcpport", clientId);
         itemValue = conf.get(item);
         if(itemValue == null) itemValue = baseConf.getConfigItemValue(item, "9300");
         try {
@@ -73,13 +73,13 @@ public class EsClient{
         }
         sb.append("\n\t").append("tcpPort = ").append(tcpPort);
 
-        item = String.format("es.client.%s.clustername", clientId);
+        item = String.format("es.%s.client.clustername", clientId);
         itemValue = conf.get(item);
         if(itemValue == null) itemValue = baseConf.getConfigItemValue(item, "es");
         clusterName = itemValue;
         sb.append("\n\t").append("clustername = ").append(clusterName);
 
-        item = String.format("es.client.%s.types", clientId);
+        item = String.format("es.%s.client.types", clientId);
         itemValue = conf.get(item);
         if(itemValue == null) itemValue = baseConf.getConfigItemValue(item);
         if(itemValue != null)types = Sets.newHashSet(itemValue.split(","));
