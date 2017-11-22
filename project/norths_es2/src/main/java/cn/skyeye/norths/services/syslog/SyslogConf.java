@@ -38,8 +38,8 @@ public class SyslogConf {
         this.northsConf = northsConf;
 
         this.acceeptSources = configDetail.getConfigItemSet(String.format("%sdatasources", conf_preffix));
-        this.excludes = configDetail.getConfigItemSet(String.format("%excludes", conf_preffix));
-        this.includes = configDetail.getConfigItemSet(String.format("%includes", conf_preffix));
+        this.excludes = configDetail.getConfigItemSet(String.format("%sexcludes", conf_preffix));
+        this.includes = configDetail.getConfigItemSet(String.format("%sincludes", conf_preffix));
     }
 
     public boolean isAcceeptSource(String source){

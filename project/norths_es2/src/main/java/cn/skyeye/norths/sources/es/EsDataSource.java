@@ -105,7 +105,7 @@ public class EsDataSource extends DataSource{
             long total = 0;
             for (Future<Long> future : futures){
                 try {
-                    total += (future.get());
+                    total += future.get();
                 } catch (Exception e) {
                    logger.error(null, e);
                 }

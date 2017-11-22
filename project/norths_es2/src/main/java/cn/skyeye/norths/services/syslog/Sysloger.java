@@ -118,6 +118,7 @@ public class Sysloger extends DataEventHandler {
     @Override
     public void onEvent(DataEvent event) {
         Map<String, Object> record = event.getRecord();
+        System.out.println(getAlarmLogFilter().isAccept(record) + " --- " + record);
         if(getAlarmLogFilter().isAccept(record)) {
             final String message = createMessage(record);
             Set<Map.Entry<String, SyslogIF>> entries = getSyslogClients().entrySet();

@@ -85,7 +85,7 @@ public class DataEventDisruptor {
         if(!started.get()) {
             this.disruptor.start();
             started.set(true);
-            logger.warn("disruptor启动成功。");
+            logger.info("disruptor启动成功。");
         }else {
             logger.warn("disruptor已经启动了。");
         }

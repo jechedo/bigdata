@@ -140,8 +140,8 @@ public class NorthContext {
         DataSource dataSource;
         for(String source : sources){
             if(source.startsWith("es")){
-                  dataSource = new EsDataSource(source, threadPool, dataEventDisruptor);
-                  dataSourceMap.put(source, dataSource);
+                  dataSource = new EsDataSource("es", threadPool, dataEventDisruptor);
+                  dataSourceMap.put("es", dataSource);
             }else {
                 new IllegalArgumentException(String.format("不识别的数据源类型%s， 目前仅支持es", source));
             }
@@ -153,8 +153,8 @@ public class NorthContext {
         DataEventHandler dataEventHandler;
         for(String hangdler : handlers){
             if(hangdler.startsWith("syslog")){
-                dataEventHandler = new Sysloger(hangdler);
-                dataHandlerMap.put(hangdler, dataEventHandler);
+                dataEventHandler = new Sysloger("syslog");
+                dataHandlerMap.put("syslog", dataEventHandler);
             }else {
                 new IllegalArgumentException(String.format("不识别的处理器类型%s， 目前仅支持syslog", hangdler));
             }
@@ -220,6 +220,10 @@ public class NorthContext {
         }, deltaDataFlushInterval, deltaDataFlushInterval);
 
         logger.info(String.format("增量状态定期刷新启动成功，周期为：%ss", deltaDataFlushInterval/1000));
+    }
+
+    public DataEventHandler getHandler(String key){
+        return dataHandlerMap.get(key);
     }
 
     public NorthsConf getNorthsConf() {
