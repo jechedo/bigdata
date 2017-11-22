@@ -1,7 +1,7 @@
 package cn.skyeye.norths;
 
 import cn.skyeye.norths.events.DataEventDisruptor;
-import cn.skyeye.norths.syslog.Sysloger;
+import cn.skyeye.norths.services.syslog.Sysloger;
 
 /**
  * Description:

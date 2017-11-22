@@ -1,4 +1,4 @@
-package cn.skyeye.norths.syslog;
+package cn.skyeye.norths.services.syslog;
 
 import cn.skyeye.common.json.Jsons;
 import cn.skyeye.norths.events.DataEvent;

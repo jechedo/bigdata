@@ -1,6 +1,5 @@
-package cn.skyeye.norths.syslog;
+package cn.skyeye.norths.services.syslog;
 
-import cn.skyeye.common.json.Jsons;
 import cn.skyeye.norths.NorthsConf;
 import cn.skyeye.norths.utils.AlarmLogFilter;
 import cn.skyeye.resources.ConfigDetail;
