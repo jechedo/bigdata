@@ -40,7 +40,6 @@ public class Sysloger extends DataEventHandler {
         try {
             if(!syslogConf.isOpen()){
                 clearSyslogClient();
-                logger.info("清空syslogClient成功。");
             }else {
                 initSyslogClient(syslogConf.getProtocol(), syslogConf.getServices(), true);
             }
@@ -104,6 +103,7 @@ public class Sysloger extends DataEventHandler {
 
     private void clearSyslogClient(){
         this.syslogClients.clear();
+        logger.info("清空syslogClient成功。");
     }
 
     private Map<String, SyslogIF> getSyslogClients(){
@@ -120,7 +120,6 @@ public class Sysloger extends DataEventHandler {
     @Override
     public void onEvent(DataEvent event) {
         Map<String, Object> record = event.getRecord();
-        System.out.println(getAlarmLogFilter().isAccept(record) + " --- " + record);
         if(getAlarmLogFilter().isAccept(record)) {
             final String message = createMessage(record);
             Set<Map.Entry<String, SyslogIF>> entries = getSyslogClients().entrySet();

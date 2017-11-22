@@ -108,7 +108,7 @@ public class NorthContext {
                         countDownLatch.await();
                     } catch (InterruptedException e) { }
                 }
-            }, 0, dataFetchInterval);
+            }, dataFetchInterval, dataFetchInterval);
 
             started.set(true);
             logger.info("NorthContext启动成功。");
