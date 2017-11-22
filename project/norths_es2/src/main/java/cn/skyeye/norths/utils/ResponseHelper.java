@@ -10,8 +10,8 @@ import java.util.Map;
  * @author LiXiaoCong
  * @version 2017/11/22 10:34
  */
-public class RequestResultHelper {
-    private RequestResultHelper(){}
+public class ResponseHelper {
+    private ResponseHelper(){}
 
     public static Map<String, Object> success(){
         return successBase();

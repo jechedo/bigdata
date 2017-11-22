@@ -2,13 +2,12 @@ package cn.skyeye.norths.services.syslog;
 
 import cn.skyeye.common.json.Jsons;
 import cn.skyeye.norths.NorthsConf;
-import cn.skyeye.norths.utils.AlarmLogFilter;
 import cn.skyeye.resources.ConfigDetail;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,14 +25,13 @@ public class SyslogConf extends ConfigDetail {
     private static final String CONF_PREFFIX =
             String.format("norths.handler.%s.", Sysloger.NAME);
 
-    private final Logger logger = Logger.getLogger(SyslogConf.class);
+    private static final Logger logger = Logger.getLogger(SyslogConf.class);
 
     private Set<String> acceeptSources;
     private Set<String> excludes;
     private Set<String> includes;
 
     private NorthsConf northsConf;
-    private AlarmLogFilter alarmLogFilter;
 
     public SyslogConf(NorthsConf northsConf){
         this.northsConf = northsConf;
@@ -48,7 +46,7 @@ public class SyslogConf extends ConfigDetail {
         return this.acceeptSources.isEmpty() ? true : this.acceeptSources.contains(source);
     }
 
-    public Map<String, Object> getSyslogConfig(){
+    public SyslogConfig getSyslogConfig(){
         String syslogConf = northsConf.getSystemConfig(SYSLOG_CONF);
         Map<String, Object> res;
         if(syslogConf == null){
@@ -61,10 +59,10 @@ public class SyslogConf extends ConfigDetail {
                 res = newDefaultSyslogConfig();
             }
         }
-        return res;
+        return new SyslogConfig(res);
     }
 
-    public Map<String, Object> getSyslogAlarmConfig(){
+    public SyslogAlarmConfig getSyslogAlarmConfig(){
         String syslogConf = northsConf.getSystemConfig(SYSLOG_ALARM_CONF);
         Map<String, Object> res;
         if(syslogConf == null){
@@ -77,9 +75,8 @@ public class SyslogConf extends ConfigDetail {
                 res = newDefaultSyslogAlarmConfig();
             }
         }
-        return res;
+        return new SyslogAlarmConfig(res);
     }
-
 
     public void setSyslogConfig(Map<String, Object> syslogConf){
         String conf = Jsons.obj2JsonString(syslogConf);
@@ -97,13 +94,6 @@ public class SyslogConf extends ConfigDetail {
 
     public Set<String> getIncludes() {
         return includes;
-    }
-
-    public void getLogFilter(){
-        String filterJson = northsConf.getSystemConfig("norths_syslog_alarm_conf");
-        if(StringUtils.isNotBlank(filterJson)){
-
-        }
     }
 
     private Map<String, Object> newDefaultSyslogConfig(){
@@ -124,4 +114,91 @@ public class SyslogConf extends ConfigDetail {
         res.put("logtype", Lists.newArrayList());
         return res;
     }
+
+    public static class SyslogConfig{
+
+        private Map<String, Object> syslogConfig;
+
+        private SyslogConfig(Map<String, Object> syslogConfig){
+            this.syslogConfig = syslogConfig;
+        }
+
+        public boolean isOpen(){
+            Object obj = syslogConfig.get("switch");
+            return  obj == null ? false : "1".equals(String.valueOf(obj));
+        }
+
+        public boolean threatOpen(){
+            Object obj = syslogConfig.get("threat_switch");
+            return  obj == null ? false : "1".equals(String.valueOf(obj));
+        }
+
+        public String getProtocol(){
+            Object obj = syslogConfig.get("protocol");
+            return obj == null ? "UDP" : String.valueOf(obj);
+        }
+
+        public List<Map<String, Object>> getServices(){
+            Object obj = syslogConfig.get("services");
+            if(obj != null){
+                if(obj instanceof List){
+                    return (List<Map<String, Object>>)obj;
+                }else {
+                    logger.error(String.format("%s的配置项services：%s配置格式有误", SYSLOG_CONF, obj));
+                }
+            }
+            return Lists.newArrayList();
+        }
+
+        public Map<String, Object> getConfig() {
+            return syslogConfig;
+        }
+    }
+
+    public static class SyslogAlarmConfig{
+
+        private Map<String, Object> syslogAlarmConfig;
+
+        public SyslogAlarmConfig(Map<String, Object> syslogAlarmConfig){
+            this.syslogAlarmConfig = syslogAlarmConfig;
+        }
+
+        public String getLevel(){
+            Object obj = syslogAlarmConfig.get("level");
+            return  obj == null ? "all" : String.valueOf(obj);
+        }
+        public String getConfidence(){
+            Object obj = syslogAlarmConfig.get("confidence");
+            return  obj == null ? "all" : String.valueOf(obj);
+        }
+        public String getStatus(){
+            Object obj = syslogAlarmConfig.get("status");
+            return  obj == null ? "all" : String.valueOf(obj);
+        }
+
+        public List<String> getLogtype(){
+            Object obj = syslogAlarmConfig.get("logtype");
+            if(obj != null){
+                if(obj instanceof List){
+                    return (List<String>)obj;
+                }else {
+                    logger.error(String.format("%s的配置项logtype：%s配置格式有误", SYSLOG_ALARM_CONF, obj));
+                }
+            }
+            return Lists.newArrayList();
+        }
+
+        public Map<String, Object> getConfig() {
+            return syslogAlarmConfig;
+        }
+    }
+
+    public static SyslogConfig newSyslogConfig(Map<String, Object> syslogConf){
+        return new SyslogConfig(syslogConf);
+    }
+
+    public static SyslogAlarmConfig newSyslogAlarmConfig(Map<String, Object> syslogAlarmConf){
+        return new SyslogAlarmConfig(syslogAlarmConf);
+    }
+
 }

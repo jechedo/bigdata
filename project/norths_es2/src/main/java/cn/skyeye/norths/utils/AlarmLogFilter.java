@@ -1,10 +1,10 @@
 package cn.skyeye.norths.utils;
 
-import cn.skyeye.common.json.Jsons;
+import cn.skyeye.norths.services.syslog.SyslogConf;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Description:
@@ -24,28 +24,50 @@ import java.util.Set;
 public class AlarmLogFilter {
 
     private final Logger logger = Logger.getLogger(AlarmLogFilter.class);
-    private String level;
-    private String confidence;
-    private String status;
-    private Set<String> logtyps;
+    private SyslogConf.SyslogAlarmConfig syslogAlarmConfig;
 
-    public AlarmLogFilter(String filterJson){
-        Map<String, Object> filter = null;
-        try {
-            filter = Jsons.toMap(filterJson);
-        } catch (Exception e) {
-            logger.error(String.format("norths_syslog_alarm_conf的值%s不是标准json格式。", filterJson), e);
-        }
-
-        if(filter != null){
-            Object levelObj = filter.get("level");//获取筛选的威胁级别
-            if(levelObj != null){
-                //存在筛选
-                level = (String) levelObj;
-            }
-
-        }
+    public AlarmLogFilter(SyslogConf.SyslogAlarmConfig syslogAlarmConfig){
+        this.syslogAlarmConfig = syslogAlarmConfig;
     }
 
+    public boolean isAccept(Map<String, Object> alarmLog){
+        boolean b = levelAccept(alarmLog);
+        if(b)b = confidenceAccept(alarmLog);
+        if(b)b = statusAccept(alarmLog);
+        if(b)b = logtypeAccept(alarmLog);
+        return b;
+    }
+
+    private boolean levelAccept(Map<String, Object> alarmLog){
+        String level = syslogAlarmConfig.getLevel();
+        if(StringUtils.isNotBlank(level) && !"all".equalsIgnoreCase(level)){
+
+        }
+        return true;
+    }
+
+    private boolean confidenceAccept(Map<String, Object> alarmLog){
+        String level = syslogAlarmConfig.getLevel();
+        if(StringUtils.isNotBlank(level) && !"all".equalsIgnoreCase(level)){
+
+        }
+        return true;
+    }
+
+    private boolean statusAccept(Map<String, Object> alarmLog){
+        String level = syslogAlarmConfig.getLevel();
+        if(StringUtils.isNotBlank(level) && !"all".equalsIgnoreCase(level)){
+
+        }
+        return true;
+    }
+
+    private boolean logtypeAccept(Map<String, Object> alarmLog){
+        String level = syslogAlarmConfig.getLevel();
+        if(StringUtils.isNotBlank(level) && !"all".equalsIgnoreCase(level)){
+
+        }
+        return true;
+    }
 
 }

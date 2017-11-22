@@ -1,7 +1,9 @@
 package cn.skyeye.norths.actions;
 
 import cn.skyeye.norths.NorthContext;
+import cn.skyeye.norths.services.syslog.SyslogConf;
 import cn.skyeye.norths.services.syslog.Sysloger;
+import cn.skyeye.norths.utils.ResponseHelper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.web.bind.annotation.*;
@@ -25,13 +27,13 @@ public class SyslogConfigUpdateController {
     @ResponseBody
     @RequestMapping(value = "syslog/list", method = { RequestMethod.GET, RequestMethod.POST})
     Object getSyslogConfig(){
-        return sysloger.getSyslogConf().getSyslogConfig();
+        return sysloger.getSyslogConf().getSyslogConfig().getConfig();
     }
 
     @ResponseBody
     @RequestMapping(value = "syslogalarm/list", method = { RequestMethod.GET, RequestMethod.POST})
     Object getSyslogAlarmConfig(){
-        return northContext.getSysloger().getSyslogConf().getSyslogAlarmConfig();
+        return northContext.getSysloger().getSyslogConf().getSyslogAlarmConfig().getConfig();
     }
 
     @ResponseBody
@@ -39,20 +41,17 @@ public class SyslogConfigUpdateController {
     Object editSyslogConfig(@RequestBody Map<String, Object> syslogConf){
         //更新配置
         sysloger.getSyslogConf().setSyslogConfig(syslogConf);
-
-        System.out.println(syslogConf);
-
-        Object services = syslogConf.get("services");
-        System.out.println(services.getClass());
-
-        return syslogConf;
+        //更新syslog服务器
+        sysloger.initSyslogClient(SyslogConf.newSyslogConfig(syslogConf));
+        return ResponseHelper.success();
     }
 
     @ResponseBody
     @RequestMapping(value = "syslogalarm/edit", method = { RequestMethod.POST})
     Object editSyslogAlarmConfig(@RequestBody Map<String, Object> syslogAlarmConf){
         sysloger.getSyslogConf().setSyslogAlarmConfig(syslogAlarmConf);
-        return "not complete.";
+        sysloger.initAlarmFilter(SyslogConf.newSyslogAlarmConfig(syslogAlarmConf));
+        return ResponseHelper.success();
     }
 
 }
