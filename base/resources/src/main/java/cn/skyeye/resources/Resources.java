@@ -4,12 +4,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.io.Closeables;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Serializable;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
@@ -253,8 +249,12 @@ public class Resources extends ConfigDetail{
         }catch (Exception e){
             exceptionMap.put(conf, e);
         }finally {
-            if(reader != null) Closeables.closeQuietly(reader);
-            if(is != null) Closeables.closeQuietly(is);
+            try {
+                if(reader != null) reader.close();
+            } catch (IOException e) { reader = null;}
+            try {
+                if(is != null) is.close();
+            } catch (IOException e) {is = null;}
         }
 
         return new PropEntry(conf, prop);
