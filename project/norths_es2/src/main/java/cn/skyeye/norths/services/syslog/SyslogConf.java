@@ -1,8 +1,11 @@
 package cn.skyeye.norths.services.syslog;
 
+import cn.skyeye.common.json.Jsons;
 import cn.skyeye.norths.NorthsConf;
 import cn.skyeye.norths.utils.AlarmLogFilter;
 import cn.skyeye.resources.ConfigDetail;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -41,6 +44,24 @@ public class SyslogConf extends ConfigDetail {
         return this.acceeptSources.isEmpty() ? true : this.acceeptSources.contains(source);
     }
 
+    public Map<String, Object> getSyslogConfig(){
+        String syslogConf = northsConf.getSystemConfig("norths_syslog_conf");
+        Map<String, Object> res;
+        if(syslogConf == null){
+           res = newDefaultSyslogConfig();
+        }else {
+            try {
+                res = Jsons.toMap(syslogConf);
+            } catch (Exception e) {
+                logger.error(String.format("norths_syslog_conf对应的值%s不是标准的json格式。", syslogConf), e);
+                res = newDefaultSyslogConfig();
+            }
+        }
+        return res;
+    }
+
+
+
     public Set<String> getExcludes() {
         return excludes;
     }
@@ -54,5 +75,15 @@ public class SyslogConf extends ConfigDetail {
         if(StringUtils.isNotBlank(filterJson)){
 
         }
+    }
+
+    private Map<String, Object> newDefaultSyslogConfig(){
+        Map<String, Object> res = Maps.newHashMap();
+        res.put("switch", "0");
+        res.put("protocol", "UDP");
+        res.put("threat_switch", "0");
+        // res.put("systemlog_switch", "0");
+        res.put("services", Lists.newArrayList());
+        return res;
     }
 }

@@ -129,4 +129,8 @@ public class Sysloger extends DataEventHandler {
     public boolean isEmpty(){
         return this.syslogClients.isEmpty();
     }
+
+    public SyslogConf getSyslogConf() {
+        return syslogConf;
+    }
 }

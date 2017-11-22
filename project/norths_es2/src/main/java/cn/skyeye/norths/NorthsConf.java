@@ -10,6 +10,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -36,6 +37,7 @@ public class NorthsConf extends ConfigDetail {
     private boolean sqlite;
 
     private Map<String, String> systemConfig = Maps.newConcurrentMap();
+    private boolean autoFlushSystemConfig;
     private ReentrantLock lock = new ReentrantLock();
 
     static {
@@ -58,6 +60,7 @@ public class NorthsConf extends ConfigDetail {
             logger.error("读取norths基础配置失败。", e);
         }
         this.systemConfigTableName = getConfigItemValue("norths.systemconfig.tablename", "system_config");
+        this.autoFlushSystemConfig = getConfigItemBoolean("norths.systemconfig.auto.flush", false);
         initSystemConfigConn();
         searchSystemConfig();
     }
@@ -67,6 +70,7 @@ public class NorthsConf extends ConfigDetail {
         this.configMap.putAll(ENVCONF);
         if(conf != null)this.configMap.putAll(conf);
         this.systemConfigTableName = getConfigItemValue("norths.systemconfig.tablename", "system_config");
+        this.autoFlushSystemConfig = getConfigItemBoolean("norths.systemconfig.auto.flush", false);
         initSystemConfigConn();
         searchSystemConfig();
     }
@@ -92,12 +96,14 @@ public class NorthsConf extends ConfigDetail {
     private void initSqliteConn(){
         String dbPath = getConfigItemValue("norths.systemconfig.sqlite.file",
                 "/opt/work/web/xenwebsite/data/update.db");
-        try {
-            this.conn = SQLites.getConn(dbPath);
-            logger.info(String.format("获取与sqlite数据库文件%的连接成功。", dbPath));
-        } catch (Exception e) {
-            logger.error(String.format("获取与sqlite数据库文件%的连接失败。", dbPath), e);
-        }
+        Preconditions.checkArgument(new File(dbPath).exists(), String.format("sqlite的数据库文件%s不存在。", dbPath));
+            try {
+                this.conn = SQLites.getConn(dbPath);
+                logger.info(String.format("获取与sqlite数据库文件%s的连接成功。", dbPath));
+            } catch (Exception e) {
+                logger.error(String.format("获取与sqlite数据库文件%s的连接失败。", dbPath), e);
+            }
+
     }
 
     private void initDataBaseConn(DBType dbType, String name){
@@ -159,20 +165,16 @@ public class NorthsConf extends ConfigDetail {
         } finally {
             lock.unlock();
         }
-
-
-
     }
 
     public void deleteSystemConfig(String key){
         lock.lock();
         try {
             systemConfig.remove(key);
-            //触发相关事件
-
         } finally {
             lock.unlock();
         }
+        flushSystemConfig(key, null, "delete");
     }
 
     /**
@@ -181,7 +183,7 @@ public class NorthsConf extends ConfigDetail {
     private void searchSystemConfig(){
         Connection conn = getConn();
         if(conn != null){
-            String sql = String.format("select key,value from %s where key like 'norths_%'", systemConfigTableName);
+            String sql = "select key,value from " + systemConfigTableName + " where key like 'norths_%'";
             PreparedStatement statement= null;
             ResultSet resultSet = null;
             lock.lock();
@@ -206,6 +208,19 @@ public class NorthsConf extends ConfigDetail {
                     this.conn = null;
                 }
                 lock.unlock();
+            }
+        }
+    }
+
+    private void flushSystemConfig(String key, String value, String action){
+        if(autoFlushSystemConfig){
+            switch (action){
+                case "update":
+                    break;
+                case "add":
+                    break;
+                case "delete":
+                    break;
             }
         }
     }

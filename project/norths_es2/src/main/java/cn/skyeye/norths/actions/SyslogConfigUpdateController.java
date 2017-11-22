@@ -3,10 +3,9 @@ package cn.skyeye.norths.actions;
 import cn.skyeye.norths.NorthContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 /**
  * Description:
@@ -24,7 +23,7 @@ public class SyslogConfigUpdateController {
     @ResponseBody
     @RequestMapping(value = "syslog/list", method = { RequestMethod.GET, RequestMethod.POST})
     Object getSyslogConfig(){
-        return "not complete.";
+        return northContext.getSysloger().getSyslogConf().getSyslogConfig();
     }
 
     @ResponseBody
@@ -35,8 +34,13 @@ public class SyslogConfigUpdateController {
 
     @ResponseBody
     @RequestMapping(value = "syslog/edit", method = { RequestMethod.POST})
-    Object editSyslogConfig(){
-        return "not complete.";
+    Object editSyslogConfig(@RequestBody Map<String, Object> syslogConf){
+        System.out.println(syslogConf);
+
+        Object services = syslogConf.get("services");
+        System.out.println(services.getClass());
+
+        return syslogConf;
     }
 
     @ResponseBody

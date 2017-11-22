@@ -19,6 +19,7 @@ public class NorthContext {
 
     private static volatile NorthContext northContext;
 
+    private NorthsConf northsConf;
     private Sysloger sysloger;
     private DataEventDisruptor dataEventDisruptor;
 
@@ -42,14 +43,23 @@ public class NorthContext {
 
     public void start(){
         if(!started.get()){
-
+            initAndStart();
             started.set(true);
+            logger.info("NorthContext启动成功。");
         }else {
-            logger.warn("已启动，毋须重复启动。");
+            logger.warn("NorthContext已启动，毋须重复启动。");
         }
     }
 
+    private void initAndStart(){
+        this.northsConf = new NorthsConf();
+    }
 
+    public NorthsConf getNorthsConf() {
+        return northsConf;
+    }
 
-
+    public Sysloger getSysloger() {
+        return sysloger;
+    }
 }
