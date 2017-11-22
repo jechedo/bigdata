@@ -1,13 +1,10 @@
 package cn.skyeye.norths.sources.es;
 
-import cn.skyeye.common.json.Jsons;
 import cn.skyeye.norths.events.DataEventDisruptor;
 import cn.skyeye.norths.sources.DataSource;
 import cn.skyeye.resources.ConfigDetail;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
@@ -19,10 +16,10 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortOrder;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -36,109 +33,36 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class EsDataSource extends DataSource{
 
-    public  String name = "es";
-
     private EsClient esClient;
     private List<IndexType> indexTypes;
-    private File tmpfile;
-    private Map<String, Object> starts;
-    private long flushInterval;
+
     //private int maxRecordBatch;
-
     private ReentrantLock lock = new ReentrantLock();
-
-    private Timer timer;
-    private String lastStatus;
     private DataEventDisruptor eventDisruptor;
-
     private ExecutorService threadPool;
 
+
     public EsDataSource(String name,
-                        Map<String, String> conf,
                         ExecutorService threadPool,
                         DataEventDisruptor eventDisruptor){
-        this.name = name;
-        ConfigDetail configDetail = new ConfigDetail(conf);
-        getTmpFile(configDetail);
+        super(name);
         getIndexTypes(configDetail);
 
-        this.flushInterval = configDetail.getConfigItemLong("norths.datasources.status.flush.interval",
-                10 * 60 * 1000L);
-
-        Map<String, String> configMap = configDetail.getConfigMap("norths.datasources.es.");
+        Map<String, String> configMap = configDetail.getConfigMap(conf_preffix);
         this.esClient = new EsClient(configMap);
 
-        /*int maxPoolSize = configDetail.getConfigItemInteger("north.datasources.es.max.fetch.threads",
-                8);
-        int poolSize = indexTypes.size();
-        if(poolSize == 0)poolSize = 1;
-        if(poolSize > maxPoolSize)poolSize = maxPoolSize;
-        this.threadPool = Executors.newFixedThreadPool(poolSize); */
         this.threadPool = threadPool;
         this.eventDisruptor = eventDisruptor;
 
        /* this.maxRecordBatch = configDetail.getConfigItemInteger("north.datasources.es.max.fetch.records",
                 100000);*/
-
-        startAutoFlushStatus();
     }
 
-    private void getTmpFile(ConfigDetail configDetail) {
-        this.starts = Maps.newConcurrentMap();
-        String tmpFileDir = configDetail.getConfigItemValue("north.datasources.tmpfile.dir",
-                "/opt/work/web/xenwebsite/data/");
-        File file = new File(tmpFileDir);
-        if(!file.exists()){
-            file.mkdirs();
-        }
 
-        this.tmpfile = new File(file, "es_delta.txt");
-        if(tmpfile.exists()){
-            try {
-                String startTimeStr = FileUtils.readFileToString(tmpfile);
-                if(StringUtils.isNotBlank(startTimeStr))
-                    this.starts.putAll(Jsons.toMap(startTimeStr));
-                logger.info(String.format("文件%s存在，内容为：\n\t %s", tmpfile, startTimeStr));
-            } catch (Exception e) {
-                logger.error(String.format("读取%s失败。", tmpfile), e);
-            }
-        }else{
-            try {
-                tmpfile.createNewFile();
-                logger.info(String.format("新建文件%s", tmpfile));
-            } catch (IOException e) {
-                logger.error(String.format("新建%s失败。", tmpfile), e);
-            }
-        }
-    }
-
-    private void startAutoFlushStatus(){
-        timer = new Timer("EsDataSourceStatusFlusher");
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                HashMap<String, Object> stringLongHashMap = Maps.newHashMap(starts);
-                String str = Jsons.obj2JsonString(stringLongHashMap);
-                if(!str.equals(lastStatus)) {
-                    try {
-                        FileUtils.write(tmpfile, str, Charset.forName("UTF-8"), false);
-                        lastStatus = str;
-                        logger.info(String.format("更新%s成功，更新内容为：\n\t", tmpfile, str));
-                    } catch (IOException e) {
-                        logger.error(String.format("更新%s失败。", tmpfile), e);
-                    }
-                }else {
-                    logger.info(String.format("%s内容无更新。", tmpfile));
-                }
-            }
-        }, flushInterval, flushInterval);
-
-        logger.info(String.format("EsDataSourceStatusFlusher启动成功，周期为：%ss", flushInterval/1000));
-    }
 
     private void getIndexTypes(ConfigDetail configDetail) {
         this.indexTypes = Lists.newArrayList();
-        Set<String> indexTypeStr = configDetail.getConfigItemSet("norths.datasources.es.index.types");
+        Set<String> indexTypeStr = configDetail.getConfigItemSet(String.format("%sindex.types", conf_preffix));
         String[] kv;
         IndexType indexType;
         String startField;
@@ -146,16 +70,16 @@ public class EsDataSource extends DataSource{
             kv = str.split("/");
             if(kv.length == 2){
                 indexType = new IndexType(kv[0], kv[1]);
-                startField = configDetail.getConfigItemValue(String.format("norths.datasources.es.%s.deltafield", str),
+                startField = configDetail.getConfigItemValue(String.format("%s%s.deltafield", conf_preffix, str),
                         "@timestamp");
                 indexType.startField = startField;
-                indexType.start = starts.get(indexType.getTmpKey());
+                indexType.start = northContext.getStatus(indexType.getTmpKey());
 
-                Set<String> configItemSet = configDetail.getConfigItemSet(String.format("norths.datasources.es.%s.includes", str));
+                Set<String> configItemSet = configDetail.getConfigItemSet(String.format("%s.%s.includes", conf_preffix, str));
                 if(configItemSet.size() > 0){
                     indexType.includes = configItemSet.toArray(new String[configItemSet.size()]);
                 }
-               configItemSet = configDetail.getConfigItemSet(String.format("norths.datasources.es.%s.excludes", str));
+               configItemSet = configDetail.getConfigItemSet(String.format("%s%s.excludes", conf_preffix, str));
                 if(configItemSet.size() > 0){
                     indexType.excludes = configItemSet.toArray(new String[configItemSet.size()]);
                 }
@@ -243,7 +167,7 @@ public class EsDataSource extends DataSource{
                 logger.info(String.format("查询%s的数据成功: \n\t max = %s, resNum = %s, 耗时：%ss 。",
                         indexType, max, res, (System.currentTimeMillis() - time)/1000));
                 indexType.start = max;
-                starts.put(indexType.getTmpKey(), max);
+                northContext.setStatus(indexType.getTmpKey(), max);
             } catch (Exception e) {
                logger.error(String.format("查询%s的数据失败。", indexType), e);
             }

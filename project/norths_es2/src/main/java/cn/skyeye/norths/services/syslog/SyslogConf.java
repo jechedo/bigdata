@@ -17,29 +17,29 @@ import java.util.Set;
  * @author LiXiaoCong
  * @version 2017/11/21 17:25
  */
-public class SyslogConf extends ConfigDetail {
+public class SyslogConf {
 
     public static final String SYSLOG_CONF = "norths_syslog_conf";
     public static final String SYSLOG_ALARM_CONF = "norths_syslog_alarm_conf";
 
-    private static final String CONF_PREFFIX =
-            String.format("norths.handler.%s.", Sysloger.NAME);
-
     private static final Logger logger = Logger.getLogger(SyslogConf.class);
 
+    private String conf_preffix;
     private Set<String> acceeptSources;
     private Set<String> excludes;
     private Set<String> includes;
 
+    private ConfigDetail configDetail;
     private NorthsConf northsConf;
 
-    public SyslogConf(NorthsConf northsConf){
+    SyslogConf(String preffix, ConfigDetail configDetail, NorthsConf northsConf){
+        this.conf_preffix = preffix;
+        this.configDetail = configDetail;
         this.northsConf = northsConf;
-        Map<String, String> config = northsConf.getConfigMapWithPrefix(CONF_PREFFIX);
-        this.configMap.putAll(config);
-        this.acceeptSources = getConfigItemSet(String.format("%sdatasources", CONF_PREFFIX));
-        this.excludes = getConfigItemSet(String.format("%excludes", CONF_PREFFIX));
-        this.includes = getConfigItemSet(String.format("%includes", CONF_PREFFIX));
+
+        this.acceeptSources = configDetail.getConfigItemSet(String.format("%sdatasources", conf_preffix));
+        this.excludes = configDetail.getConfigItemSet(String.format("%excludes", conf_preffix));
+        this.includes = configDetail.getConfigItemSet(String.format("%includes", conf_preffix));
     }
 
     public boolean isAcceeptSource(String source){

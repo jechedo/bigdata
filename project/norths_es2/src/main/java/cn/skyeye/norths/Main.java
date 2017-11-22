@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 @SpringBootApplication
 public class Main {
     public static void main(String[] args) {
-        NorthContext.get().start();
         SpringApplication.run(Main.class, args);
+        NorthContext.get().start();
     }
     @RequestMapping(value = "/", method = { RequestMethod.GET, RequestMethod.POST})
     String index(String name){

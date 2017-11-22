@@ -1,7 +1,6 @@
 package cn.skyeye.norths.services.syslog;
 
 import cn.skyeye.common.json.Jsons;
-import cn.skyeye.norths.NorthsConf;
 import cn.skyeye.norths.events.DataEvent;
 import cn.skyeye.norths.events.DataEventHandler;
 import cn.skyeye.norths.utils.AlarmLogFilter;
@@ -22,18 +21,16 @@ import java.util.concurrent.locks.ReentrantLock;
  * @version 2017/11/20 19:45
  */
 public class Sysloger extends DataEventHandler {
-    public final static String NAME = "syslog";
-
     private Map<String, SyslogIF> syslogClients;
     private ReentrantLock lock = new ReentrantLock();
 
     private AlarmLogFilter alarmLogFilter;
-
     private SyslogConf syslogConf;
 
-    public Sysloger(NorthsConf northsConf){
+    public Sysloger(String name){
+        super(name);
         this.syslogClients = Maps.newConcurrentMap();
-        this.syslogConf = new SyslogConf(northsConf);
+        this.syslogConf = new SyslogConf(conf_preffix, configDetail, northContext.getNorthsConf());
         initSyslogClient(syslogConf.getSyslogConfig());
         initAlarmFilter(syslogConf.getSyslogAlarmConfig());
     }
