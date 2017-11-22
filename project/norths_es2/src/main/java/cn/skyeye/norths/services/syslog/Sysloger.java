@@ -64,7 +64,7 @@ public class Sysloger extends DataEventHandler {
             if(idObj == null)continue;
 
             addSyslogClient(String.valueOf(idObj),
-                    String.valueOf(idObj),
+                    String.valueOf(ipObj),
                     Integer.parseInt(String.valueOf(portObj)),
                     protocol);
             logger.info(String.format("添加syslogClient成功: host: %s, port: %s, protocol : %s", ipObj, portObj, protocol));
@@ -98,6 +98,9 @@ public class Sysloger extends DataEventHandler {
         SyslogIF syslogClient = Syslog.getInstance(protocol);
         syslogClient.getConfig().setHost(host);
         syslogClient.getConfig().setPort(port);
+        syslogClient.getConfig().setFacility("LOCAL6");
+        syslogClient.getConfig().setSendLocalName(false);
+        syslogClient.getConfig().setSendLocalTimestamp(false);
         return syslogClient;
     }
 
@@ -152,7 +155,6 @@ public class Sysloger extends DataEventHandler {
                }
            });
         }
-
         return Jsons.obj2JsonString(record);
     }
 
