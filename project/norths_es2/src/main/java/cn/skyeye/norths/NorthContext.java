@@ -26,7 +26,8 @@ public class NorthContext {
     private AtomicBoolean started = new AtomicBoolean(false);
 
     private NorthContext(){
-        this.sysloger = new Sysloger();
+        this.northsConf = new NorthsConf();
+        this.sysloger = new Sysloger(northsConf);
         this.dataEventDisruptor = new DataEventDisruptor(sysloger);
     }
 
@@ -52,7 +53,7 @@ public class NorthContext {
     }
 
     private void initAndStart(){
-        this.northsConf = new NorthsConf();
+
     }
 
     public NorthsConf getNorthsConf() {

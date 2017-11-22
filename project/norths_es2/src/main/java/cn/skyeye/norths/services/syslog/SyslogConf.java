@@ -19,6 +19,10 @@ import java.util.Set;
  * @version 2017/11/21 17:25
  */
 public class SyslogConf extends ConfigDetail {
+
+    public static final String SYSLOG_CONF = "norths_syslog_conf";
+    public static final String SYSLOG_ALARM_CONF = "norths_syslog_alarm_conf";
+
     private static final String CONF_PREFFIX =
             String.format("norths.handler.%s.", Sysloger.NAME);
 
@@ -45,7 +49,7 @@ public class SyslogConf extends ConfigDetail {
     }
 
     public Map<String, Object> getSyslogConfig(){
-        String syslogConf = northsConf.getSystemConfig("norths_syslog_conf");
+        String syslogConf = northsConf.getSystemConfig(SYSLOG_CONF);
         Map<String, Object> res;
         if(syslogConf == null){
            res = newDefaultSyslogConfig();
@@ -53,14 +57,39 @@ public class SyslogConf extends ConfigDetail {
             try {
                 res = Jsons.toMap(syslogConf);
             } catch (Exception e) {
-                logger.error(String.format("norths_syslog_conf对应的值%s不是标准的json格式。", syslogConf), e);
+                logger.error(String.format("%s对应的值%s不是标准的json格式。", SYSLOG_CONF, syslogConf), e);
                 res = newDefaultSyslogConfig();
             }
         }
         return res;
     }
 
+    public Map<String, Object> getSyslogAlarmConfig(){
+        String syslogConf = northsConf.getSystemConfig(SYSLOG_ALARM_CONF);
+        Map<String, Object> res;
+        if(syslogConf == null){
+           res = newDefaultSyslogAlarmConfig();
+        }else {
+            try {
+                res = Jsons.toMap(syslogConf);
+            } catch (Exception e) {
+                logger.error(String.format("%s对应的值%s不是标准的json格式。", SYSLOG_ALARM_CONF, syslogConf), e);
+                res = newDefaultSyslogAlarmConfig();
+            }
+        }
+        return res;
+    }
 
+
+    public void setSyslogConfig(Map<String, Object> syslogConf){
+        String conf = Jsons.obj2JsonString(syslogConf);
+        northsConf.setSystemConfig(SYSLOG_CONF, conf);
+    }
+
+    public void setSyslogAlarmConfig(Map<String, Object> syslogAlarmConf){
+        String conf = Jsons.obj2JsonString(syslogAlarmConf);
+        northsConf.setSystemConfig(SYSLOG_ALARM_CONF, conf);
+    }
 
     public Set<String> getExcludes() {
         return excludes;
@@ -84,6 +113,15 @@ public class SyslogConf extends ConfigDetail {
         res.put("threat_switch", "0");
         // res.put("systemlog_switch", "0");
         res.put("services", Lists.newArrayList());
+        return res;
+    }
+
+    private Map<String, Object> newDefaultSyslogAlarmConfig(){
+        Map<String, Object> res = Maps.newHashMap();
+        res.put("level", "");
+        res.put("confidence", "");
+        res.put("status", "");
+        res.put("logtype", Lists.newArrayList());
         return res;
     }
 }

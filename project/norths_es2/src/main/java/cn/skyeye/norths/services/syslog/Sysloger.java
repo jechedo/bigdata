@@ -1,18 +1,15 @@
 package cn.skyeye.norths.services.syslog;
 
 import cn.skyeye.common.json.Jsons;
+import cn.skyeye.norths.NorthsConf;
 import cn.skyeye.norths.events.DataEvent;
 import cn.skyeye.norths.events.DataEventHandler;
 import com.google.common.collect.Maps;
-import org.apache.log4j.Logger;
 import org.productivity.java.syslog4j.Syslog;
 import org.productivity.java.syslog4j.SyslogIF;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -24,17 +21,19 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Sysloger extends DataEventHandler {
     public final static String NAME = "syslog";
 
-    private final Logger logger = Logger.getLogger(Sysloger.class);
+    private Map<String, Object> lastSyslogConf;
+    private Map<String, Object> lastSyslogAlarmConfig;
 
     private Map<String, SyslogIF> syslogClients;
     private ReentrantLock lock = new ReentrantLock();
-    private AtomicLong totalEvent = new AtomicLong(0);
-    private AtomicBoolean endOfBatch = new AtomicBoolean(false);
 
     private SyslogConf syslogConf;
 
-    public Sysloger(){
+    public Sysloger(NorthsConf northsConf){
         this.syslogClients = Maps.newConcurrentMap();
+        this.syslogConf = new SyslogConf(northsConf);
+        this.lastSyslogConf = syslogConf.getSyslogConfig();
+        this.lastSyslogAlarmConfig = syslogConf.getSyslogAlarmConfig();
     }
 
     public void addSyslogClient(String id, String host, int port, String protocol){
@@ -76,27 +75,8 @@ public class Sysloger extends DataEventHandler {
     }
 
     @Override
-    public void onEvent(DataEvent event, boolean endOfBatch) {
-        if(syslogConf.isAcceeptSource(event.getSource())) {
-            sendLog(event.getRecord());
-            this.endOfBatch.set(endOfBatch);
-        }
-        totalEvent.incrementAndGet();
-    }
-
-    @Override
-    public void shutdown(long total) {
-
-        while (total > totalEvent.get()){
-            try {
-                TimeUnit.SECONDS.sleep(5);
-            } catch (InterruptedException e) {}
-        }
-
-        logger.info(String.format("数据总量为：%s, 处理数据量为：%s。", total, totalEvent.get()));
-    }
-
-    private void sendLog(Map<String, Object> record){
+    public void onEvent(DataEvent event) {
+        Map<String, Object> record = event.getRecord();
         final String message = createMessage(record);
         Set<Map.Entry<String, SyslogIF>> entries = getSyslogClients().entrySet();
         entries.forEach(entry -> {
@@ -106,6 +86,12 @@ public class Sysloger extends DataEventHandler {
                 logger.error(String.format("syslog服务器：%s连接异常。", entry.getValue().getConfig().getHost()), e);
             }
         });
+
+    }
+
+    @Override
+    public boolean isAcceept(DataEvent event){
+        return syslogConf.isAcceeptSource(event.getSource());
     }
 
     private String createMessage(Map<String, Object> record){
