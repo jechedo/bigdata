@@ -142,17 +142,42 @@ public class DBCommon {
 		}
 	}
 	
-	public static void close(Connection conn,Statement statement,ResultSet resultSet) throws SQLException{
-		
-		if( resultSet != null ){
-			resultSet.close();
-		}
-		if( statement != null ){
-			statement.close();
-		}
-		if( conn != null ){
-			conn.close();
-		}
+	public static void close(Connection conn,Statement statement,ResultSet resultSet) {
+		try {
+			if( resultSet != null ){
+                resultSet.close();
+            }
+			if( statement != null ){
+                statement.close();
+            }
+			if( conn != null ){
+                conn.close();
+            }
+		} catch (SQLException e) {}
+	}
+
+	public static void close(Statement statement) {
+		try {
+			if( statement != null ){
+                statement.close();
+            }
+		} catch (SQLException e) {}
+	}
+
+	public static void close(ResultSet resultSet) {
+		try {
+			if( resultSet != null ){
+                resultSet.close();
+            }
+		} catch (SQLException e) {}
+	}
+
+	public static void close(Connection conn) {
+		try {
+			if( conn != null ){
+                conn.close();
+            }
+		} catch (SQLException e) {}
 	}
 
 	public static String createSingleMergeIntoSql(String table,

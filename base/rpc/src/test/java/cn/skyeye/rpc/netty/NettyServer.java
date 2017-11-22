@@ -69,7 +69,7 @@ public class NettyServer {
     public static void main(String[] args) throws IOException, InterruptedException {
          //startServer();
         RpcContext rpcContext = RpcContext.get();
-        TransferService demo = rpcContext.newTransferService("demo", "172.24.66.212", 9911, null, null);
+        TransferService demo = rpcContext.newTransferService("demo", "172.24.66.212", 60080, null, null);
         sleep();
     }
 }

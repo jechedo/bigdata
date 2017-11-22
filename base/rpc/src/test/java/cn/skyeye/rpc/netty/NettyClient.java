@@ -107,6 +107,7 @@ public class NettyClient {
         File file1 = new File(file);
         BlockId.FileBlockId fileBlockId = new BlockId.FileBlockId(file, 0, file1.length());
 
+
         demo.fetchBlocks(nodeInfo, new String[]{fileBlockId.getName()}, new BlockFetchingListener(){
             @Override
             public void onBlockFetchSuccess(String blockId, ManagedBuffer data) {

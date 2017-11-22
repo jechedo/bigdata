@@ -5,9 +5,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -27,12 +25,14 @@ public class SkyeyeApplication {
         SpringApplication.run(SkyeyeApplication.class, args);
     }
 
-    @RequestMapping(value = "/")
+    @RequestMapping(value = "/", method = { RequestMethod.POST})
     @ResponseBody
-    Object index(){
+    Object index(@RequestBody Name name){
         Map<String, Object> res = Maps.newHashMap();
-        res.put("hello", "Welcome to skyeye!");
+        res.put(String.format("hello, %s", name), "Welcome to skyeye!");
         return res;
     }
+
+
 
 }

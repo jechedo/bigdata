@@ -14,13 +14,15 @@ public class Syslogs {
 
     public static void main(String[] args) {
         SyslogIF tcp = Syslog.getInstance("tcp");
-        tcp.getConfig().setHost("test");
+        tcp.getConfig().setHost("192.168.66.66");
         tcp.getConfig().setPort(514);
 
         while (true) {
-            tcp.warn("Today is a good day!");
+            String alarmJson = "hello world";
+            tcp.warn(alarmJson);
+            System.out.println("....");
             try {
-                Thread.sleep(2000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

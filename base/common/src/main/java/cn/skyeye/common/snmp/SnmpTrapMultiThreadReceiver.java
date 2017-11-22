@@ -37,7 +37,7 @@ public class SnmpTrapMultiThreadReceiver implements CommandResponder {
 		dispatcher = new MultiThreadedMessageDispatcher(threadPool,
 				new MessageDispatcherImpl());
 		listenAddress = GenericAddress.parse(System.getProperty(
-				"snmp4j.listenAddress", "udp:127.0.0.1/162"));
+				"snmp4j.listenAddress", "udp:localhost/162"));
 		TransportMapping transport;
 		if (listenAddress instanceof UdpAddress) {
 			transport = new DefaultUdpTransportMapping(
