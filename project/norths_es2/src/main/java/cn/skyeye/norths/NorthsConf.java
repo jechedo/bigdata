@@ -11,10 +11,7 @@ import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -159,9 +156,14 @@ public class NorthsConf extends ConfigDetail {
     }
 
     public void setSystemConfig(String key, String value){
+        String action = "add";
         lock.lock();
         try {
+            if(systemConfig.containsKey(key)){
+                action = "update";
+            }
             systemConfig.put(key, value);
+            flushSystemConfig(key, value, action);
         } finally {
             lock.unlock();
         }
@@ -171,10 +173,10 @@ public class NorthsConf extends ConfigDetail {
         lock.lock();
         try {
             systemConfig.remove(key);
+            flushSystemConfig(key, null, "delete");
         } finally {
             lock.unlock();
         }
-        flushSystemConfig(key, null, "delete");
     }
 
     /**
@@ -214,13 +216,39 @@ public class NorthsConf extends ConfigDetail {
 
     private void flushSystemConfig(String key, String value, String action){
         if(autoFlushSystemConfig){
-            switch (action){
-                case "update":
-                    break;
-                case "add":
-                    break;
-                case "delete":
-                    break;
+            PreparedStatement statement = null;
+            try {
+                String sql;
+                switch (action){
+                    case "add":
+                        sql = String.format("insert into %s (key, value) values (?,?)", systemConfigTableName);
+                        statement = getConn().prepareStatement(sql);
+                        statement.setString(1, key);
+                        statement.setString(2, value);
+                        statement.execute();
+                        break;
+                    case "update":
+                        sql = String.format("update %s set value = ?  where key = ?", systemConfigTableName);
+                        statement = getConn().prepareStatement(sql);
+                        statement.setString(1, value);
+                        statement.setString(2, key);
+                        statement.executeUpdate();
+                        break;
+                    case "delete":
+                        sql = String.format("delete from %s where key = ?", systemConfigTableName);
+                        statement = getConn().prepareStatement(sql);
+                        statement.setString(1, key);
+                        statement.execute();
+                        break;
+                }
+            } catch (SQLException e) {
+                logger.error(null, e);
+            }finally {
+                if(statement != null)DBCommon.close(statement);
+                if(sqlite){
+                    DBCommon.close(conn);
+                    this.conn = null;
+                }
             }
         }
     }

@@ -40,6 +40,7 @@ public class Sysloger extends DataEventHandler {
         try {
             if(!syslogConf.isOpen()){
                 clearSyslogClient();
+                logger.info("清空syslogClient成功。");
             }else {
                 initSyslogClient(syslogConf.getProtocol(), syslogConf.getServices(), true);
             }
@@ -67,6 +68,7 @@ public class Sysloger extends DataEventHandler {
                     String.valueOf(idObj),
                     Integer.parseInt(String.valueOf(portObj)),
                     protocol);
+            logger.info(String.format("添加syslogClient成功: host: %s, port: %s, protocol : %s", ipObj, portObj, protocol));
         }
     }
 

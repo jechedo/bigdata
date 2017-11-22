@@ -130,8 +130,13 @@ public class NorthContext {
     }
 
     public void close(){
-       if(tmpfileTimer != null) tmpfileTimer.cancel();
         if(fetchDataTimer != null)fetchDataTimer.cancel();
+
+        if(tmpfileTimer != null){
+           flushStatus();
+           tmpfileTimer.cancel();
+        }
+
         if(dataEventDisruptor != null)dataEventDisruptor.shutDown();
     }
 
@@ -203,23 +208,27 @@ public class NorthContext {
         tmpfileTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                HashMap<String, Object> stringLongHashMap = Maps.newHashMap(status);
-                String str = Jsons.obj2JsonString(stringLongHashMap);
-                if(!str.equals(lastStatus)) {
-                    try {
-                        FileUtils.write(tmpfile, str, Charset.forName("UTF-8"), false);
-                        lastStatus = str;
-                        logger.info(String.format("更新%s成功，更新内容为：\n\t", tmpfile, str));
-                    } catch (IOException e) {
-                        logger.error(String.format("更新%s失败。", tmpfile), e);
-                    }
-                }else {
-                    logger.info(String.format("%s内容无更新。", tmpfile));
-                }
+                flushStatus();
             }
         }, deltaDataFlushInterval, deltaDataFlushInterval);
 
         logger.info(String.format("增量状态定期刷新启动成功，周期为：%ss", deltaDataFlushInterval/1000));
+    }
+
+    private void flushStatus(){
+        HashMap<String, Object> stringLongHashMap = Maps.newHashMap(status);
+        String str = Jsons.obj2JsonString(stringLongHashMap);
+        if(!str.equals(lastStatus)) {
+            try {
+                FileUtils.write(tmpfile, str, Charset.forName("UTF-8"), false);
+                lastStatus = str;
+                logger.info(String.format("更新%s成功，更新内容为：\n\t", tmpfile, str));
+            } catch (IOException e) {
+                logger.error(String.format("更新%s失败。", tmpfile), e);
+            }
+        }else {
+            logger.info(String.format("%s内容无更新。", tmpfile));
+        }
     }
 
     public DataEventHandler getHandler(String key){

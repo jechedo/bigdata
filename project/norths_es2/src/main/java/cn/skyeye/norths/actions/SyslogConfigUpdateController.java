@@ -28,19 +28,24 @@ public class SyslogConfigUpdateController {
     @RequestMapping(value = "syslog/list", method = { RequestMethod.GET, RequestMethod.POST})
     Object getSyslogConfig(){
         Sysloger sysloger = getSysloger();
-        return sysloger.getSyslogConf().getSyslogConfig().getConfig();
+        Map<String, Object> config = sysloger.getSyslogConf().getSyslogConfig().getConfig();
+        logger.debug(String.format("查询syslog的配置: %s", config));
+        return ResponseHelper.success(config);
     }
 
     @ResponseBody
     @RequestMapping(value = "syslogalarm/list", method = { RequestMethod.GET, RequestMethod.POST})
     Object getSyslogAlarmConfig(){
         Sysloger sysloger = getSysloger();
-        return sysloger.getSyslogConf().getSyslogAlarmConfig().getConfig();
+        Map<String, Object> config = sysloger.getSyslogConf().getSyslogAlarmConfig().getConfig();
+        logger.debug(String.format("查询syslog告警的配置: %s", config));
+        return ResponseHelper.success(config);
     }
 
     @ResponseBody
     @RequestMapping(value = "syslog/edit", method = { RequestMethod.POST})
     Object editSyslogConfig(@RequestBody Map<String, Object> syslogConf){
+        logger.info(String.format("编辑syslog配置: %s", syslogConf));
         Sysloger sysloger = getSysloger();
         //更新配置
         sysloger.getSyslogConf().setSyslogConfig(syslogConf);
@@ -52,6 +57,7 @@ public class SyslogConfigUpdateController {
     @ResponseBody
     @RequestMapping(value = "syslogalarm/edit", method = { RequestMethod.POST})
     Object editSyslogAlarmConfig(@RequestBody Map<String, Object> syslogAlarmConf){
+        logger.info(String.format("编辑syslog告警配置: %s", syslogAlarmConf));
         Sysloger sysloger = getSysloger();
         sysloger.getSyslogConf().setSyslogAlarmConfig(syslogAlarmConf);
         sysloger.initAlarmFilter(SyslogConf.newSyslogAlarmConfig(syslogAlarmConf));
