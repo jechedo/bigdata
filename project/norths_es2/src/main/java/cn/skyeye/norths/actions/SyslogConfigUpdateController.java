@@ -1,5 +1,6 @@
 package cn.skyeye.norths.actions;
 
+import cn.skyeye.norths.NorthContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value="/norths/config/")
 public class SyslogConfigUpdateController {
     protected final Log logger = LogFactory.getLog(SyslogConfigUpdateController.class);
+
+    private NorthContext northContext = NorthContext.get();
 
     @ResponseBody
     @RequestMapping(value = "syslog/list", method = { RequestMethod.GET, RequestMethod.POST})
@@ -41,6 +44,5 @@ public class SyslogConfigUpdateController {
     Object editSyslogAlarmConfig(){
         return "not complete.";
     }
-
 
 }
