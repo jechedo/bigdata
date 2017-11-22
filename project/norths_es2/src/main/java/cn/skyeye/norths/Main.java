@@ -1,11 +1,10 @@
 package cn.skyeye.norths;
 
-import com.google.common.collect.Maps;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Description:
@@ -20,12 +19,8 @@ public class Main {
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);
     }
-
-    @RequestMapping(value = "/", method = { RequestMethod.POST})
-    @ResponseBody
-    Object index(@RequestBody Map<String, String> name){
-        Map<String, Object> res = Maps.newHashMap();
-        res.put(String.format("hello, %s", name.get("name")), "Welcome to skyeye!");
-        return res;
+    @RequestMapping(value = "/", method = { RequestMethod.GET, RequestMethod.POST})
+    String index(String name){
+        return "Welcome to skyeye`s norths interface.";
     }
 }
