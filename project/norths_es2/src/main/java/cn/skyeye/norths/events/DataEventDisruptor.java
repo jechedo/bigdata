@@ -84,9 +84,6 @@ public class DataEventDisruptor {
     public synchronized void start(){
         if(!started.get()) {
             this.disruptor.start();
-            Runtime.getRuntime()
-                    .addShutdownHook(
-                            new Thread(() -> shutDown()));
             started.set(true);
             logger.warn("disruptor启动成功。");
         }else {

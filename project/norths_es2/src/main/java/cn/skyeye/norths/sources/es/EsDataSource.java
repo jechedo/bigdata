@@ -36,11 +36,11 @@ public class EsDataSource extends DataSource{
     private EsClient esClient;
     private List<IndexType> indexTypes;
 
-    //private int maxRecordBatch;
     private ReentrantLock lock = new ReentrantLock();
     private DataEventDisruptor eventDisruptor;
     private ExecutorService threadPool;
 
+    private int maxRecordBatch;
 
     public EsDataSource(String name,
                         ExecutorService threadPool,
@@ -54,11 +54,9 @@ public class EsDataSource extends DataSource{
         this.threadPool = threadPool;
         this.eventDisruptor = eventDisruptor;
 
-       /* this.maxRecordBatch = configDetail.getConfigItemInteger("north.datasources.es.max.fetch.records",
-                100000);*/
+        this.maxRecordBatch = configDetail.getConfigItemInteger(String.format("%smax.batch.records", conf_preffix),
+                100000);
     }
-
-
 
     private void getIndexTypes(ConfigDetail configDetail) {
         this.indexTypes = Lists.newArrayList();
@@ -143,7 +141,6 @@ public class EsDataSource extends DataSource{
             long totalHits = hits.getTotalHits();
             if(totalHits <= 0) return 0L;
 
-            /*
             if(totalHits > maxRecordBatch){
                 logger.warn(String.format("%s中的新增的数据量为%s, 超过了单批最大值%s，分段处理，查询前%s条",
                         indexType, totalHits, maxRecordBatch, maxRecordBatch));
@@ -156,7 +153,7 @@ public class EsDataSource extends DataSource{
                         .setQuery(qb)
                         .setFetchSource(new String[]{indexType.startField}, null).get();
                 hits = searchResponse.getHits();
-            }*/
+            }
 
             SearchHit maxHit = hits.getHits()[0];
             Object max = maxHit.sourceAsMap().get(indexType.startField);

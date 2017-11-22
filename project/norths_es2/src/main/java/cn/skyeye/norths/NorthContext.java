@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,12 +42,14 @@ public class NorthContext {
 
     private File tmpfile;
     private Map<String, Object> status;
-    private Timer timer;
+    private Timer tmpfileTimer;
     private String lastStatus;
     private long deltaDataFlushInterval;
+    private long dataFetchInterval;
     private ExecutorService threadPool;
 
     private AtomicBoolean started = new AtomicBoolean(false);
+    private Timer fetchDataTimer;
 
     private NorthContext(){
         this.northsConf = new NorthsConf();
@@ -57,8 +60,12 @@ public class NorthContext {
                 16);
         this.threadPool = Executors.newFixedThreadPool(poolSize);
 
-        this.deltaDataFlushInterval = northsConf.getConfigItemLong("norths.datasources.status.flush.interval",
+        this.deltaDataFlushInterval = northsConf.getConfigItemLong("norths.datasources.status.flush.intervalms",
                 10 * 60 * 1000L);
+
+        this.dataFetchInterval = northsConf.getConfigItemLong("norths.datasources.data.fetch.intervalms",
+                5 * 60 * 1000L);
+
         getTmpFile(northsConf);
     }
 
@@ -77,6 +84,32 @@ public class NorthContext {
         if(!started.get()){
             initAndStart();
             startAutoFlushStatus();
+
+            //注册钩子
+            Runtime.getRuntime()
+                    .addShutdownHook(
+                            new Thread(() -> close()));
+
+            //循环抓取数据
+            fetchDataTimer = new Timer("DataFetcherTimer");
+            fetchDataTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    Collection<DataSource> values = dataSourceMap.values();
+                    CountDownLatch countDownLatch = new CountDownLatch(values.size());
+                    values.forEach(dataSource -> threadPool.submit(() -> {
+                        try {
+                            dataSource.readData();
+                        } finally {
+                            countDownLatch.countDown();
+                        }
+                    }));
+                    try {
+                        countDownLatch.await();
+                    } catch (InterruptedException e) { }
+                }
+            }, 0, dataFetchInterval);
+
             started.set(true);
             logger.info("NorthContext启动成功。");
         }else {
@@ -93,8 +126,13 @@ public class NorthContext {
         initDataSources();
         Preconditions.checkArgument(!dataSourceMap.isEmpty(), "没有配置可用的数据源。");
 
+        this.dataEventDisruptor.start();
+    }
 
-
+    public void close(){
+       if(tmpfileTimer != null) tmpfileTimer.cancel();
+        if(fetchDataTimer != null)fetchDataTimer.cancel();
+        if(dataEventDisruptor != null)dataEventDisruptor.shutDown();
     }
 
     private void initDataSources() {
@@ -130,6 +168,7 @@ public class NorthContext {
     public Object getStatus(String key){
         return this.status.get(key);
     }
+
     private void getTmpFile(ConfigDetail configDetail) {
         this.status = Maps.newConcurrentMap();
         String tmpFileDir = configDetail.getConfigItemValue("north.datasources.tmpfile.dir",
@@ -160,8 +199,8 @@ public class NorthContext {
     }
 
     private void startAutoFlushStatus(){
-        timer = new Timer("EsDataSourceStatusFlusher");
-        timer.schedule(new TimerTask() {
+        tmpfileTimer = new Timer("DataSourceStatusFlusher");
+        tmpfileTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 HashMap<String, Object> stringLongHashMap = Maps.newHashMap(status);
