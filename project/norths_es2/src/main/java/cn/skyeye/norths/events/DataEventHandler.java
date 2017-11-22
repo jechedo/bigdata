@@ -28,6 +28,9 @@ public abstract class DataEventHandler implements EventHandler<DataEvent> {
     protected NorthContext northContext;
     protected ConfigDetail configDetail;
 
+    private AtomicLong batchNum = new AtomicLong(1);
+    private AtomicLong batchEvent = new AtomicLong(0);
+
     public DataEventHandler(String name){
         this.name = name;
         this.conf_preffix = String.format("norths.handler.%s.", name);
@@ -38,10 +41,19 @@ public abstract class DataEventHandler implements EventHandler<DataEvent> {
 
     @Override
     public void onEvent(DataEvent event, long sequence, boolean endOfBatch) throws Exception {
+
+        if(endOfBatch){
+            logger.info(String.format("完成第%s批数据的处理：total = %s。",
+                    batchNum.getAndIncrement(), batchEvent.incrementAndGet()));
+            batchEvent.set(0);
+        }else{
+            batchEvent.incrementAndGet();
+        }
+
         if(isAcceept(event)) {
             onEvent(event);
-            this.endOfBatch.set(endOfBatch);
         }
+        this.endOfBatch.set(endOfBatch);
         totalEvent.incrementAndGet();
     }
 
