@@ -8,10 +8,14 @@ import cn.skyeye.resources.ConfigDetail;
 import cn.skyeye.resources.Resources;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.File;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -25,7 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class NorthsConf extends ConfigDetail {
     private final static String _CONFIG = "/norths/norths-base";
-    private final Logger logger = Logger.getLogger(NorthsConf.class);
+    private final Log logger = LogFactory.getLog(NorthsConf.class);
 
     private static final Map<String, String> ENVCONF = Maps.newHashMap();
 

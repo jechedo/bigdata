@@ -4,7 +4,8 @@ import com.lmax.disruptor.ExceptionHandler;
 import com.lmax.disruptor.YieldingWaitStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -22,7 +23,7 @@ public class DataEventDisruptor {
 
     private static final int BUFFER_SIZE = 2048;
 
-    private final Logger logger = Logger.getLogger(DataEventDisruptor.class);
+    private final Log logger = LogFactory.getLog(DataEventDisruptor.class);
 
     private Disruptor<DataEvent> disruptor;
     private DataEventTranslator translator;

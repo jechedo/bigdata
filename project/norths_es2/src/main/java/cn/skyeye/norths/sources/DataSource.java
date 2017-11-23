@@ -2,7 +2,8 @@ package cn.skyeye.norths.sources;
 
 import cn.skyeye.norths.NorthContext;
 import cn.skyeye.resources.ConfigDetail;
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,7 @@ import java.util.Map;
  * @version 2017/11/20 16:28
  */
 public abstract class DataSource {
-    protected final Logger logger = Logger.getLogger(DataSource.class);
+    protected final Log logger = LogFactory.getLog(DataSource.class);
 
     protected String name;
     protected String conf_preffix;

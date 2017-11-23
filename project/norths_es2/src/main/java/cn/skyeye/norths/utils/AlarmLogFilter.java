@@ -2,7 +2,8 @@ package cn.skyeye.norths.utils;
 
 import cn.skyeye.norths.services.syslog.SyslogConf;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.util.Map;
 
@@ -23,7 +24,7 @@ import java.util.Map;
  */
 public class AlarmLogFilter {
 
-    private final Logger logger = Logger.getLogger(AlarmLogFilter.class);
+    private final Log logger = LogFactory.getLog(AlarmLogFilter.class);
     private SyslogConf.SyslogAlarmConfig syslogAlarmConfig;
 
     public AlarmLogFilter(SyslogConf.SyslogAlarmConfig syslogAlarmConfig){

@@ -2,7 +2,8 @@ package cn.skyeye.norths.sources.es;
 
 import cn.skyeye.resources.ConfigDetail;
 import com.google.common.collect.Maps;
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.elasticsearch.action.admin.indices.get.GetIndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
@@ -26,7 +27,7 @@ import java.util.Set;
  * @version 2017/11/20 15:19
  */
 public class EsClient {
-    private final Logger logger = Logger.getLogger(EsClient.class);
+    private final Log logger = LogFactory.getLog(EsClient.class);
 
     private Map<String, Integer> hostAndPort;
     private String clusterName;

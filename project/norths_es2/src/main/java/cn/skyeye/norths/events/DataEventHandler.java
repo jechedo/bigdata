@@ -3,7 +3,8 @@ package cn.skyeye.norths.events;
 import cn.skyeye.norths.NorthContext;
 import cn.skyeye.resources.ConfigDetail;
 import com.lmax.disruptor.EventHandler;
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -18,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public abstract class DataEventHandler implements EventHandler<DataEvent> {
 
-    protected final Logger logger = Logger.getLogger(DataEventHandler.class);
+    protected final Log logger = LogFactory.getLog(DataEventHandler.class);
 
     protected AtomicLong totalEvent = new AtomicLong(0);
     protected AtomicBoolean endOfBatch = new AtomicBoolean(false);

@@ -5,7 +5,8 @@ import cn.skyeye.norths.NorthsConf;
 import cn.skyeye.resources.ConfigDetail;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -22,7 +23,7 @@ public class SyslogConf {
     public static final String SYSLOG_CONF = "norths_syslog_conf";
     public static final String SYSLOG_ALARM_CONF = "norths_syslog_alarm_conf";
 
-    private static final Logger logger = Logger.getLogger(SyslogConf.class);
+    private static final Log logger = LogFactory.getLog(SyslogConf.class);
 
     private String conf_preffix;
     private Set<String> acceeptSources;
