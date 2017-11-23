@@ -83,7 +83,7 @@ public class NorthContext {
     public void start(){
         if(!started.get()){
             initAndStart();
-            startAutoFlushStatus();
+            //startAutoFlushStatus();
 
             //注册钩子
             Runtime.getRuntime()
@@ -106,6 +106,7 @@ public class NorthContext {
                     }));
                     try {
                         countDownLatch.await();
+                        flushStatus();
                     } catch (InterruptedException e) { }
                 }
             }, 0, dataFetchInterval);
@@ -187,8 +188,10 @@ public class NorthContext {
         if(tmpfile.exists()){
             try {
                 String startTimeStr = FileUtils.readFileToString(tmpfile);
-                if(StringUtils.isNotBlank(startTimeStr))
+                if(StringUtils.isNotBlank(startTimeStr)) {
                     this.status.putAll(Jsons.toMap(startTimeStr));
+                    this.lastStatus = startTimeStr;
+                }
                 logger.info(String.format("文件%s存在，内容为：\n\t %s", tmpfile, startTimeStr));
             } catch (Exception e) {
                 logger.error(String.format("读取%s失败。", tmpfile), e);
@@ -222,7 +225,7 @@ public class NorthContext {
             try {
                 FileUtils.write(tmpfile, str, Charset.forName("UTF-8"), false);
                 lastStatus = str;
-                logger.info(String.format("更新%s成功，更新内容为：\n\t", tmpfile, str));
+                logger.info(String.format("更新%s成功，更新内容为：\n\t %s", tmpfile, str));
             } catch (IOException e) {
                 logger.error(String.format("更新%s失败。", tmpfile), e);
             }
