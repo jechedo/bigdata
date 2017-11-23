@@ -153,6 +153,7 @@ public class EsDataSource extends DataSource{
                         .setQuery(qb)
                         .setFetchSource(new String[]{indexType.startField}, null).get();
                 hits = searchResponse.getHits();
+                totalHits = maxRecordBatch;
             }
 
             SearchHit maxHit = hits.getHits()[0];
