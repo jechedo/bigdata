@@ -5,7 +5,7 @@ import cn.skyeye.norths.events.DataEventHandler;
 
 /**
  * Description:
- *
+ *   告警日志收集器
  * @author LiXiaoCong
  * @version 2017/11/27 14:34
  */
