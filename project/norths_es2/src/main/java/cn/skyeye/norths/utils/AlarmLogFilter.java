@@ -49,9 +49,18 @@ public class AlarmLogFilter {
     }
 
     private boolean confidenceAccept(Map<String, Object> alarmLog){
-        String confidence = syslogAlarmConfig.getConfidence();
-        if(StringUtils.isNotBlank(confidence) && !"all".equalsIgnoreCase(confidence)){
-
+        int scoreEdg = syslogAlarmConfig.getConfidence();
+        if(scoreEdg > 0){
+            //获取确信度
+            Object confidenceObj = alarmLog.get("confidence");
+            if(confidenceObj == null)return true;
+            try {
+                int confidenceScore = Integer.parseInt(String.valueOf(confidenceObj));
+                return confidenceScore >= scoreEdg;
+            } catch (NumberFormatException e) {
+                logger.error(String.format("下面告警日志的确信度不是Int类型：\n\t %s", alarmLog), e);
+                return false;
+            }
         }
         return true;
     }

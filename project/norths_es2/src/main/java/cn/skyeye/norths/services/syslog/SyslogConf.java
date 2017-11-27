@@ -168,9 +168,20 @@ public class SyslogConf {
             Object obj = syslogAlarmConfig.get("level");
             return  obj == null ? "all" : String.valueOf(obj);
         }
-        public String getConfidence(){
+
+        public int getConfidence(){
             Object obj = syslogAlarmConfig.get("confidence");
-            return  obj == null ? "all" : String.valueOf(obj);
+            if(obj == null || "all".equals(obj))return 0;
+
+            int scoreEdg = 0;
+            switch (String.valueOf(obj)){
+                case "高" : scoreEdg = 80; break;
+                case "中" : scoreEdg = 50; break;
+                case "低" : scoreEdg = 0; break;
+                default:
+                    scoreEdg = 0; break;
+            }
+            return scoreEdg;
         }
         public String getStatus(){
             Object obj = syslogAlarmConfig.get("status");
