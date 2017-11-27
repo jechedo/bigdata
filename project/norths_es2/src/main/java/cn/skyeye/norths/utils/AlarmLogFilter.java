@@ -49,6 +49,7 @@ public class AlarmLogFilter {
             try {
                 int hazardLevel = Integer.parseInt(String.valueOf(hazardLevelObj));
 
+
             } catch (NumberFormatException e) {
                 logger.error(String.format("下面告警日志的威胁级别hazard_level不是Int类型：\n\t %s", alarmLog), e);
                 return false;

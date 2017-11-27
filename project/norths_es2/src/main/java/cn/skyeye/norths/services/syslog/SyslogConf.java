@@ -166,6 +166,9 @@ public class SyslogConf {
 
         public String getLevel(){
             Object obj = syslogAlarmConfig.get("level");
+            int levelEdg;
+
+
             return  obj == null ? "all" : String.valueOf(obj);
         }
 
@@ -173,7 +176,7 @@ public class SyslogConf {
             Object obj = syslogAlarmConfig.get("confidence");
             if(obj == null || "all".equals(obj))return 0;
 
-            int scoreEdg = 0;
+            int scoreEdg;
             switch (String.valueOf(obj)){
                 case "高" : scoreEdg = 80; break;
                 case "中" : scoreEdg = 50; break;
