@@ -140,9 +140,9 @@ public class NorthsConf extends ConfigDetail {
     public synchronized Connection getConn() {
         try {
             if(conn == null || !conn.isValid(1)){
-                logger.warn("数据库连接失效，重新连接...");
+                logger.debug("数据库连接失效，重新连接...");
                 initSystemConfigConn();
-                logger.warn("数据库重新连接成功。");
+                logger.debug("数据库重新连接成功。");
             }
         } catch (SQLException e) {
             logger.error("获取数据库连接失败。", e);
