@@ -5,6 +5,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,24 +49,35 @@ public class AlarmLogFilter {
     }
 
     private boolean confidenceAccept(Map<String, Object> alarmLog){
-        String level = syslogAlarmConfig.getLevel();
-        if(StringUtils.isNotBlank(level) && !"all".equalsIgnoreCase(level)){
+        String confidence = syslogAlarmConfig.getConfidence();
+        if(StringUtils.isNotBlank(confidence) && !"all".equalsIgnoreCase(confidence)){
 
         }
         return true;
     }
 
     private boolean statusAccept(Map<String, Object> alarmLog){
-        String level = syslogAlarmConfig.getLevel();
-        if(StringUtils.isNotBlank(level) && !"all".equalsIgnoreCase(level)){
+        String status = syslogAlarmConfig.getStatus();
+        if(StringUtils.isNotBlank(status) && !"all".equalsIgnoreCase(status)){
+            //获取资产
+            Object assetObj = alarmLog.get("_asset");
+            if(assetObj == null) return false;
 
+            try {
+                Map<String, Object> asset = (Map<String, Object>) assetObj;
+                Object statusObj = asset.get("host_state");
+                return status.equals(statusObj);
+            } catch (Exception e) {
+                logger.error(String.format("下面告警日志的资产信息格式有误。\n\t %s", alarmLog));
+                return false;
+            }
         }
         return true;
     }
 
     private boolean logtypeAccept(Map<String, Object> alarmLog){
-        String level = syslogAlarmConfig.getLevel();
-        if(StringUtils.isNotBlank(level) && !"all".equalsIgnoreCase(level)){
+        List<String> logtypes = syslogAlarmConfig.getLogtype();
+        if(!logtypes.isEmpty()){
 
         }
         return true;

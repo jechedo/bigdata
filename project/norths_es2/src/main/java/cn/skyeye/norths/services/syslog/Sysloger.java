@@ -98,7 +98,7 @@ public class Sysloger extends DataEventHandler {
         SyslogIF syslogClient = Syslog.getInstance(protocol);
         syslogClient.getConfig().setHost(host);
         syslogClient.getConfig().setPort(port);
-        syslogClient.getConfig().setFacility("LOCAL6");
+        syslogClient.getConfig().setFacility("LOCAL3");
         syslogClient.getConfig().setSendLocalName(false);
         syslogClient.getConfig().setSendLocalTimestamp(false);
         return syslogClient;
@@ -143,9 +143,8 @@ public class Sysloger extends DataEventHandler {
 
     private String createMessage(Map<String, Object> record){
 
-        syslogConf.getExcludes().forEach(field ->{
-            record.remove(field);
-        });
+
+        System.out.println(record.get("_asset").getClass() + " : " + record.get("_asset"));
 
         Set<String> includes = syslogConf.getIncludes();
         if(includes.size() > 0){
@@ -155,6 +154,9 @@ public class Sysloger extends DataEventHandler {
                }
            });
         }
+
+        syslogConf.getExcludes().forEach(field -> record.remove(field));
+
         return Jsons.obj2JsonString(record);
     }
 
