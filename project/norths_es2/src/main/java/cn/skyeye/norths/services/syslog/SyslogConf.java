@@ -193,6 +193,8 @@ public class SyslogConf {
             if(obj != null){
                 if(obj instanceof List){
                     return (List<String>)obj;
+                } else if(obj instanceof String){
+                    return Lists.newArrayList(String.valueOf(obj).split(","));
                 }else {
                     logger.error(String.format("%s的配置项logtype：%s配置格式有误", SYSLOG_ALARM_CONF, obj));
                 }

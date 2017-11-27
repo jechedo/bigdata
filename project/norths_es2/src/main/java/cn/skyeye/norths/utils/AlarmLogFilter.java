@@ -43,6 +43,17 @@ public class AlarmLogFilter {
     private boolean levelAccept(Map<String, Object> alarmLog){
         String level = syslogAlarmConfig.getLevel();
         if(StringUtils.isNotBlank(level) && !"all".equalsIgnoreCase(level)){
+            Object hazardLevelObj = alarmLog.get("hazard_level");
+            if(hazardLevelObj == null)return false;
+
+            try {
+                int hazardLevel = Integer.parseInt(String.valueOf(hazardLevelObj));
+
+            } catch (NumberFormatException e) {
+                logger.error(String.format("下面告警日志的威胁级别hazard_level不是Int类型：\n\t %s", alarmLog), e);
+                return false;
+            }
+
 
         }
         return true;
@@ -58,7 +69,7 @@ public class AlarmLogFilter {
                 int confidenceScore = Integer.parseInt(String.valueOf(confidenceObj));
                 return confidenceScore >= scoreEdg;
             } catch (NumberFormatException e) {
-                logger.error(String.format("下面告警日志的确信度不是Int类型：\n\t %s", alarmLog), e);
+                logger.error(String.format("下面告警日志的确信度confidence不是Int类型：\n\t %s", alarmLog), e);
                 return false;
             }
         }
@@ -77,7 +88,7 @@ public class AlarmLogFilter {
                 Object statusObj = asset.get("host_state");
                 return status.equals(statusObj);
             } catch (Exception e) {
-                logger.error(String.format("下面告警日志的资产信息格式有误。\n\t %s", alarmLog));
+                logger.error(String.format("下面告警日志的资产信息host_state格式有误。\n\t %s", alarmLog));
                 return false;
             }
         }
