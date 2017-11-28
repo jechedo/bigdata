@@ -96,6 +96,7 @@ public class Sysloger extends DataEventHandler {
         syslogClient.getConfig().setPort(port);
         syslogClient.getConfig().setFacility("LOCAL3");
         syslogClient.getConfig().setSendLocalName(false);
+        syslogClient.getConfig().setMaxMessageLength(10240);
         //syslogClient.getConfig().setSendLocalTimestamp(false);
         return syslogClient;
     }
@@ -151,7 +152,7 @@ public class Sysloger extends DataEventHandler {
 
         syslogConf.getExcludes().forEach(field -> record.remove(field));
 
-        return Jsons.obj2JsonString(record);
+        return String.format("alarm|!%s", Jsons.obj2JsonString(record));
     }
 
     public boolean isEmpty(){
