@@ -96,7 +96,7 @@ public class Sysloger extends DataEventHandler {
         syslogClient.getConfig().setPort(port);
         syslogClient.getConfig().setFacility("LOCAL3");
         syslogClient.getConfig().setSendLocalName(false);
-        syslogClient.getConfig().setSendLocalTimestamp(false);
+        //syslogClient.getConfig().setSendLocalTimestamp(false);
         return syslogClient;
     }
 
@@ -117,7 +117,8 @@ public class Sysloger extends DataEventHandler {
     @Override
     public void onEvent(DataEvent event) {
         Map<String, Object> record = event.getRecord();
-        if(getAlarmLogFilter().isAccept(record)) {
+        //getAlarmLogFilter().isAccept(record)
+        if(true) {
             final String message = createMessage(record);
             Set<SyslogIF> entries = getSyslogClients();
             entries.forEach(entry -> {
