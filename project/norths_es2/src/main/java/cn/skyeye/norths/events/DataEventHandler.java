@@ -51,7 +51,7 @@ public abstract class DataEventHandler implements EventHandler<DataEvent> {
             batchEvent.incrementAndGet();
         }
 
-        if(isAcceept(event)) {
+        if(isAccept(event)) {
             onEvent(event);
         }
         this.endOfBatch.set(endOfBatch);
@@ -60,7 +60,7 @@ public abstract class DataEventHandler implements EventHandler<DataEvent> {
 
     public abstract void onEvent(DataEvent event);
 
-    public abstract boolean isAcceept(DataEvent event);
+    public abstract boolean isAccept(DataEvent event);
 
     public void shutdown(long total){
         while (total > totalEvent.get()){

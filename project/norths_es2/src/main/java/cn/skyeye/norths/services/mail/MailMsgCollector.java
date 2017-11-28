@@ -21,7 +21,7 @@ public class MailMsgCollector extends DataEventHandler {
     }
 
     @Override
-    public boolean isAcceept(DataEvent event) {
+    public boolean isAccept(DataEvent event) {
         return false;
     }
 }

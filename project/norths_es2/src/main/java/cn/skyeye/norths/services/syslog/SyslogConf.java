@@ -26,7 +26,8 @@ public class SyslogConf {
     private static final Log logger = LogFactory.getLog(SyslogConf.class);
 
     private String conf_preffix;
-    private Set<String> acceeptSources;
+    private Set<String> acceptSources;
+    private Map<String, Set<String>> acceptTypeMap ;
     private Set<String> excludes;
     private Set<String> includes;
 
@@ -37,14 +38,34 @@ public class SyslogConf {
         this.conf_preffix = preffix;
         this.configDetail = configDetail;
         this.northsConf = northsConf;
+        this.acceptTypeMap = Maps.newHashMap();
 
-        this.acceeptSources = configDetail.getConfigItemSet(String.format("%sdatasources", conf_preffix));
+        this.acceptSources = configDetail.getConfigItemSet(String.format("%sdatasources", conf_preffix));
+        Set<String> acceptTypes;
+        for(String acceptSource : acceptSources){
+            acceptTypes = configDetail.getConfigItemSet(String.format("%sdatasources.%s.types", conf_preffix, acceptSource));
+            if(!acceptTypes.isEmpty()){
+                this.acceptTypeMap.put(acceptSource, acceptTypes);
+            }
+        }
+
         this.excludes = configDetail.getConfigItemSet(String.format("%sexcludes", conf_preffix));
         this.includes = configDetail.getConfigItemSet(String.format("%sincludes", conf_preffix));
     }
 
-    public boolean isAcceeptSource(String source){
-        return this.acceeptSources.isEmpty() ? true : this.acceeptSources.contains(source);
+    public boolean isAcceptSource(String source, String type){
+        boolean accept = true;
+        if(!this.acceptSources.isEmpty()){
+            accept = this.acceptSources.contains(source);
+            if(accept){
+                Set<String> types = acceptTypeMap.get(source);
+                if(types != null || !types.isEmpty()){
+                    accept = types.contains(type);
+                }
+            }
+        }
+
+        return accept;
     }
 
     public SyslogConfig getSyslogConfig(){

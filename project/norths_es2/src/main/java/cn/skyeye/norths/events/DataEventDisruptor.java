@@ -67,7 +67,7 @@ public class DataEventDisruptor {
         this.handlers = handlers;
     }
 
-    public synchronized void publishEvent(String source, Map<String, Object> record) {
+    public synchronized void publishEvent(String source, String type, Map<String, Object> record) {
         if(record != null) {
             while (!disruptor.getRingBuffer().hasAvailableCapacity(6)) {
                 logger.warn("剩余缓存卡槽数小于6， 等待...");
@@ -76,7 +76,7 @@ public class DataEventDisruptor {
                 } catch (InterruptedException e) {
                 }
             }
-            record.put(NAME, source);
+            record.put(NAME, new String[]{source, type});
             disruptor.publishEvent(translator, record);
             totalEvent += 1;
         }

@@ -137,8 +137,8 @@ public class Sysloger extends DataEventHandler {
     }
 
     @Override
-    public boolean isAcceept(DataEvent event){
-        return syslogConf.isAcceeptSource(event.getSource());
+    public boolean isAccept(DataEvent event){
+        return syslogConf.isAcceptSource(event.getSource(), event.getType());
     }
 
     private String createMessage(Map<String, Object> record){

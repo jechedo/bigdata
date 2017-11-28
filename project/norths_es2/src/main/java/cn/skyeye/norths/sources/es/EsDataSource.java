@@ -208,7 +208,7 @@ public class EsDataSource extends DataSource{
 
                 SearchHit[] hits = searchResponse.getHits().getHits();
                 for(SearchHit hit : hits){
-                    eventDisruptor.publishEvent(name, hit.sourceAsMap());
+                    eventDisruptor.publishEvent(name, indexType.getIndexAndType(), hit.sourceAsMap());
                     res += 1;
                 }
             }else{
@@ -221,7 +221,7 @@ public class EsDataSource extends DataSource{
                         .setSize(1000).get();
                 while (true) {
                     for (SearchHit hit : scrollResp.getHits().getHits()) {
-                        eventDisruptor.publishEvent(name, hit.sourceAsMap());
+                        eventDisruptor.publishEvent(name, indexType.getIndexAndType(), hit.sourceAsMap());
                         res += 1;
                     }
                     scrollResp = client.prepareSearchScroll(scrollResp.getScrollId())
@@ -268,6 +268,10 @@ public class EsDataSource extends DataSource{
 
         public String getTmpKey(){
             return String.format("%s/%s/%s", index, type, startField);
+        }
+
+        public String getIndexAndType(){
+            return String.format("%s/%s", index, type);
         }
 
         @Override

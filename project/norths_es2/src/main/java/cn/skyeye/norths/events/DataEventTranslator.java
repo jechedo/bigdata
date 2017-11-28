@@ -14,10 +14,11 @@ public class DataEventTranslator implements EventTranslatorOneArg<DataEvent, Map
 
     @Override
     public void translateTo(DataEvent event, long sequence, Map<String, Object> arg0) {
-        String source = (String) arg0.get(DataEventDisruptor.NAME);
+        String[] sourceAndType = (String[]) arg0.get(DataEventDisruptor.NAME);
         arg0.remove(DataEventDisruptor.NAME);
         event.setRecord(arg0);
-        event.setSource(source);
+        event.setSource(sourceAndType[0]);
+        event.setType(sourceAndType[1]);
 
     }
 }

@@ -11,8 +11,10 @@ import java.util.Map;
  * @version 2017/11/21 14:59
  */
 public class DataEvent {
-
+    //数据所属的数据源名称
     private String source;
+    //数据所属数据源中的哪个类别
+    private String type;
     private Map<String, Object> record;
 
     public DataEvent() {
@@ -34,10 +36,19 @@ public class DataEvent {
         this.source = source;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("DataEvent{");
         sb.append("source='").append(source).append('\'');
+        sb.append(", type='").append(type).append('\'');
         sb.append(", record=").append(record);
         sb.append('}');
         return sb.toString();
