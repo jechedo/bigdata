@@ -6,6 +6,7 @@ import cn.skyeye.norths.events.DataEventHandler;
 import cn.skyeye.norths.utils.AlarmLogFilter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.productivity.java.syslog4j.Syslog;
 import org.productivity.java.syslog4j.SyslogIF;
 
@@ -21,7 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @version 2017/11/20 19:45
  */
 public class Sysloger extends DataEventHandler {
-    private Map<String, SyslogIF> syslogClients;
+    private Set<SyslogIF> syslogClients;
     private ReentrantLock lock = new ReentrantLock();
 
     private AlarmLogFilter alarmLogFilter;
@@ -29,7 +30,7 @@ public class Sysloger extends DataEventHandler {
 
     public Sysloger(String name){
         super(name);
-        this.syslogClients = Maps.newConcurrentMap();
+        this.syslogClients = Sets.newHashSet();
         this.syslogConf = new SyslogConf(conf_preffix, configDetail, northContext.getNorthsConf());
         initSyslogClient(syslogConf.getSyslogConfig());
         initAlarmFilter(syslogConf.getSyslogAlarmConfig());
@@ -52,7 +53,6 @@ public class Sysloger extends DataEventHandler {
         if(clear)clearSyslogClient();
         Object ipObj;
         Object portObj;
-        Object idObj;
         for(Map<String, Object> service : services){
             ipObj = service.get("host");
             if(ipObj == null)continue;
@@ -60,11 +60,7 @@ public class Sysloger extends DataEventHandler {
             portObj = service.get("port");
             if(portObj == null)continue;
 
-            idObj = service.get("id");
-            if(idObj == null)continue;
-
-            addSyslogClient(String.valueOf(idObj),
-                    String.valueOf(ipObj),
+            addSyslogClient(String.valueOf(ipObj),
                     Integer.parseInt(String.valueOf(portObj)),
                     protocol);
             logger.info(String.format("添加syslogClient成功: host: %s, port: %s, protocol : %s", ipObj, portObj, protocol));
@@ -89,9 +85,9 @@ public class Sysloger extends DataEventHandler {
         }
     }
 
-    private void addSyslogClient(String id, String host, int port, String protocol){
+    private void addSyslogClient(String host, int port, String protocol){
         SyslogIF syslogClient = newSyslogClient(host, port, protocol);
-        this.syslogClients.put(id, syslogClient);
+        this.syslogClients.add(syslogClient);
     }
 
     private SyslogIF newSyslogClient(String host, int port, String protocol) {
@@ -109,12 +105,10 @@ public class Sysloger extends DataEventHandler {
         logger.info("清空syslogClient成功。");
     }
 
-    private Map<String, SyslogIF> getSyslogClients(){
+    private Set<SyslogIF> getSyslogClients(){
         this.lock.lock();
-        Map<String, SyslogIF> map;
         try {
-            map = Maps.newHashMap(syslogClients);
-            return map;
+            return Sets.newHashSet(syslogClients);
         } finally {
             this.lock.unlock();
         }
@@ -125,12 +119,12 @@ public class Sysloger extends DataEventHandler {
         Map<String, Object> record = event.getRecord();
         if(getAlarmLogFilter().isAccept(record)) {
             final String message = createMessage(record);
-            Set<Map.Entry<String, SyslogIF>> entries = getSyslogClients().entrySet();
+            Set<SyslogIF> entries = getSyslogClients();
             entries.forEach(entry -> {
                 try {
-                    entry.getValue().warn(message);
+                    entry.warn(message);
                 } catch (Exception e) {
-                    logger.error(String.format("syslog服务器：%s连接异常。", entry.getValue().getConfig().getHost()), e);
+                    logger.error(String.format("syslog服务器：%s连接异常。", entry.getConfig().getHost()), e);
                 }
             });
         }

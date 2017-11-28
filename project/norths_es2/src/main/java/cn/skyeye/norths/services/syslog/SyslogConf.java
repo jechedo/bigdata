@@ -59,7 +59,7 @@ public class SyslogConf {
             accept = this.acceptSources.contains(source);
             if(accept){
                 Set<String> types = acceptTypeMap.get(source);
-                if(types != null || !types.isEmpty()){
+                if(types != null && !types.isEmpty()){
                     accept = types.contains(type);
                 }
             }
