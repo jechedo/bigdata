@@ -127,6 +127,8 @@ public class Sysloger extends DataEventHandler {
                     logger.error(String.format("syslog服务器：%s连接异常。", entry.getConfig().getHost()), e);
                 }
             });
+        }else{
+            logger.debug(String.format("告警信息不满足要求：\n\t%s", event));
         }
     }
 

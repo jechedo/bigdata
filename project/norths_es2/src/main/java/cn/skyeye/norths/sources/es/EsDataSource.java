@@ -84,7 +84,7 @@ public class EsDataSource extends DataSource{
                 }
 
                 if(indexType.start == null){
-                    initIndexTypeStart(indexType);
+                    //initIndexTypeStart(indexType);
                 }
 
                 indexTypes.add(indexType);

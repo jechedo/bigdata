@@ -53,6 +53,8 @@ public abstract class DataEventHandler implements EventHandler<DataEvent> {
 
         if(isAccept(event)) {
             onEvent(event);
+        }else {
+            logger.debug(String.format("%s不处理此数据源%s:%s数据", name, event.getSource(), event.getType()));
         }
         this.endOfBatch.set(endOfBatch);
         totalEvent.incrementAndGet();
