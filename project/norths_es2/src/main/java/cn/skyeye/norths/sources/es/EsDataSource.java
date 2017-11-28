@@ -46,10 +46,11 @@ public class EsDataSource extends DataSource{
                         ExecutorService threadPool,
                         DataEventDisruptor eventDisruptor){
         super(name);
-        getIndexTypes(configDetail);
 
         Map<String, String> configMap = configDetail.getConfigMap(conf_preffix);
         this.esClient = new EsClient(configMap);
+
+        getIndexTypes(configDetail);
 
         this.threadPool = threadPool;
         this.eventDisruptor = eventDisruptor;
@@ -82,6 +83,10 @@ public class EsDataSource extends DataSource{
                     indexType.excludes = configItemSet.toArray(new String[configItemSet.size()]);
                 }
 
+                if(indexType.start == null){
+                    initIndexTypeStart(indexType);
+                }
+
                 indexTypes.add(indexType);
             }
         }
@@ -89,6 +94,24 @@ public class EsDataSource extends DataSource{
             logger.warn("配置项norths.datasources.es.index.types中无可用的数据源。");
         }else {
             logger.info(String.format("es数据源有：\n\t %s", indexTypes));
+        }
+    }
+
+    private void initIndexTypeStart(IndexType indexType){
+        SearchRequestBuilder requestBuilder = esClient.getClient()
+                .prepareSearch(indexType.index)
+                .setTypes(indexType.type);
+        SearchResponse searchResponse = requestBuilder.addSort(indexType.startField, SortOrder.DESC)
+                .setSize(1)
+                .setQuery(QueryBuilders.matchAllQuery())
+                .setFetchSource(new String[]{indexType.startField}, null).get();
+        SearchHits hits = searchResponse.getHits();
+        long totalHits = hits.getTotalHits();
+        if(totalHits > 0){
+            SearchHit maxHit = hits.getHits()[0];
+            Object start = maxHit.sourceAsMap().get(indexType.startField);
+            indexType.start = start;
+            northContext.setStatus(indexType.getTmpKey(), start);
         }
     }
 
