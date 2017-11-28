@@ -40,7 +40,7 @@
                   <resource>META-INF/spring.schemas</resource>
                 </transformer>
                 <transformer>
-                  <mainClass />
+                  <mainClass>cn.skyeye.norths.Main</mainClass>
                 </transformer>
               </transformers>
             </configuration>

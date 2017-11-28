@@ -143,9 +143,6 @@ public class Sysloger extends DataEventHandler {
 
     private String createMessage(Map<String, Object> record){
 
-
-        System.out.println(record.get("_asset").getClass() + " : " + record.get("_asset"));
-
         Set<String> includes = syslogConf.getIncludes();
         if(includes.size() > 0){
            record.keySet().forEach(field ->{
