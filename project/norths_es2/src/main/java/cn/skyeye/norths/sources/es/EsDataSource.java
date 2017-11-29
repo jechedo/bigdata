@@ -86,7 +86,6 @@ public class EsDataSource extends DataSource{
                 //初始化读取数据的位置
                 //initIndexTypeStart(indexType);
 
-
                 indexTypes.add(indexType);
             }
         }
@@ -188,7 +187,7 @@ public class EsDataSource extends DataSource{
                 logger.info(String.format("查询%s的数据成功: \n\t max = %s, resNum = %s, 耗时：%ss 。",
                         indexType, max, res, (System.currentTimeMillis() - time)/1000));
                 indexType.start = max;
-                northContext.setStatus(indexType.getTmpKey(), max);
+                //northContext.setStatus(indexType.getTmpKey(), max);
             } catch (Exception e) {
                logger.error(String.format("查询%s的数据失败。", indexType), e);
             }
