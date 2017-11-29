@@ -215,6 +215,7 @@ public class NorthsConf extends ConfigDetail {
                         systemConfig.put(key, value);
                     }
                 }
+                logger.info(String.format("表%s中的配置为：\n\t %s", systemConfigTableName, systemConfig));
 
                 sql = String.format("select cat from %s", threateTypeTableName);
                 threatStatement = conn.createStatement();
@@ -222,7 +223,7 @@ public class NorthsConf extends ConfigDetail {
                 while (threatResultSet.next()) {
                     threats.add(threatResultSet.getString("cat"));
                 }
-
+                logger.info(String.format("告警类型的配置为：\n\t %s", threats));
             } catch (SQLException e) {
                 logger.error("查询系统配置表失败。", e);
             } finally {

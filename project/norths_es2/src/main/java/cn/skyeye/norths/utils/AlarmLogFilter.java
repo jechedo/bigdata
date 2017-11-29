@@ -115,7 +115,6 @@ public class AlarmLogFilter {
         if(!logtypes.isEmpty()){
             Object typeObj = alarmLog.get("type");
             if(typeObj == null) return false;
-
             return logtypes.contains(typeObj);
         }
         return true;
