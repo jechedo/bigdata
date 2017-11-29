@@ -47,14 +47,21 @@ public class AlarmLogFilter {
 
             try {
                 int hazardLevel = Integer.parseInt(String.valueOf(hazardLevelObj));
-
-
+                String level;
+                if(hazardLevel < 4){
+                    level = "低危";
+                }else if(hazardLevel >= 4 && hazardLevel < 6){
+                    level = "中危";
+                }else if(hazardLevel >= 6 && hazardLevel < 8) {
+                    level = "高危";
+                }else {
+                    level = "危急";
+                }
+                return levels.contains(level);
             } catch (NumberFormatException e) {
                 logger.error(String.format("下面告警日志的威胁级别hazard_level不是Int类型：\n\t %s", alarmLog), e);
                 return false;
             }
-
-
         }
         return true;
     }
@@ -108,6 +115,8 @@ public class AlarmLogFilter {
         if(!logtypes.isEmpty()){
             Object typeObj = alarmLog.get("type");
             if(typeObj == null) return false;
+
+            return logtypes.contains(typeObj);
         }
         return true;
     }

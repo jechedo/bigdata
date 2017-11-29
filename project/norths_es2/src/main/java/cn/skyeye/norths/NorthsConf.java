@@ -7,13 +7,17 @@ import cn.skyeye.common.databases.SQLites;
 import cn.skyeye.resources.ConfigDetail;
 import cn.skyeye.resources.Resources;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.File;
 import java.sql.*;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -32,9 +36,11 @@ public class NorthsConf extends ConfigDetail {
 
     private Connection conn;
     private String systemConfigTableName;
+    private String threateTypeTableName;
     private boolean sqlite;
 
     private Map<String, String> systemConfig = Maps.newConcurrentMap();
+    private Set<String> threats = Sets.newHashSet();
     private boolean autoFlushSystemConfig;
     private ReentrantLock lock = new ReentrantLock();
 
@@ -58,6 +64,7 @@ public class NorthsConf extends ConfigDetail {
             logger.error("读取norths基础配置失败。", e);
         }
         this.systemConfigTableName = getConfigItemValue("norths.systemconfig.tablename", "system_config");
+        this.threateTypeTableName = getConfigItemValue("norths.threattype.tablename", "threat_type_info");
         this.autoFlushSystemConfig = getConfigItemBoolean("norths.systemconfig.auto.flush", false);
         initSystemConfigConn();
         searchSystemConfig();
@@ -185,27 +192,42 @@ public class NorthsConf extends ConfigDetail {
      */
     private void searchSystemConfig(){
         Connection conn = getConn();
-        if(conn != null && checkTableExist(conn)){
-            String sql = "select key,value from " + systemConfigTableName + " where key like 'norths_%'";
+        if(conn != null){
+            String sql;
             PreparedStatement statement= null;
             ResultSet resultSet = null;
+
+            Statement threatStatement = null;
+            ResultSet threatResultSet = null;
             lock.lock();
             try {
-                statement = conn.prepareStatement(sql);
-                resultSet = statement.executeQuery();
+                if(checkTableExist(conn)) {
+                    sql = "select key,value from " + systemConfigTableName + " where key like 'norths_%'";
+                    statement = conn.prepareStatement(sql);
+                    resultSet = statement.executeQuery();
 
-                systemConfig.clear();
-                String key;
-                String value;
-                while (resultSet.next()){
-                    key = resultSet.getString("key");
-                    value = resultSet.getString("value");
-                    systemConfig.put(key, value);
+                    systemConfig.clear();
+                    String key;
+                    String value;
+                    while (resultSet.next()) {
+                        key = resultSet.getString("key");
+                        value = resultSet.getString("value");
+                        systemConfig.put(key, value);
+                    }
                 }
+
+                sql = String.format("select cat from %s", threateTypeTableName);
+                threatStatement = conn.createStatement();
+                threatResultSet = threatStatement.executeQuery(sql);
+                while (threatResultSet.next()) {
+                    threats.add(threatResultSet.getString("cat"));
+                }
+
             } catch (SQLException e) {
                 logger.error("查询系统配置表失败。", e);
             } finally {
                 DBCommon.close(null, statement, resultSet);
+                DBCommon.close(null, threatStatement, threatResultSet);
                 if(sqlite){
                     DBCommon.close(conn);
                     this.conn = null;
@@ -213,6 +235,18 @@ public class NorthsConf extends ConfigDetail {
                 lock.unlock();
             }
         }
+    }
+
+    public void checkAndCloseConnection(Connection conn){
+        if(sqlite){
+            DBCommon.close(conn);
+            this.conn = null;
+        }
+    }
+
+
+    public List<String> getThreats() {
+        return Lists.newArrayList(threats);
     }
 
     private boolean checkTableExist(Connection conn){

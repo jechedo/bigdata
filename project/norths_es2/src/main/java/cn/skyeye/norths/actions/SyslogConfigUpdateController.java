@@ -5,6 +5,7 @@ import cn.skyeye.norths.events.DataEventHandler;
 import cn.skyeye.norths.services.syslog.SyslogConf;
 import cn.skyeye.norths.services.syslog.Sysloger;
 import cn.skyeye.norths.utils.ResponseHelper;
+import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +32,24 @@ public class SyslogConfigUpdateController {
         Map<String, Object> config = sysloger.getSyslogConf().getSyslogConfig().getConfig();
         logger.debug(String.format("查询syslog的配置: %s", config));
         return ResponseHelper.success(config);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "syslogalarm/list/level", method = { RequestMethod.GET, RequestMethod.POST})
+    Object getSyslogAlarmLevel(){
+        return ResponseHelper.success(Lists.newArrayList("危急", "高危", "中危", "低危"));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "syslogalarm/list/status", method = { RequestMethod.GET, RequestMethod.POST})
+    Object getSyslogAlarmStatus(){
+        return ResponseHelper.success(Lists.newArrayList("失陷", "可疑"));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "syslogalarm/list/type", method = { RequestMethod.GET, RequestMethod.POST})
+    Object getSyslogAlarmType(){
+        return ResponseHelper.success(northContext.getNorthsConf().getThreats());
     }
 
     @ResponseBody
