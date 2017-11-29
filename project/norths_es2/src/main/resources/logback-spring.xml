@@ -5,7 +5,7 @@
     <!-- spring cloud 服务名 -->
     <springProperty scope="context" name="springAppName" source="spring.application.name"/>
     <!-- 日志文件路径 -->
-    <property name="log_path" value="/opt/work/logs/norths"/>
+    <property name="log_path" value="/opt/work/web/xenwebsite/logs/norths"/>
     <!-- 日志切割的最小单位 -->
     <property name="every_file_size" value="50MB"/>
     <!-- 保存日志文件天数 -->
