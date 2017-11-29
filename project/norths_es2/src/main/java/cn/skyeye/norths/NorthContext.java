@@ -116,6 +116,7 @@ public class NorthContext {
     public void close(){
         if(fetchDataTimer != null)fetchDataTimer.cancel();
         if(dataEventDisruptor != null)dataEventDisruptor.shutDown();
+        started.set(false);
     }
 
     private void initDataSources() {
