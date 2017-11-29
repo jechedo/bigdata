@@ -1,7 +1,6 @@
 package cn.skyeye.norths.utils;
 
 import cn.skyeye.norths.services.syslog.SyslogConf;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -41,8 +40,8 @@ public class AlarmLogFilter {
     }
 
     private boolean levelAccept(Map<String, Object> alarmLog){
-        String level = syslogAlarmConfig.getLevel();
-        if(StringUtils.isNotBlank(level) && !"all".equalsIgnoreCase(level)){
+        List<String> levels = syslogAlarmConfig.getLevel();
+        if(!levels.isEmpty()){
             Object hazardLevelObj = alarmLog.get("hazard_level");
             if(hazardLevelObj == null)return false;
 
@@ -61,14 +60,22 @@ public class AlarmLogFilter {
     }
 
     private boolean confidenceAccept(Map<String, Object> alarmLog){
-        int scoreEdg = syslogAlarmConfig.getConfidence();
-        if(scoreEdg > 0){
+        List<String> confidences = syslogAlarmConfig.getConfidence();
+        if(!confidences.isEmpty()){
             //获取确信度
             Object confidenceObj = alarmLog.get("confidence");
             if(confidenceObj == null)return true;
             try {
                 int confidenceScore = Integer.parseInt(String.valueOf(confidenceObj));
-                return confidenceScore >= scoreEdg;
+                String confidence;
+                if(confidenceScore <= 50){
+                    confidence = "低";
+                }else if(confidenceScore > 50 && confidenceScore <= 80){
+                    confidence = "中";
+                }else {
+                    confidence = "高";
+                }
+                return confidences.contains(confidence);
             } catch (NumberFormatException e) {
                 logger.error(String.format("下面告警日志的确信度confidence不是Int类型：\n\t %s", alarmLog), e);
                 return false;
@@ -78,8 +85,8 @@ public class AlarmLogFilter {
     }
 
     private boolean statusAccept(Map<String, Object> alarmLog){
-        String status = syslogAlarmConfig.getStatus();
-        if(StringUtils.isNotBlank(status) && !"all".equalsIgnoreCase(status)){
+        List<String> statuss = syslogAlarmConfig.getStatus();
+        if(!statuss.isEmpty()){
             //获取资产
             Object assetObj = alarmLog.get("_asset");
             if(assetObj == null) return false;
@@ -87,7 +94,7 @@ public class AlarmLogFilter {
             try {
                 Map<String, Object> asset = (Map<String, Object>) assetObj;
                 Object statusObj = asset.get("host_state");
-                return status.equals(statusObj);
+                return statuss.contains(statusObj);
             } catch (Exception e) {
                 logger.error(String.format("下面告警日志的资产信息host_state格式有误。\n\t %s", alarmLog));
                 return false;

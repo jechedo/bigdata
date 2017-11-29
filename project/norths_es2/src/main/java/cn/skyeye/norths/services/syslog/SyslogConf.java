@@ -185,42 +185,30 @@ public class SyslogConf {
             this.syslogAlarmConfig = syslogAlarmConfig;
         }
 
-        public String getLevel(){
-            Object obj = syslogAlarmConfig.get("level");
-            int levelEdg;
-
-
-            return  obj == null ? "all" : String.valueOf(obj);
+        public List<String> getLevel(){
+            return  getListByField("level");
         }
 
-        public int getConfidence(){
-            Object obj = syslogAlarmConfig.get("confidence");
-            if(obj == null || "all".equals(obj))return 0;
-
-            int scoreEdg;
-            switch (String.valueOf(obj)){
-                case "高" : scoreEdg = 80; break;
-                case "中" : scoreEdg = 50; break;
-                case "低" : scoreEdg = 0; break;
-                default:
-                    scoreEdg = 0; break;
-            }
-            return scoreEdg;
+        public List<String> getConfidence(){
+            return getListByField("confidence");
         }
-        public String getStatus(){
-            Object obj = syslogAlarmConfig.get("status");
-            return  obj == null ? "all" : String.valueOf(obj);
+        public List<String> getStatus(){
+            return getListByField("status");
         }
 
         public List<String> getLogtype(){
-            Object obj = syslogAlarmConfig.get("logtype");
-            if(obj != null){
+            return getListByField("logtype");
+        }
+
+        private List<String> getListByField(String field){
+            Object obj = syslogAlarmConfig.get(field);
+            if(obj != null && !"全部".equals(obj)){
                 if(obj instanceof List){
                     return (List<String>)obj;
                 } else if(obj instanceof String){
                     return Lists.newArrayList(String.valueOf(obj).split(","));
                 }else {
-                    logger.error(String.format("%s的配置项logtype：%s配置格式有误", SYSLOG_ALARM_CONF, obj));
+                    logger.error(String.format("%s的配置项%s：%s配置格式有误", SYSLOG_ALARM_CONF, field, obj));
                 }
             }
             return Lists.newArrayList();
