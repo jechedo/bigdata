@@ -12,10 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -28,7 +25,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @version 2017/11/21 16:43
  */
 public class NorthsConf extends ConfigDetail {
-    private final static String _CONFIG = "/norths/norths-base";
+    private final static String _CONFIG = "/norths";
     private final Log logger = LogFactory.getLog(NorthsConf.class);
 
     private static final Map<String, String> ENVCONF = Maps.newHashMap();
@@ -188,7 +185,7 @@ public class NorthsConf extends ConfigDetail {
      */
     private void searchSystemConfig(){
         Connection conn = getConn();
-        if(conn != null){
+        if(conn != null && checkTableExist(conn)){
             String sql = "select key,value from " + systemConfigTableName + " where key like 'norths_%'";
             PreparedStatement statement= null;
             ResultSet resultSet = null;
@@ -216,6 +213,27 @@ public class NorthsConf extends ConfigDetail {
                 lock.unlock();
             }
         }
+    }
+
+    private boolean checkTableExist(Connection conn){
+        try {
+            ResultSet tables = conn.getMetaData().getTables(null, null, systemConfigTableName, null);
+            if (tables.next()) {
+                return true;
+            }else {
+                Statement statement = conn.createStatement();
+                StringBuilder sql = new StringBuilder("CREATE TABLE ");
+                sql.append(systemConfigTableName);
+                sql.append(" (id INTEGER NOT NULL, key VARCHAR(32) NOT NULL, value VARCHAR(500), describe VARCHAR(200), PRIMARY KEY (id), UNIQUE (key))");
+                statement.execute(sql.toString());
+                statement.close();
+                logger.warn(String.format("不存在系统配置表:%s，创建成功。", systemConfigTableName));
+                return false;
+            }
+        } catch (SQLException e) {
+            logger.error(String.format("判断表%s是否存在失败。", systemConfigTableName), e);
+        }
+      return true;
     }
 
     private void flushSystemConfig(String key, String value, String action){
