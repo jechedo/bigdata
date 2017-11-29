@@ -69,36 +69,39 @@ public class NorthContext {
         if(!started.get()){
             initAndStart();
 
-            //注册钩子
-            Runtime.getRuntime()
-                    .addShutdownHook(
-                            new Thread(() -> close()));
+            //注册系统关闭的钩子
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> close()));
 
-            //循环抓取数据
-            fetchDataTimer = new Timer("DataFetcherTimer");
-            fetchDataTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    Collection<DataSource> values = dataSourceMap.values();
-                    CountDownLatch countDownLatch = new CountDownLatch(values.size());
-                    values.forEach(dataSource -> threadPool.submit(() -> {
-                        try {
-                            dataSource.readData();
-                        } finally {
-                            countDownLatch.countDown();
-                        }
-                    }));
-                    try {
-                        countDownLatch.await();
-                    } catch (InterruptedException e) { }
-                }
-            }, 0, dataFetchInterval);
-
+            startFetchData();
             started.set(true);
             logger.info("NorthContext启动成功。");
+
         }else {
             logger.warn("NorthContext已启动，毋须重复启动。");
         }
+    }
+
+    private void startFetchData() {
+        //循环抓取数据
+        fetchDataTimer = new Timer("DataFetcherTimer");
+        fetchDataTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Collection<DataSource> values = dataSourceMap.values();
+                CountDownLatch countDownLatch = new CountDownLatch(values.size());
+                values.forEach(dataSource -> threadPool.submit(() -> {
+                    try {
+                        dataSource.readData();
+                    } finally {
+                        countDownLatch.countDown();
+                    }
+                }));
+                try {
+                    countDownLatch.await();
+                } catch (InterruptedException e) {
+                }
+            }
+        }, 0, dataFetchInterval);
     }
 
     private void initAndStart(){

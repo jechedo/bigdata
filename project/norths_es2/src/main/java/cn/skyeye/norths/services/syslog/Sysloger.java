@@ -154,10 +154,6 @@ public class Sysloger extends DataEventHandler {
         return String.format("alarm|!%s", Jsons.obj2JsonString(record));
     }
 
-    public boolean isEmpty(){
-        return this.syslogClients.isEmpty();
-    }
-
     public SyslogConf getSyslogConf() {
         return syslogConf;
     }

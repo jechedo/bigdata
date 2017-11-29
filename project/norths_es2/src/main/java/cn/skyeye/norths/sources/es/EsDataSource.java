@@ -110,7 +110,7 @@ public class EsDataSource extends DataSource{
             SearchHit maxHit = hits.getHits()[0];
             Object start = maxHit.sourceAsMap().get(indexType.startField);
             indexType.start = start;
-            northContext.setStatus(indexType.getTmpKey(), start);
+            //northContext.setStatus(indexType.getTmpKey(), start);
         }
     }
 
