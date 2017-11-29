@@ -33,7 +33,7 @@ public class AlarmLogFilter {
 
     public boolean isAccept(Map<String, Object> alarmLog){
         boolean b = levelAccept(alarmLog);
-        if(b)b = confidenceAccept(alarmLog);
+       // if(b)b = confidenceAccept(alarmLog);
         if(b)b = statusAccept(alarmLog);
         if(b)b = logtypeAccept(alarmLog);
         return b;
