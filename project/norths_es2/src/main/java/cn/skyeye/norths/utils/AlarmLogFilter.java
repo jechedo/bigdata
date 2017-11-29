@@ -106,7 +106,8 @@ public class AlarmLogFilter {
     private boolean logtypeAccept(Map<String, Object> alarmLog){
         List<String> logtypes = syslogAlarmConfig.getLogtype();
         if(!logtypes.isEmpty()){
-
+            Object typeObj = alarmLog.get("type");
+            if(typeObj == null) return false;
         }
         return true;
     }

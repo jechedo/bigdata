@@ -137,6 +137,8 @@ public class NorthContext {
            flushStatus();
            tmpfileTimer.cancel();
         }
+        //移除临时文件
+        if(tmpfile != null)tmpfile.delete();
 
         if(dataEventDisruptor != null)dataEventDisruptor.shutDown();
     }
@@ -178,7 +180,7 @@ public class NorthContext {
     private void getTmpFile(ConfigDetail configDetail) {
         this.status = Maps.newConcurrentMap();
         String tmpFileDir = configDetail.getConfigItemValue("north.datasources.tmpfile.dir",
-                "/opt/work/web/xenwebsite/data/");
+                "/tmp/skyeye/norths");
         File file = new File(tmpFileDir);
         if(!file.exists()){
             file.mkdirs();

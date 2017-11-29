@@ -149,7 +149,6 @@ public class Sysloger extends DataEventHandler {
                }
            });
         }
-
         syslogConf.getExcludes().forEach(field -> record.remove(field));
 
         return String.format("alarm|!%s", Jsons.obj2JsonString(record));
