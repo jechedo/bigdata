@@ -181,7 +181,7 @@
     <!--           <appender-ref ref="exceptionfile"/> -->
     <!--     </logger> -->
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="console"/>
         <appender-ref ref="debugfile"/>
         <appender-ref ref="infofile"/>

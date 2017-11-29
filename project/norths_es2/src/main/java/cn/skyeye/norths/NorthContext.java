@@ -1,22 +1,15 @@
 package cn.skyeye.norths;
 
-import cn.skyeye.common.json.Jsons;
 import cn.skyeye.norths.events.DataEventDisruptor;
 import cn.skyeye.norths.events.DataEventHandler;
 import cn.skyeye.norths.services.syslog.Sysloger;
 import cn.skyeye.norths.sources.DataSource;
 import cn.skyeye.norths.sources.es.EsDataSource;
-import cn.skyeye.resources.ConfigDetail;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -40,11 +33,7 @@ public class NorthContext {
     private Map<String, DataSource> dataSourceMap;
     private Map<String, DataEventHandler> dataHandlerMap;
 
-    private File tmpfile;
     private Map<String, Object> status;
-    private Timer tmpfileTimer;
-    private String lastStatus;
-    private long deltaDataFlushInterval;
     private long dataFetchInterval;
     private ExecutorService threadPool;
 
@@ -55,18 +44,14 @@ public class NorthContext {
         this.northsConf = new NorthsConf();
         this.dataSourceMap = Maps.newHashMap();
         this.dataHandlerMap = Maps.newHashMap();
+        this.status = Maps.newConcurrentMap();
 
         int poolSize = northsConf.getConfigItemInteger("norths.datasources.threadpool.size",
                 16);
         this.threadPool = Executors.newFixedThreadPool(poolSize);
 
-        this.deltaDataFlushInterval = northsConf.getConfigItemLong("norths.datasources.status.flush.intervalms",
-                10 * 60 * 1000L);
-
         this.dataFetchInterval = northsConf.getConfigItemLong("norths.datasources.data.fetch.intervalms",
                 5 * 60 * 1000L);
-
-        getTmpFile(northsConf);
     }
 
     public static NorthContext get(){
@@ -83,7 +68,6 @@ public class NorthContext {
     public void start(){
         if(!started.get()){
             initAndStart();
-            //startAutoFlushStatus();
 
             //注册钩子
             Runtime.getRuntime()
@@ -106,7 +90,6 @@ public class NorthContext {
                     }));
                     try {
                         countDownLatch.await();
-                        flushStatus();
                     } catch (InterruptedException e) { }
                 }
             }, 0, dataFetchInterval);
@@ -132,14 +115,6 @@ public class NorthContext {
 
     public void close(){
         if(fetchDataTimer != null)fetchDataTimer.cancel();
-
-        if(tmpfileTimer != null){
-           flushStatus();
-           tmpfileTimer.cancel();
-        }
-        //移除临时文件
-        if(tmpfile != null)tmpfile.delete();
-
         if(dataEventDisruptor != null)dataEventDisruptor.shutDown();
     }
 
@@ -175,65 +150,6 @@ public class NorthContext {
 
     public Object getStatus(String key){
         return this.status.get(key);
-    }
-
-    private void getTmpFile(ConfigDetail configDetail) {
-        this.status = Maps.newConcurrentMap();
-        String tmpFileDir = configDetail.getConfigItemValue("north.datasources.tmpfile.dir",
-                "/tmp/skyeye/norths");
-        File file = new File(tmpFileDir);
-        if(!file.exists()){
-            file.mkdirs();
-        }
-
-        this.tmpfile = new File(file, "norths_delta.txt");
-        if(tmpfile.exists()){
-            try {
-                String startTimeStr = FileUtils.readFileToString(tmpfile);
-                if(StringUtils.isNotBlank(startTimeStr)) {
-                    this.status.putAll(Jsons.toMap(startTimeStr));
-                    this.lastStatus = startTimeStr;
-                }
-                logger.info(String.format("文件%s存在，内容为：\n\t %s", tmpfile, startTimeStr));
-            } catch (Exception e) {
-                logger.error(String.format("读取%s失败。", tmpfile), e);
-            }
-        }else{
-            try {
-                tmpfile.createNewFile();
-                logger.info(String.format("新建文件%s", tmpfile));
-            } catch (IOException e) {
-                logger.error(String.format("新建%s失败。", tmpfile), e);
-            }
-        }
-    }
-
-    private void startAutoFlushStatus(){
-        tmpfileTimer = new Timer("DataSourceStatusFlusher");
-        tmpfileTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                flushStatus();
-            }
-        }, deltaDataFlushInterval, deltaDataFlushInterval);
-
-        logger.info(String.format("增量状态定期刷新启动成功，周期为：%ss", deltaDataFlushInterval/1000));
-    }
-
-    private void flushStatus(){
-        HashMap<String, Object> stringLongHashMap = Maps.newHashMap(status);
-        String str = Jsons.obj2JsonString(stringLongHashMap);
-        if(!str.equals(lastStatus)) {
-            try {
-                FileUtils.write(tmpfile, str, Charset.forName("UTF-8"), false);
-                lastStatus = str;
-                logger.info(String.format("更新%s成功，更新内容为：\n\t %s", tmpfile, str));
-            } catch (IOException e) {
-                logger.error(String.format("更新%s失败。", tmpfile), e);
-            }
-        }else {
-            logger.info(String.format("%s内容无更新。", tmpfile));
-        }
     }
 
     public DataEventHandler getHandler(String key){
