@@ -10,7 +10,6 @@ import com.google.common.collect.Sets;
 import org.productivity.java.syslog4j.Syslog;
 import org.productivity.java.syslog4j.SyslogIF;
 
-import java.net.URLDecoder;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -131,7 +130,7 @@ public class Sysloger extends DataEventHandler {
 
             entries.forEach(entry -> {
                 try {
-                    entry.warn(URLDecoder.decode(message, "utf-8"));
+                    entry.warn(message);
                     logger.debug(String.format("发送告警日志的数目为：%s", sendCount.incrementAndGet()));
                 } catch (Exception e) {
                     logger.error(String.format("syslog服务器：%s连接异常。", entry.getConfig().getHost()), e);
