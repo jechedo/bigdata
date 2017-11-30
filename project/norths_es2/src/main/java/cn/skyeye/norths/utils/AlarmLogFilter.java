@@ -101,7 +101,11 @@ public class AlarmLogFilter {
             try {
                 Map<String, Object> asset = (Map<String, Object>) assetObj;
                 Object statusObj = asset.get("host_state");
-                return statuss.contains(statusObj);
+                boolean contains = statuss.contains(statusObj);
+                if(contains){
+                    alarmLog.put("host_state", statusObj);
+                }
+                return contains;
             } catch (Exception e) {
                 logger.error(String.format("下面告警日志的资产信息host_state格式有误。\n\t %s", alarmLog));
                 return false;
