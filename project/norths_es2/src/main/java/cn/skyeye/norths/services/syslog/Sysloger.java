@@ -131,6 +131,10 @@ public class Sysloger extends DataEventHandler {
         if(getAlarmLogFilter().isAccept(record)) {
             final String message = createMessage(record);
             Set<SyslogIF> entries = getSyslogClients();
+
+            if(entries.isEmpty())
+                logger.debug("无可用syslog服务器。");
+
             entries.forEach(entry -> {
                 try {
                     entry.warn(message);

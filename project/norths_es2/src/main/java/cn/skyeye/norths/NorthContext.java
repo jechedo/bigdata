@@ -102,6 +102,7 @@ public class NorthContext {
                 }
             }
         }, 0, dataFetchInterval);
+        logger.info(String.format("启动增量读取告警日志数据的调度器成功，读取周期为：%sms", dataFetchInterval));
     }
 
     private void initAndStart(){
