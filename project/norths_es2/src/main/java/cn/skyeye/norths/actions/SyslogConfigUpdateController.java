@@ -58,6 +58,7 @@ public class SyslogConfigUpdateController {
     @ResponseBody
     @RequestMapping(value = "syslog/edit", method = { RequestMethod.POST})
     Object editSyslogConfig(@RequestBody Map<String, Object> syslogConf){
+        checkRequestParam(syslogConf);
         logger.info(String.format("编辑syslog配置: %s", syslogConf));
         Sysloger sysloger = getSysloger();
         //更新配置
@@ -70,11 +71,19 @@ public class SyslogConfigUpdateController {
     @ResponseBody
     @RequestMapping(value = "syslogalarm/edit", method = { RequestMethod.POST})
     Object editSyslogAlarmConfig(@RequestBody Map<String, Object> syslogAlarmConf){
+        checkRequestParam(syslogAlarmConf);
         logger.info(String.format("编辑syslog告警配置: %s", syslogAlarmConf));
         Sysloger sysloger = getSysloger();
         sysloger.getSyslogConf().setSyslogAlarmConfig(syslogAlarmConf);
         sysloger.initAlarmFilter(SyslogConf.newSyslogAlarmConfig(syslogAlarmConf));
         return ResponseHelper.success();
+    }
+
+    private void checkRequestParam(Map<String, Object> param){
+        if(param != null){
+            param.remove("csrf_token");
+            param.remove("r");
+        }
     }
 
     private Sysloger getSysloger(){
