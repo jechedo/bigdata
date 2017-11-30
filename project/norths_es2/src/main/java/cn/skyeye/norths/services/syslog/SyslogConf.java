@@ -130,9 +130,9 @@ public class SyslogConf {
 
     private Map<String, Object> newDefaultSyslogAlarmConfig(){
         Map<String, Object> res = Maps.newHashMap();
-        res.put("level", "");
+        res.put("level", Lists.newArrayList());
         //res.put("confidence", "");
-        res.put("status", "");
+        res.put("status", Lists.newArrayList());
         res.put("logtype", Lists.newArrayList());
         return res;
     }

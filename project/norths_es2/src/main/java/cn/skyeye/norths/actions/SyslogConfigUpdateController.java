@@ -6,6 +6,7 @@ import cn.skyeye.norths.services.syslog.SyslogConf;
 import cn.skyeye.norths.services.syslog.Sysloger;
 import cn.skyeye.norths.utils.ResponseHelper;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.web.bind.annotation.*;
@@ -35,22 +36,15 @@ public class SyslogConfigUpdateController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "syslogalarm/list/level", method = { RequestMethod.GET, RequestMethod.POST})
-    Object getSyslogAlarmLevel(){
-        return ResponseHelper.success(Lists.newArrayList("危急", "高危", "中危", "低危"));
+    @RequestMapping(value = "syslogalarm/list/default", method = { RequestMethod.GET, RequestMethod.POST})
+    Object getSyslogAlarmDefault(){
+        Map<String, Object> configAlarmConfig = Maps.newHashMap();
+        configAlarmConfig.put("level", Lists.newArrayList("危急", "高危", "中危", "低危"));
+        configAlarmConfig.put("status", Lists.newArrayList("失陷", "可疑"));
+        configAlarmConfig.put("logtype", northContext.getNorthsConf().getThreats());
+        return ResponseHelper.success(configAlarmConfig);
     }
 
-    @ResponseBody
-    @RequestMapping(value = "syslogalarm/list/status", method = { RequestMethod.GET, RequestMethod.POST})
-    Object getSyslogAlarmStatus(){
-        return ResponseHelper.success(Lists.newArrayList("失陷", "可疑"));
-    }
-
-    @ResponseBody
-    @RequestMapping(value = "syslogalarm/list/type", method = { RequestMethod.GET, RequestMethod.POST})
-    Object getSyslogAlarmType(){
-        return ResponseHelper.success(northContext.getNorthsConf().getThreats());
-    }
 
     @ResponseBody
     @RequestMapping(value = "syslogalarm/list", method = { RequestMethod.GET, RequestMethod.POST})
