@@ -84,7 +84,7 @@ public class EsDataSource extends DataSource{
                 }
 
                 //初始化读取数据的位置
-                //initIndexTypeStart(indexType);
+                initIndexTypeStart(indexType);
 
                 indexTypes.add(indexType);
             }
