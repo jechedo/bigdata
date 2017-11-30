@@ -5,6 +5,7 @@ import cn.skyeye.norths.NorthsConf;
 import cn.skyeye.resources.ConfigDetail;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -206,7 +207,9 @@ public class SyslogConf {
                 if(obj instanceof List){
                     return (List<String>)obj;
                 } else if(obj instanceof String){
-                    return Lists.newArrayList(String.valueOf(obj).split(","));
+                    String s = String.valueOf(obj);
+                    if(StringUtils.isNotEmpty(s))
+                        return Lists.newArrayList(s.split(","));
                 }else {
                     logger.error(String.format("%s的配置项%s：%s配置格式有误", SYSLOG_ALARM_CONF, field, obj));
                 }

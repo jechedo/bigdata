@@ -9,8 +9,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.productivity.java.syslog4j.Syslog;
 import org.productivity.java.syslog4j.SyslogIF;
-import org.productivity.java.syslog4j.SyslogRuntimeException;
 
+import java.net.URLDecoder;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @version 2017/11/20 19:45
  */
 public class Sysloger extends DataEventHandler {
+    private static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     private Set<SyslogIF> syslogClients;
     private ReentrantLock lock = new ReentrantLock();
 
@@ -108,12 +109,6 @@ public class Sysloger extends DataEventHandler {
     }
 
     private void clearSyslogClient(){
-        this.syslogClients.forEach(syslogIF -> {
-            try {
-                syslogIF.flush();
-                syslogIF.shutdown();
-            } catch (SyslogRuntimeException e) { }
-        });
         this.syslogClients.clear();
         logger.info("清空syslogClient成功。");
     }
@@ -136,7 +131,7 @@ public class Sysloger extends DataEventHandler {
 
             entries.forEach(entry -> {
                 try {
-                    entry.warn(message);
+                    entry.warn(URLDecoder.decode(message, "utf-8"));
                     logger.debug(String.format("发送告警日志的数目为：%s", sendCount.incrementAndGet()));
                 } catch (Exception e) {
                     logger.error(String.format("syslog服务器：%s连接异常。", entry.getConfig().getHost()), e);
@@ -162,6 +157,7 @@ public class Sysloger extends DataEventHandler {
                }
            });
         }
+
         syslogConf.getExcludes().forEach(field -> record.remove(field));
 
         return String.format("alarm|!%s", Jsons.obj2JsonString(record));

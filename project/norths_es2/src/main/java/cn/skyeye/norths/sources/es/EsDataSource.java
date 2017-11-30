@@ -74,7 +74,7 @@ public class EsDataSource extends DataSource{
                 indexType.startField = startField;
                 //indexType.start = northContext.getStatus(indexType.getTmpKey());
 
-                Set<String> configItemSet = configDetail.getConfigItemSet(String.format("%s.%s.includes", conf_preffix, str));
+                Set<String> configItemSet = configDetail.getConfigItemSet(String.format("%s%s.includes", conf_preffix, str));
                 if(configItemSet.size() > 0){
                     indexType.includes = configItemSet.toArray(new String[configItemSet.size()]);
                 }
@@ -83,8 +83,10 @@ public class EsDataSource extends DataSource{
                     indexType.excludes = configItemSet.toArray(new String[configItemSet.size()]);
                 }
 
-                //初始化读取数据的位置
-                initIndexTypeStart(indexType);
+                if(configDetail.getConfigItemBoolean(String.format("%s%s.initstart", conf_preffix, str), true)) {
+                    //初始化读取数据的位置
+                    initIndexTypeStart(indexType);
+                }
 
                 indexTypes.add(indexType);
             }
