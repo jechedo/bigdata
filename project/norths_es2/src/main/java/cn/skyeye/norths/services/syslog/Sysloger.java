@@ -9,6 +9,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.productivity.java.syslog4j.Syslog;
 import org.productivity.java.syslog4j.SyslogIF;
+import org.productivity.java.syslog4j.SyslogRuntimeException;
 
 import java.util.List;
 import java.util.Map;
@@ -105,6 +106,12 @@ public class Sysloger extends DataEventHandler {
     }
 
     private void clearSyslogClient(){
+        this.syslogClients.forEach(syslogIF -> {
+            try {
+                syslogIF.flush();
+                syslogIF.shutdown();
+            } catch (SyslogRuntimeException e) { }
+        });
         this.syslogClients.clear();
         logger.info("清空syslogClient成功。");
     }
