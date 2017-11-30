@@ -13,6 +13,7 @@ import org.productivity.java.syslog4j.SyslogIF;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -27,6 +28,8 @@ public class Sysloger extends DataEventHandler {
 
     private AlarmLogFilter alarmLogFilter;
     private SyslogConf syslogConf;
+
+    private AtomicLong sendCount = new AtomicLong(0);
 
     public Sysloger(String name){
         super(name);
@@ -124,6 +127,7 @@ public class Sysloger extends DataEventHandler {
             entries.forEach(entry -> {
                 try {
                     entry.warn(message);
+                    logger.debug(String.format("发送告警日志的数目为：%s", sendCount.incrementAndGet()));
                 } catch (Exception e) {
                     logger.error(String.format("syslog服务器：%s连接异常。", entry.getConfig().getHost()), e);
                 }
