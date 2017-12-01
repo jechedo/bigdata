@@ -203,9 +203,9 @@ public class SyslogConf {
 
         private List<String> getListByField(String field){
             Object obj = syslogAlarmConfig.get(field);
-            if(obj != null && !"全部".equals(obj)){
+            if(obj != null){
                 if(obj instanceof List){
-                    return (List<String>)obj;
+                    return  (List<String>) obj;
                 } else if(obj instanceof String){
                     String s = String.valueOf(obj);
                     if(StringUtils.isNotEmpty(s))
