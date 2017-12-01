@@ -205,7 +205,11 @@ public class SyslogConf {
             Object obj = syslogAlarmConfig.get(field);
             if(obj != null){
                 if(obj instanceof List){
-                    return  (List<String>) obj;
+                    List<String> res = (List<String>) obj;
+                    if(res.size() == 1 && StringUtils.isBlank(res.get(0))){
+                        return Lists.newArrayList();
+                    }
+                    return res;
                 } else if(obj instanceof String){
                     String s = String.valueOf(obj);
                     if(StringUtils.isNotEmpty(s))
