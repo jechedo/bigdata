@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    ​
+    <!-- spring cloud 服务名 -->
+    <springProperty scope="context" name="springAppName" source="spring.application.name"/>
+    <!-- 日志文件路径 -->
+    <property name="log_path" value="/opt/work/web/xenwebsite/logs/norths"/>
+    <!-- 日志切割的最小单位 -->
+    <property name="every_file_size" value="50MB"/>
+    <!-- 保存日志文件天数 -->
+    <property name="save_file_days" value="7"/>
+    <!-- 日志最大占用空间 -->
+    <property name="log_max_size" value="1GB"/>
+    <!-- debug日志输出路径名 -->
+    <property name="debug_file_name" value="${log_path}/debug.log"/>
+    <!-- 日志文件每天归档的文件名 -->
+    <property name="debug_rolling_file_name" value="${log_path}/backup_debug/%d{yyyy-MM-dd}_%i.log"/>
+    <!-- info日志输出路径名 -->
+    <property name="info_file_name"  value="${log_path}/info.log"/>
+    <property name="info_rolling_file_name"  value="${log_path}/backup_info/%d{yyyy-MM-dd}_%i.log"/>
+    <!-- warn日志输出路径名 -->
+    <property name="warn_file_name"  value="${log_path}/warn.log"/>
+    <property name="warn_rolling_file_name"  value="${log_path}/backup_warn/%d{yyyy-MM-dd}_%i.log"/>
+    <!-- error日志输出路径名 -->
+    <property name="error_file_name" value="${log_path}/error.log"/>
+    <property name="error_rolling_file_name" value="${log_path}/backup_error/%d{yyyy-MM-dd}_%i.log"/>
+    <!-- 特定异常输出 -->
+    <property name="exception_file_name" value="${log_path}/exception.log"/>
+    <property name="exception_rolling_file_name" value="${log_path}/backup_exception/%d{yyyy-MM-dd}_%i.log"/>​
+
+    <!-- 日志格式 -->
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+
+    <property name="FILE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level ${PID:- } %logger{50} - %msg%n"/>
+
+    <!-- logstash开放tcp host port -->
+    <property name="host" value="localhost"/>​
+    <property name="port" value="8888"/>​
+
+    <!-- 日志是否追加调用者信息 -->
+    <property name="includeCallerData" value="false"/>​
+
+    <!-- Appender to log to console -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <!-- Minimum logging level to be presented in the console logs-->
+            <level>DEBUG</level>
+        </filter>
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <!-- debug日志输出配置 -->​
+    <appender name="debugfile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <file>${debug_file_name}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${debug_rolling_file_name}</fileNamePattern>
+            <maxFileSize>${every_file_size}</maxFileSize>
+            <maxHistory>${save_file_days}</maxHistory>
+            <totalSizeCap>${log_max_size}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <!-- info日志输出配置 -->​
+    <appender name="infofile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <file>${info_file_name}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${info_rolling_file_name}</fileNamePattern>
+            <maxFileSize>${every_file_size}</maxFileSize>
+            <maxHistory>${save_file_days}</maxHistory>
+            <totalSizeCap>${log_max_size}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <!-- warn日志输出配置 -->​
+    <appender name="warnfile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <file>${warn_file_name}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${warn_rolling_file_name}</fileNamePattern>
+            <maxFileSize>${every_file_size}</maxFileSize>
+            <maxHistory>${save_file_days}</maxHistory>
+            <totalSizeCap>${log_max_size}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <!-- error日志输出配置 -->​
+    <appender name="errorfile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <file>${error_file_name}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${error_rolling_file_name}</fileNamePattern>
+            <maxFileSize>${every_file_size}</maxFileSize>
+            <maxHistory>${save_file_days}</maxHistory>
+            <totalSizeCap>${log_max_size}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 特定日志日志输出配置,微服务客户端使用 -->​
+    <!--     <appender name="exceptionfile" class="ch.qos.logback.core.rolling.RollingFileAppender"> -->
+    <!--         <file>${exception_file_name}</file> -->
+    <!--         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy"> -->
+    <!--             <fileNamePattern>${exception_rolling_file_name}</fileNamePattern> -->
+    <!--             <maxFileSize>${every_file_size}</maxFileSize> -->
+    <!--             <maxHistory>${save_file_days}</maxHistory> -->
+    <!--             <totalSizeCap>${log_max_size}</totalSizeCap> -->
+    <!--         </rollingPolicy> -->
+    <!--         <encoder> -->
+    <!--             <pattern>${CONSOLE_LOG_PATTERN}</pattern> -->
+    <!--             <charset>utf8</charset> -->
+    <!--         </encoder> -->
+    <!--     </appender> -->
+
+    <!-- logstash tcp 日志 -->
+    <appender charset="utf8"  name="logstash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>${host}:${port}</destination>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <timeZone>UTC</timeZone>
+                </timestamp>
+                <pattern>
+                    <pattern>
+                        {
+                        "severity": "%level",
+                        "service": "${springAppName:-}",
+                        "trace": "%X{X-B3-TraceId:-}",
+                        "span": "%X{X-B3-SpanId:-}",
+                        "parent": "%X{X-B3-ParentSpanId:-}",
+                        "exportable": "%X{X-Span-Export:-}",
+                        "pid": "${PID:-}",
+                        "thread": "%thread",
+                        "class": "%logger{40}",
+                        "rest": "%message"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+        <keepAliveDuration>5 minutes</keepAliveDuration>
+    </appender>
+
+    <!-- 指定目录异常输出路径,微服务客户端使用 -->
+    <!--     <logger name="com.bh.excepion"  level="INFO"  additivity="false"> -->
+    <!--           <appender-ref ref="exceptionfile"/> -->
+    <!--     </logger> -->
+
+    <root level="DEBUG">
+        <appender-ref ref="console"/>
+        <appender-ref ref="debugfile"/>
+        <appender-ref ref="infofile"/>
+        <appender-ref ref="warnfile"/>
+        <appender-ref ref="errorfile"/>
+        <!--         <appender-ref ref="logstash"/> -->
+    </root>
+
+</configuration>

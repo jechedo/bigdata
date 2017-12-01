@@ -1,0 +1,12 @@
+[group:java]
+programs=norths
+[program:norths]
+command=java -jar /tmp/demo/norths.jar
+user=website
+autostart=true
+autorestart=true
+priority=10
+redirect_stderr=true
+stdout_logfile=/var/skyeye/%(program_name)s.std
+stdout_logfile_maxbytes=1MB
+stdout_logfile_backups=1
