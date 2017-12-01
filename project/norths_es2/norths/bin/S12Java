@@ -1,4 +1,4 @@
-[group:java]
+[group:javas]
 programs=norths
 [program:norths]
 command=java -jar -Dspring.config.location=/opt/work/configs/norths_config/application.properties /opt/work/web/xenwebsite/xenwebsite-env/lib/jars/bigdata-norths_es2_2.10-1.0-SNAPSHOT.jar --logging.config=/opt/work/configs/norths_config/logback-spring.xml
