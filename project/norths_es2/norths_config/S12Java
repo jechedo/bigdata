@@ -1,12 +1,12 @@
 [group:java]
 programs=norths
 [program:norths]
-command=java -jar /tmp/demo/norths.jar
+command=java -jar -Dspring.config.location=/opt/work/configs/norths_config/application.properties /opt/work/web/xenwebsite/xenwebsite-env/lib/jars/bigdata-norths_es2_2.10-1.0-SNAPSHOT.jar --logging.config=/opt/work/configs/norths_config/logback-spring.xml
 user=website
 autostart=true
 autorestart=true
 priority=10
 redirect_stderr=true
 stdout_logfile=/var/skyeye/%(program_name)s.std
-stdout_logfile_maxbytes=1MB
+stdout_logfile_maxbytes=50MB
 stdout_logfile_backups=1
