@@ -29,7 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @version 2017/11/21 16:43
  */
 public class NorthsConf extends ConfigDetail {
-    private final static String _CONFIG = "/norths/norths";
+    private final static String _CONFIG = "/norths_config/norths";
     private final Log logger = LogFactory.getLog(NorthsConf.class);
 
     private static final Map<String, String> ENVCONF = Maps.newHashMap();
