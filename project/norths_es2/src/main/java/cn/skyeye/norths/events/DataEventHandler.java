@@ -44,7 +44,7 @@ public abstract class DataEventHandler implements EventHandler<DataEvent> {
     public void onEvent(DataEvent event, long sequence, boolean endOfBatch) throws Exception {
 
         if(endOfBatch){
-            logger.info(String.format("handler-%s完成第%s批数据的处理：total = %s。",
+            logger.debug(String.format("handler-%s完成第%s批数据的处理：total = %s。",
                     name, batchNum.getAndIncrement(), batchEvent.incrementAndGet()));
             batchEvent.set(0);
         }else{

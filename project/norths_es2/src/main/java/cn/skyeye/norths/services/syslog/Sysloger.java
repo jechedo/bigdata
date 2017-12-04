@@ -4,15 +4,14 @@ import cn.skyeye.common.json.Jsons;
 import cn.skyeye.norths.events.DataEvent;
 import cn.skyeye.norths.events.DataEventHandler;
 import cn.skyeye.norths.utils.AlarmLogFilter;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.productivity.java.syslog4j.Syslog;
 import org.productivity.java.syslog4j.SyslogIF;
+import org.productivity.java.syslog4j.impl.net.tcp.TCPNetSyslog;
+import org.productivity.java.syslog4j.impl.net.tcp.TCPNetSyslogConfig;
+import org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslog;
+import org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslogConfig;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -82,63 +81,79 @@ public class Sysloger extends DataEventHandler {
         }
     }
 
-    public AlarmLogFilter getAlarmLogFilter() {
-        lock.lock();
-        try {
-            return alarmLogFilter;
-        } finally {
-            lock.unlock();
+    private void addSyslogClient(String host, int port, String protocol){
+        SyslogIF client = null;
+        switch (protocol.toLowerCase()){
+            case "tcp":
+                client = newTCPSyslogClient(host, port);
+                break;
+            case "udp":
+                client = newUDPSyslogClient(host, port);
+                break;
+        }
+        if(client != null) {
+            this.syslogClients.add(client);
+        }else {
+            logger.error(String.format("不识别的协议类型：%s, host = %s, port = %s", protocol, host, port));
         }
     }
 
-    private void addSyslogClient(String host, int port, String protocol){
-        SyslogIF syslogClient = newSyslogClient(host, port, protocol);
-        this.syslogClients.add(syslogClient);
+    private SyslogIF newUDPSyslogClient(String host, int port){
+        UDPNetSyslog client = new UDPNetSyslog();
+        UDPNetSyslogConfig syslogConfig = new UDPNetSyslogConfig();
+        syslogConfig.setFacility("LOCAL3");
+        syslogConfig.setSendLocalName(false);
+        syslogConfig.setMaxMessageLength(10240);
+        syslogConfig.setHost(host);
+        syslogConfig.setPort(port);
+        client.initialize("udp", syslogConfig);
+        return client;
     }
 
-    private SyslogIF newSyslogClient(String host, int port, String protocol) {
-        SyslogIF syslogClient = Syslog.getInstance(protocol);
-        syslogClient.getConfig().setHost(host);
-        syslogClient.getConfig().setPort(port);
-        syslogClient.getConfig().setFacility("LOCAL3");
-        syslogClient.getConfig().setSendLocalName(false);
-        syslogClient.getConfig().setMaxMessageLength(10240);
-        //syslogClient.getConfig().setSendLocalTimestamp(false);
-        return syslogClient;
+    private SyslogIF newTCPSyslogClient(String host, int port){
+        TCPNetSyslog client = new TCPNetSyslog();
+        TCPNetSyslogConfig syslogConfig = new TCPNetSyslogConfig();
+        syslogConfig.setFacility("LOCAL3");
+        syslogConfig.setSendLocalName(false);
+        syslogConfig.setMaxMessageLength(10240);
+        syslogConfig.setHost(host);
+        syslogConfig.setPort(port);
+        client.initialize("tcp", syslogConfig);
+        return client;
     }
 
     private void clearSyslogClient(){
-        this.syslogClients.clear();
+        Iterator<SyslogIF> iterator = this.syslogClients.iterator();
+        SyslogIF next;
+        while (iterator.hasNext()){
+            next = iterator.next();
+            next.flush();
+            next.shutdown();
+            iterator.remove();
+        }
         logger.info("清空syslogClient成功。");
     }
 
-    private Set<SyslogIF> getSyslogClients(){
-        this.lock.lock();
-        try {
-            return Sets.newHashSet(syslogClients);
-        } finally {
-            this.lock.unlock();
-        }
-    }
 
     @Override
     public void onEvent(DataEvent event) {
+        this.lock.lock();
         Map<String, Object> record = event.getRecord();
-        if(getAlarmLogFilter().isAccept(record)) {
+        if(alarmLogFilter.isAccept(record)) {
             final String message = createMessage(record);
-            Set<SyslogIF> entries = getSyslogClients();
-
-            entries.forEach(entry -> {
+            syslogClients.forEach(entry -> {
                 try {
                     entry.warn(message);
-                    logger.debug(String.format("发送告警日志的数目为：%s", sendCount.incrementAndGet()));
                 } catch (Exception e) {
-                    logger.error(String.format("syslog服务器：%s连接异常。", entry.getConfig().getHost()), e);
+                    logger.error(String.format("%s服务器：%s:%s连接异常。",
+                            entry.getConfig().getSyslogClass(), entry.getConfig().getHost(),entry.getConfig().getPort()), e);
                 }
             });
+            logger.debug(String.format("发送告警日志的数目为：%s", sendCount.incrementAndGet()));
         }else{
             logger.debug(String.format("告警信息不满足要求：\n\t%s", event));
         }
+        this.lock.unlock();
     }
 
     @Override
@@ -165,35 +180,4 @@ public class Sysloger extends DataEventHandler {
     public SyslogConf getSyslogConf() {
         return syslogConf;
     }
-
-    public static void main(String[] args) throws Exception {
-
-        List<Map<String, Object>> services = Lists.newArrayList();
-        Map<String, Object> service1 = Maps.newHashMap();
-        service1.put("id", "001");
-        service1.put("host", "127.0.0.1");
-        service1.put("port", 547);
-
-        Map<String, Object> service2 = Maps.newHashMap();
-        service2.put("id", "002");
-        service2.put("host", "127.0.0.8");
-        service2.put("port", 547);
-
-        services.add(service1);
-        services.add(service2);
-
-        Map<String, Object> res = Maps.newHashMap();
-        res.put("switch", "0");
-        res.put("protocol", "UDP");
-        res.put("threat_switch", "0");
-        // res.put("systemlog_switch", "0");
-        res.put("services", services);
-
-        String s = Jsons.obj2JsonString(res);
-
-    /*    SyslogConfig syslogConfig = new SyslogConfig(Jsons.toMap(s));
-        List<Map<String, Object>> services1 = syslogConfig.getServices();
-        System.out.println(services1);*/
-    }
-
 }
