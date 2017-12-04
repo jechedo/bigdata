@@ -5,6 +5,7 @@ import cn.skyeye.norths.events.DataEvent;
 import cn.skyeye.norths.events.DataEventHandler;
 import cn.skyeye.norths.utils.AlarmLogFilter;
 import com.google.common.collect.Sets;
+import org.apache.log4j.Logger;
 import org.productivity.java.syslog4j.SyslogIF;
 import org.productivity.java.syslog4j.impl.net.tcp.TCPNetSyslog;
 import org.productivity.java.syslog4j.impl.net.tcp.TCPNetSyslogConfig;
@@ -121,7 +122,9 @@ public class Sysloger extends DataEventHandler {
         syslogConfig.setMaxMessageLength(10240);
         syslogConfig.setHost(host);
         syslogConfig.setPort(port);
+        syslogConfig.addBackLogHandler(new Log4jBackLogHandler(Logger.getLogger(Sysloger.class)));
         client.initialize("tcp", syslogConfig);
+        System.err.println(syslogConfig.getBackLogHandlers());
         return client;
     }
 
