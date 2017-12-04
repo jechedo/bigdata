@@ -171,7 +171,16 @@ public final class ExtLibsLoader {
     }
 
     private static void loadURL(File file) throws Exception {
+        getAddURLMethod();
+        addURL.invoke(classloader, new Object[] { file.toURI().toURL() });
+    }
 
+    public static void loadURL(URL url) throws Exception {
+        getAddURLMethod();
+        addURL.invoke(classloader, new Object[] { url});
+    }
+
+    private static void getAddURLMethod() {
         if(addURL == null){
             synchronized (ExtLibsLoader.class){
                 if(addURL == null){
@@ -180,7 +189,5 @@ public final class ExtLibsLoader {
             }
             Preconditions.checkNotNull(addURL, "URLClassLoader的addURL方法 获取为空。");
         }
-
-        addURL.invoke(classloader, new Object[] { file.toURI().toURL() });
     }
 }
