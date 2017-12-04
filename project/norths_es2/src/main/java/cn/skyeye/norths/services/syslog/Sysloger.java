@@ -11,7 +11,10 @@ import org.productivity.java.syslog4j.impl.net.tcp.TCPNetSyslogConfig;
 import org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslog;
 import org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslogConfig;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -145,8 +148,8 @@ public class Sysloger extends DataEventHandler {
                 try {
                     entry.warn(message);
                 } catch (Exception e) {
-                    logger.error(String.format("%s服务器：%s:%s连接异常。",
-                            entry.getConfig().getSyslogClass(), entry.getConfig().getHost(),entry.getConfig().getPort()), e);
+                    logger.error(String.format("syslog服务器：%s://%s:%s连接异常。",
+                            entry.getProtocol(), entry.getConfig().getHost(),entry.getConfig().getPort()), e);
                 }
             });
             logger.debug(String.format("发送告警日志的数目为：%s", sendCount.incrementAndGet()));
