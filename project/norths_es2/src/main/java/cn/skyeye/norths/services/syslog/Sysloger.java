@@ -124,7 +124,6 @@ public class Sysloger extends DataEventHandler {
         syslogConfig.setPort(port);
         syslogConfig.addBackLogHandler(new Log4jBackLogHandler(Logger.getLogger(Sysloger.class)));
         client.initialize("tcp", syslogConfig);
-        System.err.println(syslogConfig.getBackLogHandlers());
         return client;
     }
 
