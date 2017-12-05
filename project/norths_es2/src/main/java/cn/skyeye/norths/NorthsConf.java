@@ -9,7 +9,6 @@ import cn.skyeye.resources.Resources;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -17,7 +16,6 @@ import java.io.File;
 import java.sql.*;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -40,7 +38,6 @@ public class NorthsConf extends ConfigDetail {
     private boolean sqlite;
 
     private Map<String, String> systemConfig = Maps.newConcurrentMap();
-    private Set<String> threats = Sets.newHashSet();
     private boolean autoFlushSystemConfig;
     private ReentrantLock lock = new ReentrantLock();
 
@@ -196,9 +193,6 @@ public class NorthsConf extends ConfigDetail {
             String sql;
             PreparedStatement statement= null;
             ResultSet resultSet = null;
-
-            Statement threatStatement = null;
-            ResultSet threatResultSet = null;
             lock.lock();
             try {
                 if(checkTableExist(conn)) {
@@ -217,18 +211,10 @@ public class NorthsConf extends ConfigDetail {
                 }
                 logger.info(String.format("表%s中的配置为：\n\t %s", systemConfigTableName, systemConfig));
 
-                sql = String.format("select cat from %s", threateTypeTableName);
-                threatStatement = conn.createStatement();
-                threatResultSet = threatStatement.executeQuery(sql);
-                while (threatResultSet.next()) {
-                    threats.add(threatResultSet.getString("cat"));
-                }
-                logger.info(String.format("告警类型的配置为：\n\t %s", threats));
             } catch (SQLException e) {
                 logger.error("查询系统配置表失败。", e);
             } finally {
                 DBCommon.close(null, statement, resultSet);
-                DBCommon.close(null, threatStatement, threatResultSet);
                 if(sqlite){
                     DBCommon.close(conn);
                     this.conn = null;
@@ -247,7 +233,32 @@ public class NorthsConf extends ConfigDetail {
 
 
     public List<String> getThreats() {
-        return Lists.newArrayList(threats);
+        Connection conn = getConn();
+        List<String> threats = Lists.newArrayList();
+        if(conn != null){
+            String sql;
+            Statement threatStatement = null;
+            ResultSet threatResultSet = null;
+            try {
+                sql = String.format("select cat from %s", threateTypeTableName);
+                threatStatement = conn.createStatement();
+                threatResultSet = threatStatement.executeQuery(sql);
+                while (threatResultSet.next()) {
+                    threats.add(threatResultSet.getString("cat"));
+                }
+                logger.info(String.format("告警类型的配置为：\n\t %s", threats));
+            } catch (SQLException e) {
+                logger.error(String.format("查询%s失败。", threateTypeTableName), e);
+            } finally {
+                DBCommon.close(null, threatStatement, threatResultSet);
+                if(sqlite){
+                    DBCommon.close(conn);
+                    this.conn = null;
+                }
+            }
+        }
+
+        return threats;
     }
 
     private boolean checkTableExist(Connection conn){
