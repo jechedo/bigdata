@@ -12,6 +12,7 @@ import org.productivity.java.syslog4j.impl.net.tcp.TCPNetSyslogConfig;
 import org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslog;
 import org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslogConfig;
 
+import java.net.InetAddress;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -64,16 +65,33 @@ public class Sysloger extends DataEventHandler {
         Object portObj;
         for(Map<String, Object> service : services){
             ipObj = service.get("host");
-            if(ipObj == null)continue;
+            if(ipObj == null || !isReachable(String.valueOf(ipObj))){
+                logger.error(String.format("服务%s的ip不可用。", service));
+                continue;
+            }
 
             portObj = service.get("port");
-            if(portObj == null)continue;
+            if(portObj == null){
+                logger.error(String.format("服务%s的port为空。", service));
+                continue;
+            }
 
             addSyslogClient(String.valueOf(ipObj),
                     Integer.parseInt(String.valueOf(portObj)),
                     protocol);
             logger.info(String.format("添加syslogClient成功: host: %s, port: %s, protocol : %s", ipObj, portObj, protocol));
         }
+    }
+
+    private boolean isReachable(String ip){
+        InetAddress address;
+        try {
+            address =InetAddress.getByName(ip);
+            return address.isReachable(3000); //是否能通信 返回true或false
+        } catch (Exception e) {
+            logger.error(String.format("ip: %s 不可用。", ip), e);
+        }
+        return false;
     }
 
     public void initAlarmFilter(SyslogConf.SyslogAlarmConfig syslogAlarmConfig){
