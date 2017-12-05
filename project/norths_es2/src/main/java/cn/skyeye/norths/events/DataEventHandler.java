@@ -8,7 +8,6 @@ import org.apache.commons.logging.LogFactory;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -22,15 +21,11 @@ public abstract class DataEventHandler implements EventHandler<DataEvent> {
     protected final Log logger = LogFactory.getLog(DataEventHandler.class);
 
     protected AtomicLong totalEvent = new AtomicLong(0);
-    protected AtomicBoolean endOfBatch = new AtomicBoolean(false);
 
     protected String name;
     protected String conf_preffix;
     protected NorthContext northContext;
     protected ConfigDetail configDetail;
-
-    private AtomicLong batchNum = new AtomicLong(1);
-    private AtomicLong batchEvent = new AtomicLong(0);
 
     public DataEventHandler(String name){
         this.name = name;
@@ -42,21 +37,11 @@ public abstract class DataEventHandler implements EventHandler<DataEvent> {
 
     @Override
     public void onEvent(DataEvent event, long sequence, boolean endOfBatch) throws Exception {
-
-        if(endOfBatch){
-            logger.debug(String.format("handler-%s完成第%s批数据的处理：total = %s。",
-                    name, batchNum.getAndIncrement(), batchEvent.incrementAndGet()));
-            batchEvent.set(0);
-        }else{
-            batchEvent.incrementAndGet();
-        }
-
         if(isAccept(event)) {
             onEvent(event);
         }else {
             logger.debug(String.format("%s不处理此数据源%s:%s数据", name, event.getSource(), event.getType()));
         }
-        this.endOfBatch.set(endOfBatch);
         totalEvent.incrementAndGet();
     }
 

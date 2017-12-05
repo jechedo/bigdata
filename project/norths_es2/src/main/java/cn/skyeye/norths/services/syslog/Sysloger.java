@@ -110,6 +110,7 @@ public class Sysloger extends DataEventHandler {
         syslogConfig.setMaxMessageLength(10240);
         syslogConfig.setHost(host);
         syslogConfig.setPort(port);
+        syslogConfig.addBackLogHandler(new Log4jBackLogHandler(Logger.getLogger(Sysloger.class)));
         client.initialize("udp", syslogConfig);
         return client;
     }
@@ -146,15 +147,15 @@ public class Sysloger extends DataEventHandler {
         Map<String, Object> record = event.getRecord();
         if(alarmLogFilter.isAccept(record)) {
             final String message = createMessage(record);
+            long l = sendCount.incrementAndGet();
             syslogClients.forEach(entry -> {
-                try {
-                    entry.warn(message);
-                } catch (Exception e) {
-                    logger.error(String.format("syslog服务器：%s://%s:%s连接异常。",
-                            entry.getProtocol(), entry.getConfig().getHost(),entry.getConfig().getPort()), e);
+                entry.warn(message);
+                if(l % 1000 == 0){
+                    entry.flush();
                 }
             });
-            logger.debug(String.format("发送告警日志的数目为：%s", sendCount.incrementAndGet()));
+            logger.debug(String.format("发送告警日志的数目为：%s", l));
+
         }else{
             logger.debug(String.format("告警信息不满足要求：\n\t%s", event));
         }
