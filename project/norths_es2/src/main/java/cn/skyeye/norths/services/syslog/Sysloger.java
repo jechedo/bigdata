@@ -13,10 +13,7 @@ import org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslog;
 import org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslogConfig;
 
 import java.net.InetAddress;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -29,7 +26,9 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Sysloger extends DataEventHandler {
     private static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     private Set<SyslogIF> syslogClients;
+    private Set<SyslogClientInfo> failedsyslogClients;
     private ReentrantLock lock = new ReentrantLock();
+    private Timer failedClientCheckTimer;
 
     private AlarmLogFilter alarmLogFilter;
     private SyslogConf syslogConf;
@@ -38,10 +37,36 @@ public class Sysloger extends DataEventHandler {
 
     public Sysloger(String name){
         super(name);
-        this.syslogClients = Sets.newHashSet();
+        this.syslogClients =  Sets.newConcurrentHashSet();
+        this.failedsyslogClients = Sets.newConcurrentHashSet();
         this.syslogConf = new SyslogConf(conf_preffix, configDetail, northContext.getNorthsConf());
-        initSyslogClient(syslogConf.getSyslogConfig());
+        this.alarmLogFilter = new AlarmLogFilter();
+
         initAlarmFilter(syslogConf.getSyslogAlarmConfig());
+        initSyslogClient(syslogConf.getSyslogConfig());
+
+        this.failedClientCheckTimer = new Timer("failedClientCheckTimer");
+        failedClientCheckTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Iterator<SyslogClientInfo> iterator = failedsyslogClients.iterator();
+                SyslogClientInfo next;
+                while (iterator.hasNext()){
+                   next = iterator.next();
+                   logger.info(String.format("重新检查syslog服务器ip：%s的连通性。", next.host));
+                   if(isReachable(next.host)){
+                       addSyslogClient(next.host, next.port, next.protocol);
+                       iterator.remove();
+                   }else {
+                       logger.warn(String.format("重新检查syslog服务器ip：%s的连通性失败。", next.host));
+                   }
+                }
+            }
+        }, 300000L, 300000L);
+    }
+
+    public void initAlarmFilter(SyslogConf.SyslogAlarmConfig syslogAlarmConfig){
+        this.alarmLogFilter.initConfig(syslogAlarmConfig);
     }
 
     public void initSyslogClient(SyslogConf.SyslogConfig syslogConf){
@@ -59,48 +84,60 @@ public class Sysloger extends DataEventHandler {
         }
     }
 
+    private Set<SyslogIF> getSyslogClients(){
+        this.lock.lock();
+        try {
+            return Sets.newHashSet(syslogClients);
+        } finally {
+            this.lock.unlock();
+        }
+
+    }
+
     private void initSyslogClient(String protocol, List<Map<String, Object>> services, boolean clear){
         if(clear)clearSyslogClient();
         Object ipObj;
+        String ip;
         Object portObj;
+        int port;
         for(Map<String, Object> service : services){
-            ipObj = service.get("host");
-            if(ipObj == null || !isReachable(String.valueOf(ipObj))){
-                logger.error(String.format("服务%s的ip不可用。", service));
-                continue;
-            }
 
             portObj = service.get("port");
             if(portObj == null){
                 logger.error(String.format("服务%s的port为空。", service));
                 continue;
             }
+            port = Integer.parseInt(String.valueOf(portObj));
 
-            addSyslogClient(String.valueOf(ipObj),
-                    Integer.parseInt(String.valueOf(portObj)),
-                    protocol);
-            logger.info(String.format("添加syslogClient成功: host: %s, port: %s, protocol : %s", ipObj, portObj, protocol));
+            ipObj = service.get("host");
+            if(ipObj == null){
+                logger.error(String.format("服务%s的ip为空。", service));
+                continue;
+            }
+            ip = String.valueOf(ipObj);
+
+            if(!isReachable(ip)){
+                failedsyslogClients.add(new SyslogClientInfo(ip, port, protocol));
+                logger.error(String.format("服务%s的ip不可达。", service));
+                continue;
+            }
+
+            addSyslogClient(ip, port, protocol);
         }
     }
 
     private boolean isReachable(String ip){
         InetAddress address;
         try {
-            address =InetAddress.getByName(ip);
-            return address.isReachable(3000); //是否能通信 返回true或false
+            address = InetAddress.getByName(ip);
+            //是否能通信 返回true或false
+            boolean reachable = address.isReachable(5000);
+            logger.info(String.format("检查ip：%s是否可达，结果为：%s", ip, reachable));
+            return reachable;
         } catch (Exception e) {
-            logger.error(String.format("ip: %s 不可用。", ip), e);
+            logger.error(String.format("ip: %s 不可达。", ip), e);
         }
         return false;
-    }
-
-    public void initAlarmFilter(SyslogConf.SyslogAlarmConfig syslogAlarmConfig){
-        lock.lock();
-        try {
-            alarmLogFilter = new AlarmLogFilter(syslogAlarmConfig);
-        } finally {
-            lock.unlock();
-        }
     }
 
     private void addSyslogClient(String host, int port, String protocol){
@@ -115,6 +152,7 @@ public class Sysloger extends DataEventHandler {
         }
         if(client != null) {
             this.syslogClients.add(client);
+            logger.info(String.format("添加syslogClient成功: host: %s, port: %s, protocol : %s", host, port, protocol));
         }else {
             logger.error(String.format("不识别的协议类型：%s, host = %s, port = %s", protocol, host, port));
         }
@@ -128,6 +166,7 @@ public class Sysloger extends DataEventHandler {
         syslogConfig.setMaxMessageLength(10240);
         syslogConfig.setHost(host);
         syslogConfig.setPort(port);
+        syslogConfig.setMaxShutdownWait(10000L);
         syslogConfig.addBackLogHandler(new Log4jBackLogHandler(Logger.getLogger(Sysloger.class)));
         client.initialize("udp", syslogConfig);
         return client;
@@ -141,6 +180,7 @@ public class Sysloger extends DataEventHandler {
         syslogConfig.setMaxMessageLength(10240);
         syslogConfig.setHost(host);
         syslogConfig.setPort(port);
+        syslogConfig.setMaxShutdownWait(10000L);
         syslogConfig.addBackLogHandler(new Log4jBackLogHandler(Logger.getLogger(Sysloger.class)));
         client.initialize("tcp", syslogConfig);
         return client;
@@ -151,33 +191,23 @@ public class Sysloger extends DataEventHandler {
         SyslogIF next;
         while (iterator.hasNext()){
             next = iterator.next();
-            next.flush();
             next.shutdown();
             iterator.remove();
         }
+        failedsyslogClients.clear();
         logger.info("清空syslogClient成功。");
     }
 
-
     @Override
     public void onEvent(DataEvent event) {
-        this.lock.lock();
         Map<String, Object> record = event.getRecord();
         if(alarmLogFilter.isAccept(record)) {
             final String message = createMessage(record);
-            long l = sendCount.incrementAndGet();
-            syslogClients.forEach(entry -> {
-                entry.warn(message);
-                if(l % 1000 == 0){
-                    entry.flush();
-                }
-            });
-            logger.debug(String.format("发送告警日志的数目为：%s", l));
-
+            getSyslogClients().forEach(entry -> entry.warn(message));
+            logger.debug(String.format("发送告警日志的数目为：%s", sendCount.incrementAndGet()));
         }else{
             logger.debug(String.format("告警信息不满足要求：\n\t%s", event));
         }
-        this.lock.unlock();
     }
 
     @Override
@@ -203,5 +233,32 @@ public class Sysloger extends DataEventHandler {
 
     public SyslogConf getSyslogConf() {
         return syslogConf;
+    }
+
+    @Override
+    public void shutdown(long total) {
+        super.shutdown(total);
+        this.failedClientCheckTimer.cancel();
+    }
+
+    private class SyslogClientInfo{
+        private String host;
+        private int port;
+        private String protocol;
+
+        public SyslogClientInfo(String host, int port, String protocol) {
+            this.host = host;
+            this.port = port;
+            this.protocol = protocol;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder();
+            sb.append("host='").append(host).append('\'');
+            sb.append(", port=").append(port);
+            sb.append(", protocol='").append(protocol).append('\'');
+            return sb.toString();
+        }
     }
 }

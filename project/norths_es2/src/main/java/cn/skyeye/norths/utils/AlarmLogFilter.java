@@ -6,6 +6,7 @@ import org.apache.commons.logging.LogFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Description:
@@ -26,17 +27,34 @@ public class AlarmLogFilter {
 
     private final Log logger = LogFactory.getLog(AlarmLogFilter.class);
     private SyslogConf.SyslogAlarmConfig syslogAlarmConfig;
+    private ReentrantLock lock = new ReentrantLock();
+
+    public AlarmLogFilter(){ }
 
     public AlarmLogFilter(SyslogConf.SyslogAlarmConfig syslogAlarmConfig){
+       initConfig(syslogAlarmConfig);
+    }
+
+    public void initConfig(SyslogConf.SyslogAlarmConfig syslogAlarmConfig){
+        this.lock.lock();
         this.syslogAlarmConfig = syslogAlarmConfig;
+        this.lock.unlock();
     }
 
     public boolean isAccept(Map<String, Object> alarmLog){
-        boolean b = levelAccept(alarmLog);
-       // if(b)b = confidenceAccept(alarmLog);
-        if(b)b = statusAccept(alarmLog);
-        if(b)b = logtypeAccept(alarmLog);
-        return b;
+        if(syslogAlarmConfig != null) {
+            this.lock.lock();
+            try {
+                boolean b = levelAccept(alarmLog);
+                // if(b)b = confidenceAccept(alarmLog);
+                if (b) b = statusAccept(alarmLog);
+                if (b) b = logtypeAccept(alarmLog);
+                return b;
+            } finally {
+                this.lock.unlock();
+            }
+        }
+        return true;
     }
 
     private boolean levelAccept(Map<String, Object> alarmLog){
