@@ -124,11 +124,11 @@ public class Sysloger extends DataEventHandler {
             }
             ip = String.valueOf(ipObj);
 
-            /*if(!isReachable(ip)){
+            if(!isReachable(ip)){
                 failedsyslogClients.add(new SyslogClientInfo(ip, port, protocol));
                 logger.error(String.format("服务%s的ip不可达。", service));
                 continue;
-            }*/
+            }
 
             addSyslogClient(ip, port, protocol);
         }
