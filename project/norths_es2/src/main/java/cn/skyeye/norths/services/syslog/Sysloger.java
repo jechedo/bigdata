@@ -211,8 +211,7 @@ public class Sysloger extends DataEventHandler {
         Map<String, Object> record = event.getRecord();
         if(alarmLogFilter.isAccept(record)) {
             final String message = createMessage(record);
-            Set<SyslogIF> syslogClients = getSyslogClients();
-            syslogClients.forEach(entry -> {
+            getSyslogClients().forEach(entry -> {
                 if(isReachable(entry.getConfig().getHost())) {
                     entry.warn(message);
                     logger.debug(String.format("使用%s协议发送告警日志数据服务器%s的端口%s成功。",
