@@ -91,6 +91,14 @@ public class Sysloger extends DataEventHandler {
         } finally {
             this.lock.unlock();
         }
+    }
+    private void removeSyslogClients(SyslogIF syslogClient){
+        this.lock.lock();
+        try {
+            syslogClients.remove(syslogClient);
+        } finally {
+            this.lock.unlock();
+        }
 
     }
 
@@ -116,11 +124,11 @@ public class Sysloger extends DataEventHandler {
             }
             ip = String.valueOf(ipObj);
 
-            if(!isReachable(ip)){
+            /*if(!isReachable(ip)){
                 failedsyslogClients.add(new SyslogClientInfo(ip, port, protocol));
                 logger.error(String.format("服务%s的ip不可达。", service));
                 continue;
-            }
+            }*/
 
             addSyslogClient(ip, port, protocol);
         }
@@ -131,8 +139,8 @@ public class Sysloger extends DataEventHandler {
         try {
             address = InetAddress.getByName(ip);
             //是否能通信 返回true或false
-            boolean reachable = address.isReachable(5000);
-            logger.info(String.format("检查ip：%s是否可达，结果为：%s", ip, reachable));
+            boolean reachable = address.isReachable(3000);
+            //logger.info(String.format("检查ip：%s是否可达，结果为：%s", ip, reachable));
             return reachable;
         } catch (Exception e) {
             logger.error(String.format("ip: %s 不可达。", ip), e);
@@ -203,7 +211,19 @@ public class Sysloger extends DataEventHandler {
         Map<String, Object> record = event.getRecord();
         if(alarmLogFilter.isAccept(record)) {
             final String message = createMessage(record);
-            getSyslogClients().forEach(entry -> entry.warn(message));
+            Set<SyslogIF> syslogClients = getSyslogClients();
+            syslogClients.forEach(entry -> {
+                if(isReachable(entry.getConfig().getHost())) {
+                    entry.warn(message);
+                    logger.debug(String.format("使用%s协议发送告警日志数据服务器%s的端口%s成功。",
+                            entry.getProtocol(), entry.getConfig().getHost(), entry.getConfig().getPort()));
+                }else {
+                    removeSyslogClients(entry);
+                    failedsyslogClients.add(new SyslogClientInfo(entry.getConfig().getHost(), entry.getConfig().getPort(),
+                            entry.getProtocol()));
+                    logger.error(String.format("服务器IP:%s不可达，加入失败服务器列表中。", entry.getConfig().getHost()));
+                }
+            });
             logger.debug(String.format("发送告警日志的数目为：%s", sendCount.incrementAndGet()));
         }else{
             logger.debug(String.format("告警信息不满足要求：\n\t%s", event));
