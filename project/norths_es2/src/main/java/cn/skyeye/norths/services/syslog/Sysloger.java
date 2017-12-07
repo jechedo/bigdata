@@ -139,7 +139,7 @@ public class Sysloger extends DataEventHandler {
         try {
             address = InetAddress.getByName(ip);
             //是否能通信 返回true或false
-            boolean reachable = address.isReachable(3000);
+            boolean reachable = address.isReachable(5000);
             //logger.info(String.format("检查ip：%s是否可达，结果为：%s", ip, reachable));
             return reachable;
         } catch (Exception e) {
