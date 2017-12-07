@@ -25,9 +25,9 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class Sysloger extends DataEventHandler {
     private static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+    private final ReentrantLock lock = new ReentrantLock();
     private Set<SyslogIF> syslogClients;
     private Set<SyslogClientInfo> failedsyslogClients;
-    private ReentrantLock lock = new ReentrantLock();
     private Timer failedClientCheckTimer;
 
     private AlarmLogFilter alarmLogFilter;
@@ -49,17 +49,24 @@ public class Sysloger extends DataEventHandler {
         failedClientCheckTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                Iterator<SyslogClientInfo> iterator = failedsyslogClients.iterator();
-                SyslogClientInfo next;
-                while (iterator.hasNext()){
-                   next = iterator.next();
-                   logger.info(String.format("重新检查syslog服务器ip：%s的连通性。", next.host));
-                   if(isReachable(next.host)){
-                       addSyslogClient(next.host, next.port, next.protocol);
-                       iterator.remove();
-                   }else {
-                       logger.warn(String.format("重新检查syslog服务器ip：%s的连通性失败。", next.host));
-                   }
+                if (failedsyslogClients.isEmpty()) {
+                    lock.lock();
+                    try {
+                        Iterator<SyslogClientInfo> iterator = failedsyslogClients.iterator();
+                        SyslogClientInfo next;
+                        while (iterator.hasNext()) {
+                            next = iterator.next();
+                            logger.info(String.format("重新检查syslog服务器ip：%s的连通性。", next.host));
+                            if (isReachable(next.host)) {
+                                addSyslogClient(next.host, next.port, next.protocol);
+                                iterator.remove();
+                            } else {
+                                logger.warn(String.format("重新检查syslog服务器ip：%s的连通性失败。", next.host));
+                            }
+                        }
+                    } finally{
+                        lock.unlock();
+                    }
                 }
             }
         }, 300000L, 300000L);
@@ -202,7 +209,7 @@ public class Sysloger extends DataEventHandler {
             next.shutdown();
             iterator.remove();
         }
-        failedsyslogClients.clear();
+        this.failedsyslogClients.clear();
         logger.info("清空syslogClient成功。");
     }
 
@@ -217,6 +224,7 @@ public class Sysloger extends DataEventHandler {
                     logger.debug(String.format("使用%s协议发送告警日志数据服务器%s的端口%s成功。",
                             entry.getProtocol(), entry.getConfig().getHost(), entry.getConfig().getPort()));
                 }else {
+                    entry.shutdown();
                     removeSyslogClients(entry);
                     failedsyslogClients.add(new SyslogClientInfo(entry.getConfig().getHost(), entry.getConfig().getPort(),
                             entry.getProtocol()));
