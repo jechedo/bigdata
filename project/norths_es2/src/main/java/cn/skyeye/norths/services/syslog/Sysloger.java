@@ -49,7 +49,7 @@ public class Sysloger extends DataEventHandler {
         failedClientCheckTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if (failedsyslogClients.isEmpty()) {
+                if (!failedsyslogClients.isEmpty()) {
                     lock.lock();
                     try {
                         Iterator<SyslogClientInfo> iterator = failedsyslogClients.iterator();
@@ -64,7 +64,7 @@ public class Sysloger extends DataEventHandler {
                                 logger.warn(String.format("重新检查syslog服务器ip：%s的连通性失败。", next.host));
                             }
                         }
-                    } finally{
+                    } finally {
                         lock.unlock();
                     }
                 }
@@ -288,4 +288,5 @@ public class Sysloger extends DataEventHandler {
             return sb.toString();
         }
     }
+
 }
