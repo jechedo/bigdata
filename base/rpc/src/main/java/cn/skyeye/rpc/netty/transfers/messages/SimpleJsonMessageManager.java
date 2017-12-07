@@ -9,7 +9,8 @@ package cn.skyeye.rpc.netty.transfers.messages;
 public class SimpleJsonMessageManager implements JsonMessageManager {
 
     @Override
-    public void handleMessage(String jsonMessage) {
+    public byte[] handleMessage(String jsonMessage) {
         System.err.println("JsonMessage = " + jsonMessage);
+        return null;
     }
 }

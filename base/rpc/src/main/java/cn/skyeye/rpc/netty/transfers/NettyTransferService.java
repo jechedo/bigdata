@@ -140,4 +140,14 @@ public class NettyTransferService extends TransferService {
         }
 
     }
+
+    public void sendJson(NodeInfo nodeInfo, String jsonStr, RpcResponseCallback callback){
+        try {
+            TransportClient client = transportClientFactory.createClient(nodeInfo.getIp(), nodeInfo.getPort());
+            client.sendRpc(new JsonMessage(appId, nodeInfo.getHostname(), jsonStr).toByteBuffer(), callback);
+        } catch (Exception e) {
+            logger.error(String.format("Error while send json %s", jsonStr), e);
+        }
+
+    }
 }

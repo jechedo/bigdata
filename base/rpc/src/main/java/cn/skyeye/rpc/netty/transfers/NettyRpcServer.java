@@ -17,6 +17,8 @@ import cn.skyeye.rpc.netty.transfers.messages.JsonMessageManager;
 import cn.skyeye.rpc.netty.transfers.messages.TransferMessage;
 import cn.skyeye.rpc.netty.transfers.stream.StreamHandle;
 import com.google.common.collect.Lists;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.apache.log4j.Logger;
 
 import java.nio.ByteBuffer;
@@ -68,8 +70,15 @@ public class NettyRpcServer extends RpcHandler {
     }
 
     private void doJson(JsonMessage jsonMessage, RpcResponseCallback callback){
-        jsonMessageManager.handleMessage(jsonMessage.jsonStr);
-        callback.onSuccess(ByteBuffer.allocate(0));
+        byte[] result = jsonMessageManager.handleMessage(jsonMessage.jsonStr);
+        if(result == null || result.length == 0) {
+            callback.onSuccess(ByteBuffer.allocate(0));
+        }else{
+            //callback.onSuccess(ByteBuffer.wrap(result));
+            ByteBuf buf = Unpooled.buffer(result.length);
+            buf.writeBytes(result);
+            callback.onSuccess(buf.nioBuffer());
+        }
     }
 
     private void doOpen(OpenBlocks openBlocks, RpcResponseCallback callback) {
