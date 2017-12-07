@@ -224,8 +224,8 @@ public class Sysloger extends DataEventHandler {
                     logger.debug(String.format("使用%s协议发送告警日志数据服务器%s的端口%s成功。",
                             entry.getProtocol(), entry.getConfig().getHost(), entry.getConfig().getPort()));
                 }else {
-                    entry.shutdown();
                     removeSyslogClients(entry);
+                    entry.shutdown();
                     failedsyslogClients.add(new SyslogClientInfo(entry.getConfig().getHost(), entry.getConfig().getPort(),
                             entry.getProtocol()));
                     logger.error(String.format("服务器IP:%s不可达，加入失败服务器列表中。", entry.getConfig().getHost()));
