@@ -340,7 +340,11 @@ public class SnmpManager {
         snmpManager.setTargetAddress("192.168.66.66", 161);
         snmpManager.setCommunity("public");
 
-        PDU pdu = new PDU();
+        Snmp4js snmp4js = Snmp4js.get(snmpManager);
+
+        System.out.println(snmp4js.getSsCpuIdle());
+
+       /* PDU pdu = new PDU();
         pdu.setType(PDU.GETBULK);
         OID oid = new OID("1.3.6.1.4.1.2021.9.1.7");
         pdu.add(new VariableBinding(oid));
@@ -352,7 +356,7 @@ public class SnmpManager {
                 PDU response = event.getResponse();
                 response.getVariableBindings().forEach(ver -> System.out.println(ver.getVariable().toString()));
             }
-        });
+        });*/
 
     }
 }
