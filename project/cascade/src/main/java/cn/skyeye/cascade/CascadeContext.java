@@ -1,5 +1,6 @@
 package cn.skyeye.cascade;
 
+import cn.skyeye.cascade.nodes.NodeManeger;
 import cn.skyeye.rpc.netty.RpcContext;
 import cn.skyeye.rpc.netty.transfers.TransferService;
 import org.apache.log4j.Logger;
@@ -12,6 +13,9 @@ import org.apache.log4j.Logger;
  */
 public class CascadeContext {
     private final Logger logger = Logger.getLogger(CascadeContext.class);
+
+    private NodeManeger nodeManeger;
+
 
     private CascadeContext(){
         //startServer();
