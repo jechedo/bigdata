@@ -85,6 +85,7 @@
             <groupId>org.zeromq</groupId>
             <artifactId>jeromq</artifactId>
             <version>0.4.3</version>
+            <optional>true</optional>
         </dependency>
 
     </dependencies>

@@ -2,11 +2,10 @@ package cn.skyeye.ignite.demos;
 
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
+import org.apache.ignite.IgniteCluster;
 import org.apache.ignite.Ignition;
-import org.apache.ignite.lang.IgniteCallable;
+import org.apache.ignite.cluster.ClusterNode;
 
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -18,23 +17,27 @@ import java.util.Collection;
 public class Demo02 {
 
     public static void main(String[] args) {
-        System.out.println("***44");
-        demo002();
+        System.out.println("***55");
+        //demo002();
+        demo001();
     }
 
     private static void demo001() {
-        URL resource = Demo02.class.getResource("config/example-ignite.xml");
         try {
             Ignite ignite = Ignition.start("config/example-ignite.xml");
-            Collection<IgniteCallable<Integer>> calls = new ArrayList<>();
-            // Iterate through all the words in the sentence and create Callable jobs.
-            for (final String word : "Count characters using callable".split(" "))
-                calls.add(word::length);
-            // Execute collection of Callables on the grid.
-            Collection<Integer> res = ignite.compute().call(calls);
-            // Add up all the results.
-            int sum = res.stream().mapToInt(Integer::intValue).sum();
-            System.out.println("Total number of characters is '" + sum + "'.");
+
+            IgniteCluster cluster = ignite.cluster();
+            Collection<ClusterNode> nodes = cluster.nodes();
+            nodes.forEach(node ->{
+                System.out.println(node.id());
+                System.out.println(node.hostNames());
+                System.out.println(node.metrics());
+                System.out.println(node.isClient());
+                System.out.println(node.version());
+                System.out.println("**********************");
+            });
+
+
         }catch (Exception e){
             e.printStackTrace();
         }
