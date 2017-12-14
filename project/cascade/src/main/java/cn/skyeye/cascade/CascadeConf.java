@@ -28,6 +28,7 @@ public class CascadeConf extends ConfigDetail {
 
     private static final Map<String, String> ENVCONF = Maps.newHashMap();
 
+    private final int port = 60088;
     private Connection conn;
     //系统配置表
     private String systemConfigTableName;
@@ -140,6 +141,10 @@ public class CascadeConf extends ConfigDetail {
 
     public String getCascadeTableName() {
         return cascadeTableName;
+    }
+
+    public int getPort() {
+        return port;
     }
 
     /**

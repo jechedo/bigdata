@@ -1,8 +1,11 @@
 package cn.skyeye.cascade;
 
+import cn.skyeye.cascade.nodes.NodeInfoDetail;
 import cn.skyeye.cascade.nodes.NodeManeger;
+import cn.skyeye.cascade.rpc.managers.FileDataManager;
+import cn.skyeye.cascade.rpc.managers.JsonDataManager;
 import cn.skyeye.rpc.netty.RpcContext;
-import cn.skyeye.rpc.netty.transfers.TransferService;
+import cn.skyeye.rpc.netty.transfers.NettyTransferService;
 import org.apache.log4j.Logger;
 
 /**
@@ -16,15 +19,26 @@ public class CascadeContext {
 
     private NodeManeger nodeManeger;
     private CascadeConf cascadeConf;
-
+    private RpcContext rpcContext;
+    private NettyTransferService transferService;
 
     private CascadeContext(){
         this.cascadeConf = new CascadeConf();
+        this.nodeManeger = new NodeManeger(this);
+        this.rpcContext = RpcContext.get();
+
+        initTransferService();
         //startServer();
-        RpcContext rpcContext = RpcContext.get();
-        TransferService demo = rpcContext.newTransferService("demo", "172.24.66.212", 60080, null, null);
     }
 
+    private void initTransferService(){
+        NodeInfoDetail localNodeInfo = nodeManeger.getLocalNodeInfo();
+        this.transferService = (NettyTransferService) rpcContext.newTransferService("skyeye",
+                        localNodeInfo.getIp(),
+                        cascadeConf.getPort(),
+                        new FileDataManager(),
+                        new JsonDataManager());
+    }
 
     public NodeManeger getNodeManeger() {
         return nodeManeger;
@@ -32,5 +46,9 @@ public class CascadeContext {
 
     public CascadeConf getCascadeConf() {
         return cascadeConf;
+    }
+
+    public NettyTransferService getTransferService() {
+        return transferService;
     }
 }

@@ -3,6 +3,7 @@ package cn.skyeye.cascade.nodes;
 import cn.skyeye.cascade.CascadeConf;
 import cn.skyeye.cascade.CascadeContext;
 import cn.skyeye.common.databases.DBCommon;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 
@@ -32,6 +33,30 @@ public class NodeManeger {
         this.supNodeMap = Maps.newConcurrentMap();
         this.subNodeMap = Maps.newConcurrentMap();
         initNodes();
+        Preconditions.checkNotNull(local, "本系统级联信息为空！");
+    }
+
+    private void setNodeInfoDetail(NodeInfoDetail nodeInfoDetail){
+        int status = nodeInfoDetail.getStatus();
+        switch (status){
+            case 0 :
+                this.local = nodeInfoDetail;
+                logger.info(String.format("本系统级联配置：\n\t %s", nodeInfoDetail));
+                break;
+            case 1 :
+                //nodeInfoDetail.setNodeLevel(NodeInfoDetail.NodeLevel.supervisor);
+                this.supNodeMap.put(nodeInfoDetail.getId(), nodeInfoDetail);
+                logger.info(String.format("本系统级联上级：\n\t %s", nodeInfoDetail));
+                break;
+            case 2 :
+                //nodeInfoDetail.setNodeLevel(NodeInfoDetail.NodeLevel.subordinate);
+                this.subNodeMap.put(nodeInfoDetail.getId(), nodeInfoDetail);
+                logger.info(String.format("本系统级联下级：\n\t %s", nodeInfoDetail));
+                break;
+            default:
+                throw new IllegalArgumentException(String.format("系统状态：%s不合法。\n\t %s", status, nodeInfoDetail));
+        }
+
     }
 
     private void initNodes(){
@@ -95,37 +120,18 @@ public class NodeManeger {
         }
     }
 
-    private void setNodeInfoDetail(NodeInfoDetail nodeInfoDetail){
-        int status = nodeInfoDetail.getStatus();
-        switch (status){
-            case 0 :
-                this.local = nodeInfoDetail;
-                logger.info(String.format("本系统级联配置：\n\t %s", nodeInfoDetail));
-                break;
-            case 1 :
-                this.supNodeMap.put(nodeInfoDetail.getId(), nodeInfoDetail);
-                logger.info(String.format("本系统级联上级：\n\t %s", nodeInfoDetail));
-                break;
-            case 2 :
-                this.subNodeMap.put(nodeInfoDetail.getId(), nodeInfoDetail);
-                logger.info(String.format("本系统级联下级：\n\t %s", nodeInfoDetail));
-                break;
-            default:
-                throw new IllegalArgumentException(String.format("系统状态：%s不合法。\n\t %s", status, nodeInfoDetail));
-        }
+    public void addAndUpdateNode(String nodeId, NodeInfoDetail.NodeLevel level, Map<String, Object> detail){
 
+        switch (level){
+            case supervisor:
+                break;
+            case subordinate:
+                break;
+        }
     }
 
-    public void addAndUpdateNode(String nodeId, Map<String, Object> detail){
-
-        Object level = detail.get("level");
-        if(level == null)
-            level = NodeInfoDetail.NodeLevel.subordinate.name();
-        if("subordinate".equals(level)){
-            //下级
-        }else{
-            //上级
-        }
+    public NodeInfoDetail getLocalNodeInfo() {
+        return local;
     }
 
     public boolean hasSupNode(){

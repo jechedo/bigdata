@@ -1,5 +1,7 @@
 package cn.skyeye.cascade.nodes;
 
+import com.google.common.collect.Maps;
+
 import java.util.Map;
 
 /**
@@ -35,13 +37,24 @@ public class NodeInfoDetail {
     //最后一次连接时间
     private long lastConnectTime;
 
-    private NodeLevel nodeLevel;
+    //private NodeLevel nodeLevel;
 
     public NodeInfoDetail(){}
 
     public NodeInfoDetail(Map<String, Object> heartbeats){
 
-        Object id = heartbeats.get("id");
+    }
+
+    public Map<String, String> getRegistMSG(String status){
+        Map<String, String> map = Maps.newHashMap();
+        map.put("id", id);
+        map.put("status", status);
+        map.put("ip", ip);
+        map.put("parentId", parentId);
+        map.put("name", name);
+        map.put("province", province);
+        map.put("city", city);
+        return map;
     }
 
     public String getId() {
@@ -138,14 +151,6 @@ public class NodeInfoDetail {
 
     public void setLastConnectTime(long lastConnectTime) {
         this.lastConnectTime = lastConnectTime;
-    }
-
-    public NodeLevel getNodeLevel() {
-        return nodeLevel;
-    }
-
-    public void setNodeLevel(NodeLevel nodeLevel) {
-        this.nodeLevel = nodeLevel;
     }
 
     @Override
