@@ -3,14 +3,10 @@ package cn.skyeye.cascade.nodes;
 import cn.skyeye.cascade.CascadeConf;
 import cn.skyeye.cascade.CascadeContext;
 import cn.skyeye.common.databases.DBCommon;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Map;
 
 /**
@@ -33,7 +29,10 @@ public class NodeManeger {
         this.supNodeMap = Maps.newConcurrentMap();
         this.subNodeMap = Maps.newConcurrentMap();
         initNodes();
-        Preconditions.checkNotNull(local, "本系统级联信息为空！");
+        if(local == null){
+            this.local = localInfo();
+        }
+       //Preconditions.checkNotNull(local, "本系统级联信息为空！");
     }
 
     private void setNodeInfoDetail(NodeInfoDetail nodeInfoDetail){
@@ -154,6 +153,41 @@ public class NodeManeger {
 
     }
 
+    private NodeInfoDetail localInfo(){
+
+        NodeInfoDetail nodeInfoDetail = new NodeInfoDetail();
+        nodeInfoDetail.setId("8781dd16-19b1-4312-975a-49f69e9e83e5");
+        nodeInfoDetail.setStatus(0);
+        nodeInfoDetail.setIp("172.24.66.212");
+        nodeInfoDetail.setName("武汉银行-skyeye");
+        nodeInfoDetail.setProvince("湖北");
+        nodeInfoDetail.setCity("武汉");
+        nodeInfoDetail.setHostname("local");
+
+        CascadeConf cascadeConf = context.getCascadeConf();
+        Connection conn = cascadeConf.getConn();
+        if(conn != null){
+            String sql = String.format("insert into %s (system_id, system_ip, system_name, system_province, system_city, system_status) values (?,?,?,?,?,?)", cascadeConf.getCascadeTableName());
+            PreparedStatement preparedStatement = null;
+            try {
+                preparedStatement = conn.prepareStatement(sql);
+                preparedStatement.setString(1, nodeInfoDetail.getId());
+                preparedStatement.setString(2, nodeInfoDetail.getIp());
+                preparedStatement.setString(3, nodeInfoDetail.getName());
+                preparedStatement.setString(4, nodeInfoDetail.getProvince());
+                preparedStatement.setString(5, nodeInfoDetail.getCity());
+                preparedStatement.setInt(6, nodeInfoDetail.getStatus());
+
+                preparedStatement.execute();
+            } catch (SQLException e) {
+                logger.info("写入数据到数据中失败。", e);
+            }finally {
+                DBCommon.close(preparedStatement);
+            }
+        }
+
+        return nodeInfoDetail;
+    }
 
     public static NodeInfoDetail createNodeInfoDetail(Map<String, String> nodeInfo){
         if(nodeInfo != null && !nodeInfo.isEmpty()) {

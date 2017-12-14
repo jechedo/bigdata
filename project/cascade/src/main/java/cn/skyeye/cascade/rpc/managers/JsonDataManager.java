@@ -1,6 +1,7 @@
 package cn.skyeye.cascade.rpc.managers;
 
 import cn.skyeye.cascade.CascadeContext;
+import cn.skyeye.cascade.rpc.MessageType;
 import cn.skyeye.common.json.Jsons;
 import cn.skyeye.rpc.netty.transfers.messages.JsonMessageManager;
 import org.apache.log4j.Logger;
@@ -23,27 +24,21 @@ public class JsonDataManager implements JsonMessageManager {
 
     @Override
     public byte[] handleMessage(String jsonMessage) {
+        System.err.println(jsonMessage);
         try {
             Map<String, String> message = Jsons.toMap(jsonMessage);
-            String type = message.get("type").toLowerCase();
+            String type = message.get("type");
             message.remove("type");
-            switch (type){
-                case "register" :
-                    handleRegist(message);
-                    break;
-                case "heartbeats" : break;
-                case "esdata" : break;
-                case "dbdata" : break;
-                case "order" : break;
+
+            MessageType messageType = MessageType.get(type);
+            if(messageType != null){
+                String res = messageType.getHandler().handleMessage(message);
+                return res.getBytes("utf-8");
             }
         } catch (Exception e) {
             logger.error(String.format("请求数据格式有误: \n\t %s", jsonMessage), e);
         }
-
         return new byte[0];
     }
 
-    private void handleRegist(Map<String, String> registMSG){
-
-    }
 }

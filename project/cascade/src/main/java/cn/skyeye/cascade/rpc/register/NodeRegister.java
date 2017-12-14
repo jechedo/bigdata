@@ -72,6 +72,7 @@ public class NodeRegister {
         Map<String, String> registMSG = localInfo.getRegistMSG("1");
         registMSG.put("type", MessageType.register.name());
         String reponse = regist(localInfo.getId(), registMSG, targetIP);
+        System.err.println(reponse);
 
 
     }

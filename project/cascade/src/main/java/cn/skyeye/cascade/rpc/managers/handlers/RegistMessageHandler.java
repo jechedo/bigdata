@@ -60,6 +60,7 @@ public class RegistMessageHandler extends MessageHandler {
             //反馈为下级
             res = nodeManeger.getLocalNodeInfo().getRegistMSG("2");
             res.put("registrationStatus", "1");
+            logger.info(String.format("处理上级注册成功，信息如下：\n\t %s", remoteNodeInfo));
         }
         return res;
     }

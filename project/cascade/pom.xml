@@ -24,6 +24,48 @@
             <groupId>cn.360.skyeye</groupId>
             <artifactId>bigdata-common_2.10</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>mysql-connector-java</artifactId>
+                    <groupId>mysql</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>snmp4j</artifactId>
+                    <groupId>org.snmp4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>syslog4j</artifactId>
+                    <groupId>org.syslog4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>httpcore</artifactId>
+                    <groupId>org.apache.httpcomponents</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>ganymed-ssh2</artifactId>
+                    <groupId>ch.ethz.ganymed</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>commons-vfs2</artifactId>
+                    <groupId>org.apache.commons</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>commons-collections4</artifactId>
+                    <groupId>org.apache.commons</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>javax.mail</artifactId>
+                    <groupId>com.sun.mail</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>junrar</artifactId>
+                    <groupId>com.github.junrar</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>juniversalchardet</artifactId>
+                    <groupId>com.googlecode.juniversalchardet</groupId>
+                </exclusion>
+            </exclusions>
             <optional>true</optional>
         </dependency>
 
@@ -32,6 +74,12 @@
             <artifactId>bigdata-rpc_2.10</artifactId>
             <version>${project.version}</version>
             <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.1.4</version>
         </dependency>
 
     </dependencies>
