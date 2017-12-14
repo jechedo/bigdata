@@ -39,11 +39,7 @@ public class NodeInfoDetail {
 
     //private NodeLevel nodeLevel;
 
-    public NodeInfoDetail(){}
-
-    public NodeInfoDetail(Map<String, Object> heartbeats){
-
-    }
+    NodeInfoDetail(){}
 
     public Map<String, String> getRegistMSG(String status){
         Map<String, String> map = Maps.newHashMap();

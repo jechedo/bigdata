@@ -138,8 +138,67 @@ public class NodeManeger {
         return !supNodeMap.isEmpty();
     }
 
+    public void setSupNode(NodeInfoDetail supNode){
+
+    }
+
+    public void setSupNode(Map<String, String> supNode){
+
+    }
+
     public boolean hasSubNode(){
         return !subNodeMap.isEmpty();
+    }
+
+    public void addSubNode(NodeInfoDetail subNode){
+
+    }
+
+
+    public static NodeInfoDetail createNodeInfoDetail(Map<String, String> nodeInfo){
+        if(nodeInfo != null && !nodeInfo.isEmpty()) {
+            String value;
+            NodeInfoDetail nodeInfoDetail = new NodeInfoDetail();
+
+            value = nodeInfo.get("id");
+            if (value == null) return null;
+            nodeInfoDetail.setId(value);
+
+            value = nodeInfo.get("ip");
+            if (value == null) return null;
+            nodeInfoDetail.setIp(value);
+
+            value = nodeInfo.get("name");
+            if (value == null) return null;
+            nodeInfoDetail.setName(value);
+
+            value = nodeInfo.get("province");
+            if (value == null) return null;
+            nodeInfoDetail.setProvince(value);
+
+            value = nodeInfo.get("city");
+            if (value == null) return null;
+            nodeInfoDetail.setCity(value);
+
+            value = nodeInfo.get("status");
+            if (value == null) return null;
+            nodeInfoDetail.setStatus(Integer.parseInt(value));
+
+            value = nodeInfo.get("registrationStatus");
+            if (value != null) nodeInfoDetail.setRegistrationStatus(Integer.parseInt(value));
+
+            value = nodeInfo.get("registrationTime");
+            if (value != null) nodeInfoDetail.setRegistrationTime(Long.parseLong(value));
+
+            value = nodeInfo.get("parentId");
+            if (value != null) nodeInfoDetail.setParentId(value);
+
+            value = nodeInfo.get("connectStatus");
+            if (value != null) nodeInfoDetail.setConnectStatus(value);
+
+            return nodeInfoDetail;
+        }
+        return null;
     }
 
 }

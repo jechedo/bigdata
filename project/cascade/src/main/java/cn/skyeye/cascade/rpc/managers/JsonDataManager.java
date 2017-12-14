@@ -1,5 +1,6 @@
 package cn.skyeye.cascade.rpc.managers;
 
+import cn.skyeye.cascade.CascadeContext;
 import cn.skyeye.common.json.Jsons;
 import cn.skyeye.rpc.netty.transfers.messages.JsonMessageManager;
 import org.apache.log4j.Logger;
@@ -14,24 +15,22 @@ import java.util.Map;
  */
 public class JsonDataManager implements JsonMessageManager {
     private final Logger logger = Logger.getLogger(JsonMessageManager.class);
-    public enum MessageType{
-        heartbeats, esdata, dbdata, order;
-        public static MessageType get(String type){
-            switch (type){
-                case "heartbeats" : return heartbeats;
-                case "esdata" : return esdata;
-                case "dbdata" : return dbdata;
-                case "order" : return order;
-            }
-            return null;
-        }
+
+    private CascadeContext cascadeContext;
+    public JsonDataManager(CascadeContext cascadeContext){
+        this.cascadeContext = cascadeContext;
     }
 
     @Override
     public byte[] handleMessage(String jsonMessage) {
         try {
-            Map<String, Object> message = Jsons.toMap(jsonMessage);
-            switch (String.valueOf(message.get("type")).toLowerCase()){
+            Map<String, String> message = Jsons.toMap(jsonMessage);
+            String type = message.get("type").toLowerCase();
+            message.remove("type");
+            switch (type){
+                case "register" :
+                    handleRegist(message);
+                    break;
                 case "heartbeats" : break;
                 case "esdata" : break;
                 case "dbdata" : break;
@@ -42,5 +41,9 @@ public class JsonDataManager implements JsonMessageManager {
         }
 
         return new byte[0];
+    }
+
+    private void handleRegist(Map<String, String> registMSG){
+
     }
 }

@@ -2,6 +2,7 @@ package cn.skyeye.cascade.rpc.register;
 
 import cn.skyeye.cascade.CascadeContext;
 import cn.skyeye.cascade.nodes.NodeInfoDetail;
+import cn.skyeye.cascade.rpc.MessageType;
 import cn.skyeye.common.json.Jsons;
 import cn.skyeye.rpc.netty.client.RpcResponseCallback;
 import cn.skyeye.rpc.netty.transfers.NettyTransferService;
@@ -63,11 +64,15 @@ public class NodeRegister {
 
     public void registSubordinate(String targetIP, NodeInfoDetail localInfo) throws Exception {
         Map<String, String> registMSG = localInfo.getRegistMSG("2");
-        regist(localInfo.getId(), registMSG, targetIP);
+        registMSG.put("type", MessageType.register.name());
+        String reponse = regist(localInfo.getId(), registMSG, targetIP);
     }
 
     public void registSupervisor(String targetIP, NodeInfoDetail localInfo) throws Exception {
         Map<String, String> registMSG = localInfo.getRegistMSG("1");
-        regist(localInfo.getId(), registMSG, targetIP);
+        registMSG.put("type", MessageType.register.name());
+        String reponse = regist(localInfo.getId(), registMSG, targetIP);
+
+
     }
 }

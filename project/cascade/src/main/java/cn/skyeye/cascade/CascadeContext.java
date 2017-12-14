@@ -37,7 +37,7 @@ public class CascadeContext {
                         localNodeInfo.getIp(),
                         cascadeConf.getPort(),
                         new FileDataManager(),
-                        new JsonDataManager());
+                        new JsonDataManager(this));
     }
 
     public NodeManeger getNodeManeger() {
