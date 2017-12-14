@@ -44,6 +44,8 @@ public class RegistMessageHandler extends MessageHandler {
         Map<String, String> res = Maps.newHashMap();
         res.put("registrationStatus", "0");
         res.put("registrationMsg", "待完成");
+
+        logger.info(String.format("收到下级注册请求，并处理完成。注册信息如下：\n\t %s", remoteNodeInfo));
         return res;
     }
 
@@ -55,12 +57,13 @@ public class RegistMessageHandler extends MessageHandler {
             res = Maps.newHashMap();
             res.put("registrationStatus", "0");
             res.put("registrationMsg", "There is already a superior!");
+            logger.warn(String.format("收到上级注册请求，已存在上级，拒绝注册，注册信息如下：\n\t %s", remoteNodeInfo));
         }else{
             nodeManeger.setSupNode(remoteNodeInfo);
             //反馈为下级
             res = nodeManeger.getLocalNodeInfo().getRegistMSG("2");
             res.put("registrationStatus", "1");
-            logger.info(String.format("处理上级注册成功，信息如下：\n\t %s", remoteNodeInfo));
+            logger.info(String.format("收到上级注册请求，并处理完成。上级信息如下：\n\t %s", remoteNodeInfo));
         }
         return res;
     }

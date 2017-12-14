@@ -24,7 +24,6 @@ public class JsonDataManager implements JsonMessageManager {
 
     @Override
     public byte[] handleMessage(String jsonMessage) {
-        System.err.println(jsonMessage);
         try {
             Map<String, String> message = Jsons.toMap(jsonMessage);
             String type = message.get("type");
