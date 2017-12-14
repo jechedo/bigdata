@@ -39,8 +39,8 @@ public class NettyTransferService extends TransferService {
     public NettyTransferService(String appId, NodeInfo nodeInfo){
         this.appId = appId;
         this.nodeInfo = nodeInfo;
-        this.hostname = this.nodeInfo.getIp();
-        this.port = this.nodeInfo.getPort();
+        this.hostname = this.nodeInfo.getTargetIP();
+        this.port = this.nodeInfo.getTargetPort();
     }
 
     @Override
@@ -75,13 +75,13 @@ public class NettyTransferService extends TransferService {
     @Override
     public void fetchBlocks(NodeInfo nodeInfo,  String[] blockIds, BlockFetchingListener blockFetchingListener) {
         logger.trace(String.format("Fetch blocks from %s:%s (nodeId %s)",
-                nodeInfo.getIp(), nodeInfo.getPort(), nodeInfo.getHostname()));
+                nodeInfo.getTargetIP(), nodeInfo.getTargetPort(), nodeInfo.getLocalID()));
         try {
             RetryingBlockFetcher.BlockFetchStarter blockFetchStarter = new RetryingBlockFetcher.BlockFetchStarter() {
                 @Override
                 public void createAndStart(String[] blockIds, BlockFetchingListener listener) throws IOException, InterruptedException {
-                    TransportClient client = transportClientFactory.createClient(nodeInfo.getIp(), nodeInfo.getPort());
-                    new OneForOneBlockFetcher(client, appId, nodeInfo.getHostname(), blockIds, listener,
+                    TransportClient client = transportClientFactory.createClient(nodeInfo.getTargetIP(), nodeInfo.getTargetPort());
+                    new OneForOneBlockFetcher(client, appId, nodeInfo.getLocalID(), blockIds, listener,
                             transportConf, null).start();
                 }
             };
@@ -100,9 +100,9 @@ public class NettyTransferService extends TransferService {
     @Override
     public void uploadBlock(NodeInfo nodeInfo, BlockId blockId, ManagedBuffer managedBuffer) {
         try {
-            TransportClient client = transportClientFactory.createClient(nodeInfo.getIp(), nodeInfo.getPort());
+            TransportClient client = transportClientFactory.createClient(nodeInfo.getTargetIP(), nodeInfo.getTargetPort());
             byte[] data = JavaUtils.bufferToArray(managedBuffer.nioByteBuffer());
-            client.sendRpc(new UploadBlock(appId, nodeInfo.getHostname(), blockId.getName(), data).toByteBuffer(),
+            client.sendRpc(new UploadBlock(appId, nodeInfo.getLocalID(), blockId.getName(), data).toByteBuffer(),
                     new RpcResponseCallback() {
                         @Override
                         public void onSuccess(ByteBuffer response) {
@@ -122,8 +122,8 @@ public class NettyTransferService extends TransferService {
     @Override
     public void sendJson(NodeInfo nodeInfo, String jsonStr){
         try {
-            TransportClient client = transportClientFactory.createClient(nodeInfo.getIp(), nodeInfo.getPort());
-            client.sendRpc(new JsonMessage(appId, nodeInfo.getAddress(), jsonStr).toByteBuffer(),
+            TransportClient client = transportClientFactory.createClient(nodeInfo.getTargetIP(), nodeInfo.getTargetPort());
+            client.sendRpc(new JsonMessage(appId, nodeInfo.getLocalID(), jsonStr).toByteBuffer(),
                     new RpcResponseCallback() {
                         @Override
                         public void onSuccess(ByteBuffer response) {
@@ -143,8 +143,8 @@ public class NettyTransferService extends TransferService {
 
     public void sendJson(NodeInfo nodeInfo, String jsonStr, RpcResponseCallback callback){
         try {
-            TransportClient client = transportClientFactory.createClient(nodeInfo.getIp(), nodeInfo.getPort());
-            client.sendRpc(new JsonMessage(appId, nodeInfo.getHostname(), jsonStr).toByteBuffer(), callback);
+            TransportClient client = transportClientFactory.createClient(nodeInfo.getTargetIP(), nodeInfo.getTargetPort());
+            client.sendRpc(new JsonMessage(appId, nodeInfo.getLocalID(), jsonStr).toByteBuffer(), callback);
         } catch (Exception e) {
             logger.error(String.format("Error while send json %s", jsonStr), e);
         }

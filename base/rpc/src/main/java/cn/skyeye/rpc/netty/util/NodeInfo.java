@@ -7,42 +7,34 @@ package cn.skyeye.rpc.netty.util;
  * @version 2017/10/31 13:24
  */
 public class NodeInfo {
-    private String hostname;
-    private String ip;
-    private int port;
+    private String localID;
+    private String targetIP;
+    private int targetPort;
 
-    public NodeInfo(String hostname, String ip, int port) {
-        this.hostname = hostname;
-        this.ip = ip;
-        this.port = port;
+    public NodeInfo(String localID, String targetIP, int targetPort) {
+        this.localID = localID;
+        this.targetIP = targetIP;
+        this.targetPort = targetPort;
     }
 
-    public String getHostname() {
-        return hostname;
+    public String getLocalID() {
+        return localID;
     }
 
-    public String getAddress(){
-        if(hostname != null){
-            return hostname;
-        }else {
-            return ip;
-        }
+    public String getTargetIP() {
+        return targetIP;
     }
 
-    public String getIp() {
-        return ip;
-    }
-
-    public int getPort() {
-        return port;
+    public int getTargetPort() {
+        return targetPort;
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("NodeInfo{");
-        sb.append(", hostname='").append(hostname).append('\'');
-        sb.append(", ip='").append(ip).append('\'');
-        sb.append(", port=").append(port);
+        sb.append(", localID='").append(localID).append('\'');
+        sb.append(", targetIP='").append(targetIP).append('\'');
+        sb.append(", targetPort=").append(targetPort);
         sb.append('}');
         return sb.toString();
     }
@@ -54,16 +46,16 @@ public class NodeInfo {
 
         NodeInfo nodeInfo = (NodeInfo) o;
 
-        if (port != nodeInfo.port) return false;
-        if (!hostname.equals(nodeInfo.hostname)) return false;
-        return hostname.equals(nodeInfo.hostname);
+        if (targetPort != nodeInfo.targetPort) return false;
+        if (!localID.equals(nodeInfo.localID)) return false;
+        return localID.equals(nodeInfo.localID);
     }
 
     @Override
     public int hashCode() {
-        int result = hostname.hashCode();
-        result = 31 * result + hostname.hashCode();
-        result = 31 * result + port;
+        int result = localID.hashCode();
+        result = 31 * result + localID.hashCode();
+        result = 31 * result + targetPort;
         return result;
     }
 }
