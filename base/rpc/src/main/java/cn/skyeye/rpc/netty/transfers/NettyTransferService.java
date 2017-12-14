@@ -123,7 +123,7 @@ public class NettyTransferService extends TransferService {
     public void sendJson(NodeInfo nodeInfo, String jsonStr){
         try {
             TransportClient client = transportClientFactory.createClient(nodeInfo.getIp(), nodeInfo.getPort());
-            client.sendRpc(new JsonMessage(appId, nodeInfo.getHostname(), jsonStr).toByteBuffer(),
+            client.sendRpc(new JsonMessage(appId, nodeInfo.getAddress(), jsonStr).toByteBuffer(),
                     new RpcResponseCallback() {
                         @Override
                         public void onSuccess(ByteBuffer response) {

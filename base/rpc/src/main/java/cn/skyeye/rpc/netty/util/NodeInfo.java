@@ -21,6 +21,14 @@ public class NodeInfo {
         return hostname;
     }
 
+    public String getAddress(){
+        if(hostname != null){
+            return hostname;
+        }else {
+            return ip;
+        }
+    }
+
     public String getIp() {
         return ip;
     }
