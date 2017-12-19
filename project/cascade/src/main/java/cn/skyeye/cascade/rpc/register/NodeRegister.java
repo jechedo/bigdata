@@ -3,6 +3,8 @@ package cn.skyeye.cascade.rpc.register;
 import cn.skyeye.cascade.CascadeContext;
 import cn.skyeye.cascade.nodes.NodeInfoDetail;
 import cn.skyeye.cascade.rpc.MessageType;
+import cn.skyeye.cascade.rpc.RegistrationStatus;
+import cn.skyeye.common.json.Jsons;
 import cn.skyeye.rpc.netty.transfers.NettyTransferService;
 import org.apache.log4j.Logger;
 
@@ -33,7 +35,23 @@ public class NodeRegister {
     public void registSupervisor(String targetIP, NodeInfoDetail localInfo) throws Exception {
         Map<String, String> registMSG = localInfo.getRegistMSG("1");
         registMSG.put("type", MessageType.register.name());
-        String reponse = cascadeContext.sendJson(registMSG, targetIP, cascadeContext.getCascadeConf().getPort(),5000);
+        String reponse = cascadeContext.sendJson(registMSG, targetIP,5000);
+
+        Map<String, String> res = Jsons.toMap(reponse);
+        String registration = res.get("registrationStatus");
+        RegistrationStatus registrationStatus = RegistrationStatus.getRegistrationStatus(registration);
+        switch (registrationStatus){
+            case refuse:
+                //
+                break;
+            case success:
+
+                //下级信息入库
+
+                break;
+        }
+
+
         System.err.println(reponse);
     }
 }
