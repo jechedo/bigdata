@@ -40,12 +40,12 @@ public class RegistMessageHandler extends MessageHandler {
     }
 
     private Map<String, String> handleSubordinate(NodeInfoDetail remoteNodeInfo){
-        //存在一个用户确认的流程
-        Map<String, String> res = Maps.newHashMap();
-        res.put("registrationStatus", "0");
-        res.put("registrationMsg", "待完成");
-
-        logger.info(String.format("收到下级注册请求，并处理完成。注册信息如下：\n\t %s", remoteNodeInfo));
+        NodeManeger nodeManeger = cascadeContext.getNodeManeger();
+        //存在一个上级用户确认的流程
+        Map<String, String> res = nodeManeger.getLocalNodeInfo().getRegistMSG("1");
+        res.put("registrationStatus", "-1");
+        res.put("registrationMsg", "已接受，待确认");
+        logger.info(String.format("收到下级注册请求，存储完成，待确认。注册信息如下：\n\t %s", remoteNodeInfo));
         return res;
     }
 

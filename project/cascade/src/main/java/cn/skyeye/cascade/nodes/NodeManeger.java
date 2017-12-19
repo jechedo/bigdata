@@ -145,6 +145,14 @@ public class NodeManeger {
 
     }
 
+    public Map<String, NodeInfoDetail> getSupNodeMap() {
+        return supNodeMap;
+    }
+
+    public NodeInfoDetail getSupNodeInfo(String supNodeId){
+        return this.subNodeMap.get(supNodeId);
+    }
+
     public boolean hasSubNode(){
         return !subNodeMap.isEmpty();
     }

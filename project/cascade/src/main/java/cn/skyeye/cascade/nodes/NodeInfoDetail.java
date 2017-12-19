@@ -3,6 +3,7 @@ package cn.skyeye.cascade.nodes;
 import com.google.common.collect.Maps;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Description:
@@ -35,11 +36,26 @@ public class NodeInfoDetail {
     private long registrationTime;
 
     //最后一次连接时间
-    private long lastConnectTime;
+    private AtomicLong lastConnectTime = new AtomicLong(0);
 
     //private NodeLevel nodeLevel;
 
     NodeInfoDetail(){}
+
+    public NodeInfoDetail(NodeInfoDetail nodeInfoDetail){
+        this.id = nodeInfoDetail.id;
+        this.parentId = nodeInfoDetail.parentId;
+        this.ip = nodeInfoDetail.ip;
+        this.hostname = nodeInfoDetail.hostname;
+        this.name = nodeInfoDetail.name;
+        this.province = nodeInfoDetail.province;
+        this.city = nodeInfoDetail.city;
+        this.status = nodeInfoDetail.status;
+        this.registrationStatus = nodeInfoDetail.registrationStatus;
+        this.connectStatus = nodeInfoDetail.connectStatus;
+        this.registrationTime = nodeInfoDetail.registrationTime;
+        this.lastConnectTime = new AtomicLong(nodeInfoDetail.lastConnectTime.get());
+    }
 
     public Map<String, String> getRegistMSG(String status){
         Map<String, String> map = Maps.newHashMap();
@@ -142,11 +158,11 @@ public class NodeInfoDetail {
     }
 
     public long getLastConnectTime() {
-        return lastConnectTime;
+        return lastConnectTime.get();
     }
 
     public void setLastConnectTime(long lastConnectTime) {
-        this.lastConnectTime = lastConnectTime;
+        this.lastConnectTime.set(lastConnectTime);
     }
 
     @Override
@@ -163,7 +179,7 @@ public class NodeInfoDetail {
         sb.append(", registrationStatus=").append(registrationStatus);
         sb.append(", connectStatus='").append(connectStatus).append('\'');
         sb.append(", registrationTime=").append(registrationTime);
-        sb.append(", lastConnectTime=").append(lastConnectTime);
+        sb.append(", lastConnectTime=").append(lastConnectTime.get());
         sb.append('}');
         return sb.toString();
     }
