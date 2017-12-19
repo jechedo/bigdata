@@ -27,7 +27,7 @@ public class JobManager {
         this.jobs = Maps.newConcurrentMap();
 
         StdSchedulerFactory stdSchedulerFactory = new StdSchedulerFactory();
-        this.scheduler = stdSchedulerFactory.getScheduler("skyeye-scheduler");
+        this.scheduler = stdSchedulerFactory.getScheduler();
         this.scheduler.start();
     }
 

@@ -90,7 +90,8 @@ public class NodeInfoDetail {
     }
 
     public void setIp(String ip) {
-        this.ip = ip;
+        if(ip != null && !ip.equals(this.ip))
+            this.ip = ip;
     }
 
     public String getHostname() {
@@ -106,7 +107,8 @@ public class NodeInfoDetail {
     }
 
     public void setName(String name) {
-        this.name = name;
+        if(name != null && !name.equals(this.name))
+            this.name = name;
     }
 
     public String getProvince() {
@@ -114,7 +116,8 @@ public class NodeInfoDetail {
     }
 
     public void setProvince(String province) {
-        this.province = province;
+        if(province != null && !province.equals(this.province))
+            this.province = province;
     }
 
     public String getCity() {
@@ -122,7 +125,8 @@ public class NodeInfoDetail {
     }
 
     public void setCity(String city) {
-        this.city = city;
+        if(city != null && !city.equals(this.city))
+            this.city = city;
     }
 
     public int getStatus() {

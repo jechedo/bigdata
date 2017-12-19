@@ -8,6 +8,7 @@ import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 import org.quartz.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -40,9 +41,8 @@ public class HeartbeatManager {
                 logger.error(String.format("启动心跳上传失败，上级为：\n\t %s", nodeInfo), e);
             }
         });
-        if(cascadeContext.getNodeManeger().hasSubNode()){
-            startHeartbeatReceiver();
-        }
+
+        this.receiver = new HeartbeatReceiver(cascadeContext);
     }
 
     public void startHeartbeatSender(String id, String targetIp) throws SchedulerException {
@@ -55,16 +55,14 @@ public class HeartbeatManager {
         Trigger trigger = TriggerBuilder.newTrigger()
                 .withIdentity(id, "skyeye-heartbeats-triggers")
                 .withSchedule(SimpleScheduleBuilder.repeatSecondlyForever(heartbeatSecondInterval))
-                .startNow().build();
+                .startAt(new Date(System.currentTimeMillis() + heartbeatSecondInterval * 1000L))
+                .build();
 
         cascadeContext.getJobManager().startJob(jobDetail, trigger);
     }
 
-    public void startHeartbeatReceiver(){
-
-        this.receiver = new HeartbeatReceiver(cascadeContext);
-
-
+    public void shutdownHeartbeatSender(String id){
+        cascadeContext.getJobManager().remove(new JobKey(id, "skyeye-heartbeats"));
     }
 
     void updateSupHeartbeatTime(String supId){
@@ -108,5 +106,9 @@ public class HeartbeatManager {
 
     public long getHeartbeatSecondInterval() {
         return heartbeatSecondInterval;
+    }
+
+    public HeartbeatReceiver getReceiver() {
+        return receiver;
     }
 }

@@ -17,7 +17,7 @@ public enum MessageType {
     heartbeats{
         @Override
         public synchronized MessageHandler getHandler() {
-            return null;
+            return CascadeContext.get().getHeartbeatManager().getReceiver();
         }
     },
     esdata{

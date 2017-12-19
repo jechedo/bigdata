@@ -12,7 +12,7 @@ import java.util.Map;
  * @version 2017/12/14 11:20
  */
 public abstract class MessageHandler {
-    private final Logger logger = Logger.getLogger(MessageHandler.class);
+    protected final Logger logger = Logger.getLogger(MessageHandler.class);
 
     protected CascadeContext cascadeContext;
     public MessageHandler(CascadeContext cascadeContext){

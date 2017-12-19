@@ -145,7 +145,6 @@ public class CascadeContext {
 
         //CascadeContext cascadeContext = CascadeContext.get();
 
-
         CascadeContext cascadeContext = CascadeContext.get();
         NodeRegister nodeRegister = cascadeContext.getNodeRegister();
         nodeRegister.registSupervisor("172.24.66.212", cascadeContext.nodeManeger.getLocalNodeInfo());

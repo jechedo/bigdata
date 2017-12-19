@@ -138,7 +138,7 @@ public class NodeManeger {
     }
 
     public void setSupNode(NodeInfoDetail supNode){
-
+        this.supNodeMap.put(supNode.getId(), supNode);
     }
 
     public void setSupNode(Map<String, String> supNode){
