@@ -24,21 +24,22 @@ public class HeartbeatSender implements Job {
         this.cascadeContext = CascadeContext.get();
     }
 
-    private String sendHeartbeat(String targetIP) throws Exception {
+    private String sendHeartbeat(String targetIP, int targetPort) throws Exception {
         NodeInfoDetail localNodeInfo = cascadeContext.getNodeManeger().getLocalNodeInfo();
         Map<String, String> msg = localNodeInfo.getRegistMSG("2");
         msg.put("type", MessageType.heartbeats.name());
         //msg.put("timestamp", String.valueOf(System.currentTimeMillis()));
-       return cascadeContext.sendJson(msg, targetIP, 5000);
+       return cascadeContext.sendJson(msg, targetIP, targetPort,5000);
     }
 
     @Override
     public void execute(JobExecutionContext context){
         JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
         String targetIp = jobDataMap.getString("targetIp");
+        int targetPort = jobDataMap.getInt("targetPort");
 
         try {
-            String res = sendHeartbeat(targetIp);
+            String res = sendHeartbeat(targetIp, targetPort);
             if(res.contains("ok"))
                 cascadeContext.getHeartbeatManager()
                         .updateSupHeartbeatTime(jobDataMap.getString("targetId"));

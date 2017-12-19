@@ -17,7 +17,7 @@ import java.util.Map;
  */
 public class NodeManeger {
 
-    private final Logger logger = Logger.getLogger(NodeManeger.class);
+    private static final Logger logger = Logger.getLogger(NodeManeger.class);
 
     private CascadeContext context;
     private NodeInfoDetail local;
@@ -109,6 +109,9 @@ public class NodeManeger {
                     value = resultSet.getString("connect_status");
                     if(value != null)nodeInfoDetail.setConnectStatus(value);
 
+                    //配置默认端口
+                    nodeInfoDetail.setPort(cascadeConf.getPort());
+
                     setNodeInfoDetail(nodeInfoDetail);
                 }
             } catch (SQLException e) {
@@ -116,16 +119,6 @@ public class NodeManeger {
             } finally {
                 DBCommon.close(null, statement, resultSet);
             }
-        }
-    }
-
-    public void addAndUpdateNode(String nodeId, NodeInfoDetail.NodeLevel level, Map<String, Object> detail){
-
-        switch (level){
-            case supervisor:
-                break;
-            case subordinate:
-                break;
         }
     }
 
@@ -178,6 +171,7 @@ public class NodeManeger {
         nodeInfoDetail.setName("武汉银行-skyeye");
         nodeInfoDetail.setProvince("湖北");
         nodeInfoDetail.setCity("武汉");
+        nodeInfoDetail.setPort(context.getCascadeConf().getPort());
         nodeInfoDetail.setHostname("local");
 
         CascadeConf cascadeConf = context.getCascadeConf();
@@ -245,6 +239,18 @@ public class NodeManeger {
 
             value = nodeInfo.get("connectStatus");
             if (value != null) nodeInfoDetail.setConnectStatus(value);
+
+            value = nodeInfo.get("port");
+            if (value != null){
+                try {
+                    nodeInfoDetail.setPort(Integer.parseInt(value));
+                } catch (NumberFormatException e) {
+                    nodeInfoDetail.setPort(CascadeContext.get().getCascadeConf().getPort());
+                    logger.error(String.format("端口信息错误，使用默认端口。\n\t %s", nodeInfo), e);
+                }
+            }else {
+                nodeInfoDetail.setPort(CascadeContext.get().getCascadeConf().getPort());
+            }
 
             return nodeInfoDetail;
         }

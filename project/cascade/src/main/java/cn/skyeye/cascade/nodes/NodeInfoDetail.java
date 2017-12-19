@@ -19,6 +19,7 @@ public class NodeInfoDetail {
     private String id;
     private String parentId;
     private String ip;
+    private int port;
     private String hostname;
     //单位名称
     private String name;
@@ -46,6 +47,7 @@ public class NodeInfoDetail {
         this.id = nodeInfoDetail.id;
         this.parentId = nodeInfoDetail.parentId;
         this.ip = nodeInfoDetail.ip;
+        this.port = nodeInfoDetail.port;
         this.hostname = nodeInfoDetail.hostname;
         this.name = nodeInfoDetail.name;
         this.province = nodeInfoDetail.province;
@@ -62,6 +64,7 @@ public class NodeInfoDetail {
         map.put("id", id);
         map.put("status", status);
         map.put("ip", ip);
+        map.put("port", String.valueOf(port));
         map.put("parentId", parentId);
         map.put("name", name);
         map.put("province", province);
@@ -129,6 +132,14 @@ public class NodeInfoDetail {
             this.city = city;
     }
 
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
     public int getStatus() {
         return status;
     }
@@ -175,6 +186,7 @@ public class NodeInfoDetail {
         sb.append("id='").append(id).append('\'');
         sb.append(", parentId='").append(parentId).append('\'');
         sb.append(", ip='").append(ip).append('\'');
+        sb.append(", port='").append(port).append('\'');
         sb.append(", hostname='").append(hostname).append('\'');
         sb.append(", name='").append(name).append('\'');
         sb.append(", province='").append(province).append('\'');

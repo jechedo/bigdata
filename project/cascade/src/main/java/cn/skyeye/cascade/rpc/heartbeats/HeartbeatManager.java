@@ -45,9 +45,14 @@ public class HeartbeatManager {
         this.receiver = new HeartbeatReceiver(cascadeContext);
     }
 
-    public void startHeartbeatSender(String id, String targetIp) throws SchedulerException {
+    public void startHeartbeatSender(String id,  String targetIp) throws SchedulerException {
+      startHeartbeatSender(id, targetIp, cascadeContext.getCascadeConf().getPort());
+    }
+
+    public void startHeartbeatSender(String id,  String targetIp, int port) throws SchedulerException {
         JobDetail jobDetail = JobBuilder.newJob(HeartbeatSender.class)
                 .usingJobData("targetIp", targetIp)
+                .usingJobData("targetPort", port)
                 .usingJobData("targetId", id)
                 .withIdentity(id, "skyeye-heartbeats")
                 .build();

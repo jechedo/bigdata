@@ -68,7 +68,8 @@ public class RegistMessageHandler extends MessageHandler {
             try {
                 //启动心跳
                 cascadeContext.getHeartbeatManager()
-                        .startHeartbeatSender(remoteNodeInfo.getId(), remoteNodeInfo.getIp());
+                        .startHeartbeatSender(remoteNodeInfo.getId(),
+                                remoteNodeInfo.getIp(), remoteNodeInfo.getPort());
                 //添加到上级列表
                 nodeManeger.setSupNode(remoteNodeInfo);
 
@@ -78,7 +79,7 @@ public class RegistMessageHandler extends MessageHandler {
                 logger.info(String.format("收到上级注册请求，并处理完成。上级信息如下：\n\t %s", remoteNodeInfo));
             } catch (SchedulerException e) {
                 logger.error(String.format("启动心跳传输失败, NodeInfo: \n\t %s", remoteNodeInfo) ,e);
-                //移除可能存在的 心跳发送器
+                //移除可能存在的 心跳发送任务
                 cascadeContext.getHeartbeatManager().shutdownHeartbeatSender(remoteNodeInfo.getId());
                 //反馈数据
                 res = Maps.newHashMap();
