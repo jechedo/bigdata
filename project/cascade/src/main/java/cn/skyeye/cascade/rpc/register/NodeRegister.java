@@ -33,7 +33,7 @@ public class NodeRegister {
     public void registSupervisor(String targetIP, NodeInfoDetail localInfo) throws Exception {
         Map<String, String> registMSG = localInfo.getRegistMSG("1");
         registMSG.put("type", MessageType.register.name());
-        String reponse = cascadeContext.sendJson(registMSG, targetIP, 5000);
+        String reponse = cascadeContext.sendJson(registMSG, targetIP, cascadeContext.getCascadeConf().getPort(),5000);
         System.err.println(reponse);
     }
 }

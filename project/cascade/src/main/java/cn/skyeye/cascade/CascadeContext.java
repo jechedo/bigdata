@@ -104,7 +104,11 @@ public class CascadeContext {
     }
 
     public String sendJson(Object message, String targetIP, int timeOutMs) throws Exception{
-        NodeInfo nodeInfo = new NodeInfo(localID, targetIP, cascadeConf.getPort());
+        return sendJson(message, targetIP,  cascadeConf.getPort(), timeOutMs);
+    }
+
+    public String sendJson(Object message, String targetIP, int port, int timeOutMs) throws Exception{
+        NodeInfo nodeInfo = new NodeInfo(localID, targetIP, port);
         final SettableFuture<ByteBuffer> result = SettableFuture.create();
         final List<Throwable> throwables = Lists.newArrayListWithCapacity(1);
         transferService.sendJson(nodeInfo, Jsons.obj2JsonString(message),  new RpcResponseCallback() {
