@@ -61,7 +61,7 @@ public class RegistMessageHandler extends MessageHandler {
         if(nodeManeger.hasSupNode()){
             //已经存在一个上级了 拒绝注册
             res = Maps.newHashMap();
-            res.put("registrationStatus", RegistrationStatus.refuse.name());
+            res.put("registrationStatus", String.valueOf(RegistrationStatus.refuse.statusID()));
             res.put("registrationMsg", "There is already a superior!");
             logger.warn(String.format("收到上级注册请求，已存在上级，拒绝注册，注册信息如下：\n\t %s", remoteNodeInfo));
         }else{
@@ -75,7 +75,7 @@ public class RegistMessageHandler extends MessageHandler {
 
                 //反馈（本级信息）
                 res = nodeManeger.getLocalNodeInfo().getRegistMSG("2");
-                res.put("registrationStatus", RegistrationStatus.success.name());
+                res.put("registrationStatus", String.valueOf(RegistrationStatus.success.statusID()));
                 logger.info(String.format("收到上级注册请求，并处理完成。上级信息如下：\n\t %s", remoteNodeInfo));
             } catch (SchedulerException e) {
                 logger.error(String.format("启动心跳传输失败, NodeInfo: \n\t %s", remoteNodeInfo) ,e);
@@ -83,7 +83,7 @@ public class RegistMessageHandler extends MessageHandler {
                 cascadeContext.getHeartbeatManager().shutdownHeartbeatSender(remoteNodeInfo.getId());
                 //反馈数据
                 res = Maps.newHashMap();
-                res.put("registrationStatus", RegistrationStatus.refuse.name());
+                res.put("registrationStatus", String.valueOf(RegistrationStatus.refuse.statusID()));
                 res.put("registrationMsg", "start heartbeat failed!");
             }
         }

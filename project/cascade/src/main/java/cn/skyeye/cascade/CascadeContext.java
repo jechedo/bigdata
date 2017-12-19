@@ -147,11 +147,9 @@ public class CascadeContext {
 
     public static void main(String[] args) throws Exception {
 
-        //CascadeContext cascadeContext = CascadeContext.get();
-
         CascadeContext cascadeContext = CascadeContext.get();
         NodeRegister nodeRegister = cascadeContext.getNodeRegister();
-        nodeRegister.registSupervisor("172.24.66.212", cascadeContext.nodeManeger.getLocalNodeInfo());
+        nodeRegister.registSupervisor("172.24.66.212", 60088, cascadeContext.nodeManeger.getLocalNodeInfo());
 
         Thread.sleep(100000000000L);
     }

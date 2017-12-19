@@ -42,4 +42,15 @@ public enum RegistrationStatus {
         }
         return null;
     }
+
+    public static RegistrationStatus getRegistrationStatus(int statusID){
+
+        switch (statusID){
+            case 1      : return success;
+            case -1     : return regist_wait;
+            case 0      : return refuse;
+            case 3      : return delete;
+        }
+        return null;
+    }
 }
