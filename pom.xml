@@ -82,7 +82,7 @@
         <commons.logging.version>1.2</commons.logging.version>
         <commons-httpclient.version>3.1</commons-httpclient.version>
 
-        <netty.version>4.0.29.Final</netty.version>
+        <netty.version>4.0.47.Final</netty.version>
         <joda-time.verison>2.9.2</joda-time.verison>
 
         <elasticsearch.version>5.1.2</elasticsearch.version>

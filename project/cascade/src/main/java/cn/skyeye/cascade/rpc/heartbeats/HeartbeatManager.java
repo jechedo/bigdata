@@ -2,6 +2,7 @@ package cn.skyeye.cascade.rpc.heartbeats;
 
 import cn.skyeye.cascade.CascadeContext;
 import cn.skyeye.cascade.nodes.NodeInfoDetail;
+import cn.skyeye.cascade.rpc.NodeStatus;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
@@ -71,19 +72,37 @@ public class HeartbeatManager {
         supNodeInfo.setLastConnectTime(System.currentTimeMillis());
     }
 
+    void updateSubHeartbeatTime(String subId){
+        NodeInfoDetail subNodeInfo = cascadeContext.getNodeManeger().getSubNodeInfo(subId);
+        subNodeInfo.setLastConnectTime(System.currentTimeMillis());
+    }
+
     public List<NodeInfoDetail> getSupNodeConnectStatus(){
         Map<String, NodeInfoDetail> supNodeMap = cascadeContext.getNodeManeger().getSupNodeMap();
         List<NodeInfoDetail> sups = Lists.newArrayListWithCapacity(supNodeMap.size());
         supNodeMap.forEach((id, info) ->{
-            NodeInfoDetail nodeInfoDetail = new NodeInfoDetail(info);
-            long lastConnectTime = nodeInfoDetail.getLastConnectTime();
-            if(System.currentTimeMillis() - lastConnectTime > heartbeatSecondInterval * 1000 * 2){
-                //nodeInfoDetail.setRegistrationStatus();
-            }
-
+            NodeInfoDetail nodeInfoDetail = getNodeInfoDetailWithConnectStatus(info);
             sups.add(nodeInfoDetail);
         });
         return sups;
+    }
+
+    public List<NodeInfoDetail> getSubNodeConnectStatus(){
+        Map<String, NodeInfoDetail> subNodeMap = cascadeContext.getNodeManeger().getSubNodeMap();
+        List<NodeInfoDetail> subs = Lists.newArrayListWithCapacity(subNodeMap.size());
+        subNodeMap.forEach((id, info) ->{
+            NodeInfoDetail nodeInfoDetail = getNodeInfoDetailWithConnectStatus(info);
+            subs.add(nodeInfoDetail);
+        });
+        return subs;
+    }
+
+    private NodeInfoDetail getNodeInfoDetailWithConnectStatus(NodeInfoDetail info) {
+        NodeInfoDetail nodeInfoDetail = new NodeInfoDetail(info);
+        long lastConnectTime = nodeInfoDetail.getLastConnectTime();
+        NodeStatus nodeStatus = NodeStatus.getNodeStatus(System.currentTimeMillis() - lastConnectTime);
+        nodeInfoDetail.setConnectStatus(nodeStatus.status());
+        return nodeInfoDetail;
     }
 
 
