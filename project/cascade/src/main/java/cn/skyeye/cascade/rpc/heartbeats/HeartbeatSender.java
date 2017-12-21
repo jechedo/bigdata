@@ -44,7 +44,7 @@ public class HeartbeatSender implements Job {
                 cascadeContext.getHeartbeatManager()
                         .updateSupHeartbeatTime(jobDataMap.getString("targetId"));
         } catch (Exception e) {
-            logger.error(String.format("发送心跳失败，上级IP为：%s", targetIp), e);
+            logger.error(String.format("发送心跳失败，上级：%s:%s", targetIp, targetPort), e);
         }
     }
 }
