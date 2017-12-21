@@ -134,9 +134,6 @@ public class NodeManeger {
         this.supNodeMap.put(supNode.getId(), supNode);
     }
 
-    public void setSupNode(Map<String, String> supNode){
-
-    }
 
     public Map<String, NodeInfoDetail> getSupNodeMap() {
         return supNodeMap;
@@ -159,7 +156,7 @@ public class NodeManeger {
     }
 
     public void addSubNode(NodeInfoDetail subNode){
-
+        this.subNodeMap.put(subNode.getId(), subNode);
     }
 
     private NodeInfoDetail localInfo(){

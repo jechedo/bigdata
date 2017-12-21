@@ -46,6 +46,7 @@ public class NodeRegister {
         String registration = res.get("registrationStatus");
         int statusID = Integer.parseInt(registration);
         RegistrationStatus registrationStatus = RegistrationStatus.getRegistrationStatus(statusID);
+        System.out.println(registrationStatus);
         switch (registrationStatus){
             case refuse:
                 //
